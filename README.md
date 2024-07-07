@@ -35,7 +35,8 @@ The object stores information such as:
 This object stores the information for a single machine:
 - Name
 - Image Data (Optional)
-- Construction cost (Optional
+- Construction cost (Optional)
+- IsBase (Some machines produce thing passively)
 
 #### Recipe Data
 Each Input -> Process -> Output is stored in these objects:
@@ -49,6 +50,7 @@ Each Input -> Process -> Output is stored in these objects:
 Other general settings are stored here:
 - Rely on parts of recepies that use probabilities
 - Search depth max
+- Include multiple paths to produce more resources/optimize the paths (Happens when some recepies may boost output by including a fraction of the total resources (HDPE Pellets))
 
 The default page is similar to the linked site where there are final items to choose from and a way to generate the crafting path with all of the other stats the page shows. Stats will also include details such as minimum and maximum required machines, time spent, and steps required. In addition to that, it will give the option to hover over recepies and block or update certain items and processes which will update the tree after clicking update. If a non base item has no preceding recepies, it is highlighted for inspection. 
 
@@ -63,7 +65,13 @@ At the top of the page there will be a menus to interact with the backend.
 
 
 ## Technology Used
-The front end will be created with React while the back end will use Expressjs both with TypeScript. The back end will use docker to host the program.
+The front end will be created with NextJs via React while the back end will use Expressjs both with TypeScript. The back end will use docker to host the program.
+
+Instructions:
+Make sure to have Nodejs installed
+`npx create-next-app@latest`  was used to create the project.
+`npm run dev` started the local server for testing.
+`npm run build` put html files in the output folder for static use.
 
 
 

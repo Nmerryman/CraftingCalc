@@ -26,6 +26,11 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+header {
+  background-color: rgb(61, 61, 61); 
+  color: red;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'export',
-    basePath: '/CraftingCalc-Frontend/craftingcalc'
+    basePath: '/CraftingCalc-Frontend'
 };
 
 export default nextConfig;

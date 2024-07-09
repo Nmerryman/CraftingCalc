@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from "react";
+import { KeyboardEvent } from "react";
 import { LinkBtn } from "./components/button";
 
 
@@ -16,19 +17,32 @@ function CheckBackendStatus() {
 
 function PullPreset() {
     const element = document.getElementById("preset_input") as HTMLInputElement;
-    const value = element?.value;
+    var value = element?.value;
+    if (!value) {
+        value = "Dev";
+    }
     console.log("Preset is " + value);
+}
+
+
+function OnEnterCall(func: Function) {
+    return (ele: KeyboardEvent) => {
+        if (ele.key == "Enter") {
+            func()
+        }
+    }
 }
 
 
 function PresetMenu() {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
 
-    useEffect(() => {
-        // The default is set to dev while we are in dev mode for now
-        const element = document.getElementById("preset_input") as HTMLInputElement;
-        element.value = "Dev";
-    })
+    // useEffect(() => {
+    //     // The default is set to dev while we are in dev mode for now
+    //     const element = document.getElementById("preset_input") as HTMLInputElement;
+    //     element.value = "Dev";
+    //     PullPreset();
+    // })
 
     return (
         <div>
@@ -39,7 +53,7 @@ function PresetMenu() {
                     <option value="Empty"/>
                     <option value="Default"/>
                 </datalist>
-                <input autoComplete="on" list="preset_names" placeholder="Dev" id="preset_input"></input>
+                <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset()}} className="text-center bg-white px-8 outline"></input>
             </div>
             
@@ -64,14 +78,23 @@ function Header() {
 }
 
 
+function FinalItemSelector() {
+    return (
+        <div>
+
+        </div>
+    )
+}
 
 
 
 export default function Main() {
+
     return (
         <div className="">
-            <Header />
+            <Header/>
             <h1>TEXT HERE</h1>
         </div>
     );
 }
+

@@ -1,5 +1,6 @@
 'use client'
 
+import { SyntheticEvent } from "react";
 
 export interface BtnParam {
     text: string;
@@ -17,8 +18,21 @@ function BtnAction(url?: string, debugText?: string) {
     }
 }
 
+
+function HoverEffect(event: SyntheticEvent) {
+    let ele = event.target as HTMLButtonElement;
+    ele.style.backgroundColor = "#505050";
+}
+
+
+function RemoveHoverEffect(event: SyntheticEvent) {
+    let ele = event.target as HTMLButtonElement;
+    ele.style.backgroundColor = "";
+}
+
 export const LinkBtn: React.FC<BtnParam> = ({text, url, debugText}) => {
+
     return (
-        <input type="button" value={text} onClick={() => BtnAction(url, debugText)}></input>
+        <input style={{padding: "0px 100px"}} type="button" value={text} onClick={() => BtnAction(url, debugText)} onMouseEnter={(ele) => {HoverEffect(ele)}} onMouseLeave={(ele) => {RemoveHoverEffect(ele)}}></input>
     )
 }

@@ -73,7 +73,8 @@ The front end will be created with NextJs via React while the back end will use 
 
 Instructions:
 Make sure to have Nodejs installed
-`npx create-next-app@latest`  was used to create the project.
+`npx create-next-app@latest`  was used to create the project. (Not required to start working)
+Instead run `npm install` in the same directory as the `package.json` file.
 `npm run dev` started the local server for testing.
 `npm run build` put html files in the output folder for static use.
 

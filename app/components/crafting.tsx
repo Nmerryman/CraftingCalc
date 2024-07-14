@@ -10,34 +10,29 @@ export type CraftingAction = {
 }
 
 
-export function craftingReducer(state: CraftingData, action: CraftingAction): any {
+export function craftingReducer(state: CraftingData, action: CraftingAction): CraftingData {
+    
     switch (action.type) {
     case "log":
         console.log(state);
         return state;
     case "reset":
-        state.resources = {};
-        state.processes = {};
-        state.recipes = [];
-        return state;
+        return new CraftingData();
     case "set resources":
-        state.resources = action.recordValue as Record<string, Resource>;
-        return state;
+        return new CraftingData(action.recordValue, state.processes, state.recipes);
     case "set processes":
-        state.processes = action.recordValue as Record<string, Process>;
-        return state;
+        return new CraftingData(state.resources, action.recordValue, state.recipes);
     case "set recipes":
-        state.recipes = action.arrayValue as Array<Recipe>;
-        return state;
+        return new CraftingData(state.resources, state.processes, action.arrayValue);
     case "set resource":
         state.setResource(action.anyValue as Resource);
-        return state;
+        return state.shallowClone();  // untested, but this should force render updates
     case "set process":
         state.setProcess(action.anyValue as Process);
-        return state;
+        return state.shallowClone();
     case "set recipe":
         state.setRecipe(action.anyValue as Recipe);
-        return state;
+        return state.shallowClone();
     default:
         console.log("Unkown action: " + action.type);
         return state

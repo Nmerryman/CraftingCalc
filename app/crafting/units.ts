@@ -62,11 +62,11 @@ export class Stack {
 
 export class Recipe {
     constructor(
-        public processUsed: Process, 
+        public processUsed: string, 
         public inputResources: Array<Stack>, 
         public outputResources: Array<Stack>, 
-        public outputBonusChances: Array<[string, ProbabilityStyle]>, 
-        public timeSpent: number,
+        public outputBonusChances: Array<[string, ProbabilityStyle]> = [], 
+        public timeSpent: number = 0,
         public id?: number  // This is optional because we can set it as it gets inserted into the collection
     ) {}
 
@@ -109,17 +109,13 @@ export class CraftingData {
     private rId: number = 0;  // Used to register recipes and give them unique ids/names
 
 
-    constructor(resources = {}, processes = {}, recipes = []) {
+    constructor(resources: Record<string, Resource> = {}, processes: Record<string, Process> = {}, recipes: Array<Recipe> = []) {
         this.resources = resources;
         this.processes = processes;
         this.recipes = recipes;
 
         // Validate that all recipes have id's set to comply with expectations later
-        for (let recipe of this.recipes) {
-            if (!recipe.id) {
-                recipe.id = this.rId++;
-            }
-        }
+        this.validateRecipeIds();
     }
 
     setResource(m: Resource) {
@@ -131,6 +127,9 @@ export class CraftingData {
     }
 
     setRecipe(r: Recipe) {
+        if (this.recipes.length > 0) {  // Hack to set a safe current id
+            this.rId = this.recipes[this.recipes.length - 1].id! + 1
+        }
         if (!r.id) {
             r.id = this.rId++;
         }
@@ -164,5 +163,17 @@ export class CraftingData {
         }
         return matches;
 
+    }
+
+    validateRecipeIds() {
+        // Just set them all. That way there will never be an issue with gaps
+        this.rId = 0;
+        for (let r of this.recipes) {
+            r.id = this.rId++;
+        }
+    }
+
+    shallowClone() {
+        return new CraftingData(this.resources, this.processes, this.recipes)
     }
 }

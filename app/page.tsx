@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
-import { CraftingData } from "./crafting/units";
+import { CraftingData, Process, Recipe, Resource, Stack } from "./crafting/units";
 import { PopupEditor, togglePopupCallback } from "./components/popup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
@@ -18,11 +18,27 @@ function CheckBackendStatus() {
 }
 
 
-function devGenResources() {
-
+// These three functions exist to make dev testing not as messy.
+function devGenResources(): Record<string, Resource> {
     return {
-
+        "stick": new Resource("stick"),
+        "iron": new Resource("iron"),
+        "iron ore": new Resource("iron ore"),
+        "pickaxe": new Resource("pickaxe"),
     }
+}
+
+function devGenProcesses(): Record<string, Process> {
+    return {
+        "crafting table": new Process("crafting table"),
+        "furnace": new Process("furnace")
+    }
+}
+
+function devGenRecipes(): Array<Recipe> {
+    return [
+        new Recipe("furnace", [new Stack("iron ore")], [new Stack("iron")])
+    ]
 }
 
 
@@ -39,8 +55,14 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     if (value == "Empty" || value == "Default") {
         return
     } else if (value == "Dev") {
-        craftingDispatch({type: "set resources", recordValue: {}})
+        craftingDispatch({type: "set resources", recordValue: devGenResources()});
+        craftingDispatch({type: "set processes", recordValue: devGenProcesses()});
+        craftingDispatch({type: "set recipes", arrayValue: devGenRecipes()});
+    } else {
+        console.log("Unkown preset set: " + value);
     }
+
+    craftingDispatch({type: "log"});
 
 
 }
@@ -97,6 +119,39 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
 }
 
 
+function ListResources({craftingData}: {craftingData: CraftingData}) {
+    return (
+        <ul>
+            <span className="font-bold">Resource List</span>
+            {Object.keys(craftingData.resources).map((rkey) => {return <li key={craftingData.resources[rkey].name}>{craftingData.resources[rkey].name}</li>})}
+        </ul>
+    )
+}
+
+
+function ListProcesses({craftingData}: {craftingData: CraftingData}) {
+    return (
+        <ul>
+            <span className="font-bold">Process List</span>
+            {Object.keys(craftingData.processes).map((pkey) => {return <li key={craftingData.processes[pkey].name}>{craftingData.processes[pkey].name}</li>})}
+        </ul>
+    )
+}
+
+
+
+
+
+function SelectionDisplay({craftingData}: {craftingData: CraftingData}) {
+    return (
+        <div className="flex justify-around">
+            <ListResources craftingData={craftingData}/>
+            <ListProcesses craftingData={craftingData}/>
+        </div>
+    )
+}
+
+
 export default function Main() {
     const [craftingData, dispatchData] = useReducer(craftingReducer, initialCraftingData);
     const [popupState, setPopupState] = useState(false);
@@ -106,6 +161,7 @@ export default function Main() {
             <Header craftingDispatch={dispatchData}/>
             <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor popupState={popupState} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
+            <SelectionDisplay craftingData={craftingData}/>
         </div>
     );
 }

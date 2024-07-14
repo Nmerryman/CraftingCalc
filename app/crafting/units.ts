@@ -21,7 +21,7 @@ class BaseThing {
 }
 
 
-export class Material extends BaseThing {
+export class Resource extends BaseThing {
     // What if there are gasses in decimal form
     baseQuantity: number = 1;
 
@@ -52,8 +52,8 @@ export class ProbabilityStyle {
 
 export class Stack {
     constructor(
-        public itemName: string, 
-        public amount: number
+        public resourceName: string, 
+        public amount: number = 1
     ) {}
 
 }
@@ -63,8 +63,8 @@ export class Stack {
 export class Recipe {
     constructor(
         public processUsed: Process, 
-        public inputItems: Array<Stack>, 
-        public outputItems: Array<Stack>, 
+        public inputResources: Array<Stack>, 
+        public outputResources: Array<Stack>, 
         public outputBonusChances: Array<[string, ProbabilityStyle]>, 
         public timeSpent: number,
         public id?: number  // This is optional because we can set it as it gets inserted into the collection
@@ -74,27 +74,27 @@ export class Recipe {
     // We could absolutly cache these methods.
     _getUniqueNames(array: Array<Stack>): Array<string> {
         let names: Array<string> = [];
-        for (let item of array) {
-            if (!names.includes(item.itemName)) {
-                names.push(item.itemName);
+        for (let resource of array) {
+            if (!names.includes(resource.resourceName)) {
+                names.push(resource.resourceName);
             }
         }
         return names;
     }
 
     getInputNames(): Array<string> {
-        return this._getUniqueNames(this.inputItems);
+        return this._getUniqueNames(this.inputResources);
     }
 
     getOutputNames(): Array<string> {
-        return this._getUniqueNames(this.outputItems);
+        return this._getUniqueNames(this.outputResources);
     }
 
     getOutputNamesChances(): Array<string> {
         let names: Array<string> = [];
-        for (let item of this.outputBonusChances) {
-            if (!names.includes(item[0])) {
-                names.push(item[0]);
+        for (let resource of this.outputBonusChances) {
+            if (!names.includes(resource[0])) {
+                names.push(resource[0]);
             }
         }
         return names;
@@ -103,14 +103,14 @@ export class Recipe {
 
 
 export class CraftingData {
-    materials: Record<string, Material>;
+    resources: Record<string, Resource>;
     processes: Record<string, Process>;
     recipes: Array<Recipe>;
-    private rId: number = 0;
+    private rId: number = 0;  // Used to register recipes and give them unique ids/names
 
 
-    constructor(materials = {}, processes = {}, recipes = []) {
-        this.materials = materials;
+    constructor(resources = {}, processes = {}, recipes = []) {
+        this.resources = resources;
         this.processes = processes;
         this.recipes = recipes;
 
@@ -122,8 +122,8 @@ export class CraftingData {
         }
     }
 
-    setMaterial(m: Material) {
-        this.materials[m.name] = m;
+    setResource(m: Resource) {
+        this.resources[m.name] = m;
     }
 
     setProcess(p: Process) {
@@ -141,8 +141,8 @@ export class CraftingData {
         return this.recipes.find((element) => {element.id == id})
     }
 
-    removeMaterial(name: string) {
-        delete this.materials[name];
+    removeResource(name: string) {
+        delete this.resources[name];
     }
 
     removeProcess(name: string) {
@@ -154,7 +154,7 @@ export class CraftingData {
     }
 
     findRecipesFor(name: string): Array<number> {
-        // Takes the name of a material as input.
+        // Takes the name of a Resource as input.
         // returns the id of each matched recipe. This is to stay in line with all of the other name lookups.
         let matches: Array<number> = []
         for (let recipe of this.recipes) {

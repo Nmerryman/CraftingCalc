@@ -1,8 +1,11 @@
 'use client'
 
-import { useEffect } from "react";
-import { KeyboardEvent } from "react";
+import { Dispatch, SetStateAction, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
+import { CraftingData } from "./crafting/units";
+import { PopupEditor, togglePopupCallback } from "./components/popup";
+import { CraftingAction, craftingReducer } from "./components/crafting";
+import { OnEnterCall } from "./utils/onEnter";
 
 
 function CheckBackendStatus() {
@@ -15,26 +18,35 @@ function CheckBackendStatus() {
 }
 
 
-function PullPreset() {
+function devGenResources() {
+
+    return {
+
+    }
+}
+
+
+function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
         value = "Dev";
     }
     console.log("Preset is " + value);
-}
+    craftingDispatch({type: "reset"});
+    craftingDispatch({type: "log"});
 
-
-function OnEnterCall(func: Function) {
-    return (ele: KeyboardEvent) => {
-        if (ele.key == "Enter") {
-            func()
-        }
+    if (value == "Empty" || value == "Default") {
+        return
+    } else if (value == "Dev") {
+        craftingDispatch({type: "set resources", recordValue: {}})
     }
+
+
 }
 
 
-function PresetMenu() {
+function PresetMenu({craftingDispatch}: {craftingDispatch: Dispatch<CraftingAction>}) {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
 
     // useEffect(() => {
@@ -54,7 +66,7 @@ function PresetMenu() {
                     <option value="Default"/>
                 </datalist>
                 <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
-                <input type="submit" value="Load" onClick={() => {PullPreset()}} className="text-center bg-white px-8 outline"></input>
+                <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="text-center bg-white px-8 outline"></input>
             </div>
             
         </div>
@@ -62,7 +74,7 @@ function PresetMenu() {
 }
 
 
-function Header() {
+function Header({craftingDispatch}: {craftingDispatch: Dispatch<CraftingAction>}) {
     return (
         <div>
             <div className="text-3xl font-bold underline w-screen bg-slate-950 flex justify-center">
@@ -71,30 +83,34 @@ function Header() {
             <div className="flex justify-around ">
                 <LinkBtn text="Help" url="wiki" debugText="Clicked Help"/>
                 <LinkBtn text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
-                <PresetMenu/>
+                <PresetMenu craftingDispatch={craftingDispatch}/>
             </div>
         </div>
     )
 }
 
 
-function FinalItemSelector() {
+function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<CraftingAction>, popupToggle: () => void}) {
     return (
-        <div>
-
-        </div>
+        <input type="button" value={text} onClick={() => {dis({type: "log"}); popupToggle()}}/>
     )
 }
 
 
-
 export default function Main() {
+    const [craftingData, dispatchData] = useReducer(craftingReducer, initialCraftingData);
+    const [popupState, setPopupState] = useState(false);
 
     return (
         <div className="">
-            <Header/>
-            <h1>TEXT HERE</h1>
+            <Header craftingDispatch={dispatchData}/>
+            <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
+            <PopupEditor popupState={popupState} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
         </div>
     );
 }
+
+
+
+var initialCraftingData = new CraftingData();
 

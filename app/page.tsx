@@ -6,6 +6,7 @@ import { CraftingData, Process, Recipe, Resource, Stack } from "./crafting/units
 import { PopupEditor, togglePopupCallback } from "./components/popup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
+import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 
 
 function CheckBackendStatus() {
@@ -119,49 +120,20 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
 }
 
 
-function ListResources({craftingData}: {craftingData: CraftingData}) {
-    return (
-        <ul>
-            <span className="font-bold">Resource List</span>
-            {Object.keys(craftingData.resources).map((rkey) => {return <li key={craftingData.resources[rkey].name}>{craftingData.resources[rkey].name}</li>})}
-        </ul>
-    )
-}
-
-
-function ListProcesses({craftingData}: {craftingData: CraftingData}) {
-    return (
-        <ul>
-            <span className="font-bold">Process List</span>
-            {Object.keys(craftingData.processes).map((pkey) => {return <li key={craftingData.processes[pkey].name}>{craftingData.processes[pkey].name}</li>})}
-        </ul>
-    )
-}
-
-
-
-
-
-function SelectionDisplay({craftingData}: {craftingData: CraftingData}) {
-    return (
-        <div className="flex justify-around">
-            <ListResources craftingData={craftingData}/>
-            <ListProcesses craftingData={craftingData}/>
-        </div>
-    )
-}
-
 
 export default function Main() {
     const [craftingData, dispatchData] = useReducer(craftingReducer, initialCraftingData);
     const [popupState, setPopupState] = useState(false);
+
+    var initialcraftingRequests: Record<string, Stack> = {}
+    const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
 
     return (
         <div className="">
             <Header craftingDispatch={dispatchData}/>
             <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor popupState={popupState} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
-            <SelectionDisplay craftingData={craftingData}/>
+            <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
         </div>
     );
 }

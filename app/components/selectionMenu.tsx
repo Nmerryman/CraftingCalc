@@ -42,7 +42,7 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
     return (
         <ul>
             <span className="font-bold">Resource List</span>
-            {Object.values(craftingData.resources).map((rval) => {return <ResourceListItem resource={rval} dispatch={requestDispatch}/>})}
+            {Object.values(craftingData.resources).map((rval) => {return <ResourceListItem key={rval.name} resource={rval} dispatch={requestDispatch}/>})}
         </ul>
     )
 }
@@ -92,7 +92,7 @@ function ListRequests({requestState, requestDispatch}: {requestState: Record<str
     return (
         <ul>
             <span className="font-bold">Crafting Request</span>
-            {Object.values(requestState).map((rval) => {return <RequestListItem item={rval} requestDispatch={requestDispatch}/>})}
+            {Object.values(requestState).map((rval) => {return <RequestListItem key={rval.resourceName} item={rval} requestDispatch={requestDispatch}/>})}
         </ul>
     )
 }

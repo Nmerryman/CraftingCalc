@@ -2,19 +2,26 @@
 
 import { SyntheticEvent } from "react";
 
-export interface BtnParam {
-    text: string;
-    url: string;
+
+interface clickParam {
+    kind: "link"|"callback";
+    url?: string;
+    callback?: () => void;
     debugText?: string;
 }
+export interface BtnParam extends clickParam {
+    text: string;
+}
 
-function BtnAction(url?: string, debugText?: string) {
+function BtnAction({kind, url, debugText, callback}: clickParam) {
     if (debugText) {
         console.log(debugText);
     }
 
-    if (url) {
-        window.location.href = url;
+    if (kind == "link") {
+        window.location.href = url!;
+    } else {
+        callback!();
     }
 }
 
@@ -30,9 +37,10 @@ function RemoveHoverEffect(event: SyntheticEvent) {
     ele.style.backgroundColor = "";
 }
 
-export const LinkBtn: React.FC<BtnParam> = ({text, url, debugText}) => {
+export const LinkBtn: React.FC<BtnParam> = ({text, kind, url, debugText, callback}) => {
 
     return (
-        <input style={{padding: "0px 100px"}} type="button" value={text} onClick={() => BtnAction(url, debugText)} onMouseEnter={(ele) => {HoverEffect(ele)}} onMouseLeave={(ele) => {RemoveHoverEffect(ele)}}></input>
+        <input className="cursor-pointer w-full"  type="button" value={text} onClick={() => BtnAction({kind, url, debugText, callback})} onMouseEnter={(ele) => {HoverEffect(ele)}} onMouseLeave={(ele) => {RemoveHoverEffect(ele)}}></input>
     )
 }
+// style={{padding: "0px 100px"}}

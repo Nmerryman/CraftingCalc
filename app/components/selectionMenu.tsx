@@ -9,8 +9,10 @@ type RequestMenuAction = {
     value?: number
 }
 
+export type CraftingRequestType = Record<string, Stack>;
 
-export function requestMenuReducer(currentState: Record<string, Stack>, action: RequestMenuAction): Record<string, Stack> {
+
+export function requestMenuReducer(currentState: CraftingRequestType, action: RequestMenuAction): CraftingRequestType {
     let temp = {...currentState};
     switch (action.type) {
     case "set":
@@ -88,7 +90,7 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
 }
 
 
-function ListRequests({requestState, requestDispatch}: {requestState: Record<string, Stack>, requestDispatch: Dispatch<RequestMenuAction>}) {
+function ListRequests({requestState, requestDispatch}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <ul>
             <span className="font-bold">Crafting Request</span>
@@ -99,7 +101,7 @@ function ListRequests({requestState, requestDispatch}: {requestState: Record<str
 
 
 
-export function SelectionDisplay({craftingData, requestState, requestDispatch}: {craftingData: CraftingData, requestState: Record<string, Stack>, requestDispatch: Dispatch<RequestMenuAction>}) {
+export function SelectionDisplay({craftingData, requestState, requestDispatch}: {craftingData: CraftingData, requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <>
         <div className="flex justify-around">

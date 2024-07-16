@@ -6,7 +6,7 @@ import { CraftingData, Process, Recipe, Resource, Stack } from "./crafting/units
 import { PopupEditor, togglePopupCallback } from "./components/popup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
-import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
+import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 
 
 function CheckBackendStatus() {
@@ -76,11 +76,11 @@ function PresetMenu({craftingDispatch}: {craftingDispatch: Dispatch<CraftingActi
     //     // The default is set to dev while we are in dev mode for now
     //     const element = document.getElementById("preset_input") as HTMLInputElement;
     //     element.value = "Dev";
-    //     PullPreset();
+    //     PullPreset(craftingDispatch);
     // })
 
     return (
-        <div>
+        <div className="w-full">
             <CheckBackendStatus/>
             <div className="text-black">
                 <datalist id="preset_names">
@@ -104,8 +104,8 @@ function Header({craftingDispatch}: {craftingDispatch: Dispatch<CraftingAction>}
                 Crafting Site
             </div>
             <div className="flex justify-around ">
-                <LinkBtn text="Help" url="wiki" debugText="Clicked Help"/>
-                <LinkBtn text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
+                <LinkBtn kind="link" text="Help" url="wiki" debugText="Clicked Help"/>
+                <LinkBtn kind="link" text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
                 <PresetMenu craftingDispatch={craftingDispatch}/>
             </div>
         </div>
@@ -117,6 +117,21 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
     return (
         <input type="button" value={text} onClick={() => {dis({type: "log"}); popupToggle()}}/>
     )
+}
+
+
+export function CalculateButton({requestState}: {requestState: CraftingRequestType}) {
+    if (Object.keys(requestState).length > 0) {
+        return (
+            <div className="flex justify-center">
+                <LinkBtn kind="callback" text="Calculate" callback={() => {console.log("Start calculating, probably by updating some state.")}}/>
+            </div>
+        )
+    } else {
+        return (
+            <></>
+        )
+    }
 }
 
 
@@ -134,6 +149,7 @@ export default function Main() {
             <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor popupState={popupState} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
+            <CalculateButton requestState={craftingRequestState}/>
         </div>
     );
 }

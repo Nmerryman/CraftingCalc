@@ -7,6 +7,7 @@ import { PopupEditor, togglePopupCallback } from "./components/popup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
 import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
+import { ArrowPath, calcArrows, TextCircle } from "./components/svg";
 
 
 function CheckBackendStatus() {
@@ -120,7 +121,7 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
 }
 
 
-export function CalculateButton({requestState}: {requestState: CraftingRequestType}) {
+function CalculateButton({requestState}: {requestState: CraftingRequestType}) {
     if (Object.keys(requestState).length > 0) {
         return (
             <div className="flex justify-center">
@@ -136,6 +137,21 @@ export function CalculateButton({requestState}: {requestState: CraftingRequestTy
 
 
 
+function SVGTest() {
+    // 600 x 200 seems to be a decent svg size
+    let aCir = {x: 20, y: 100};
+    let bCir = {x: 250, y: 140};
+    let lineCalc = calcArrows(aCir, bCir);
+    return (
+        <svg className="bg-white w-full h-[50vh]" viewBox="0 0 600 200">
+            <TextCircle center={aCir} text="A Circle"/>
+            <TextCircle center={bCir} text="B Circle"/>
+            <ArrowPath start={lineCalc.a} end={lineCalc.b}/>
+        </svg>
+    )
+}
+
+
 export default function Main() {
     const [craftingData, dispatchData] = useReducer(craftingReducer, initialCraftingData);
     const [popupState, setPopupState] = useState(false);
@@ -149,6 +165,8 @@ export default function Main() {
             <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor popupState={popupState} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
+
+            <SVGTest/>
             <CalculateButton requestState={craftingRequestState}/>
         </div>
     );

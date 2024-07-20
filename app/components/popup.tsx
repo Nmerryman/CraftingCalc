@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import Popup from 'reactjs-popup'
 import 'reactjs-popup/dist/index.css'
 
@@ -37,6 +37,26 @@ export function togglePopupCallback(state: boolean, setter: Dispatch<SetStateAct
 // }
 
 export function PopupEditor() {
+    const [tab, setTab] = useState<string>('addItem');
+
+    const render = () => {
+        switch(tab) {
+            case 'addItem':
+                return (
+                    <div>
+                        <h2 className="popup_header text-center text-black">Add Item</h2>
+                        <label>
+                            Item Name: <input name="item_name" className="popup_text"></input>
+                        </label>
+                        <label>
+                            Item Name: <input name="item_name" className="popup_text"></input>
+                        </label>
+                    </div>
+                )
+        }
+    } 
+
+
     return (
         <div> 
             <Popup trigger=

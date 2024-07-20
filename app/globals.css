@@ -36,3 +36,11 @@ header {
     text-wrap: balance;
   }
 }
+
+.popup_button {
+  border: 1px solid #000000;
+  border-radius: 2px;
+  padding: 4px;
+  width: 15%;
+  margin-left: 25em;
+}

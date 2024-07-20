@@ -102,6 +102,39 @@ export class Recipe {
 }
 
 
+class recipeChainNode {
+    // src: [each item][each recipe]
+    src: recipeChainNode[][] = [];
+    constructor(public rId: number, public goal: string) {}
+}
+
+class recipeChainPathInfo {
+    // A recipeChain desision can be marked with [itemRecipeVal, ...]
+    // This is the path needed to get to the current place
+    path: Array<Array<number>> = [];
+    currentExcess: Array<string> = [];
+    currentCreated: Array<string> = [];
+    deadEnd: boolean = false;
+
+
+    constructor(public target: recipeChainNode) {}
+
+
+}
+
+class chainCollections {
+    consideredResources: Set<string> = new Set();
+    missingResources: Set<string> = new Set();  // Missing crafting entries
+    consideredRecipes: Set<number> = new Set();
+
+    currentPath: Array<Array<number>> = [];
+    nodes: Array<recipeChainPathInfo> = [];
+
+
+
+}
+
+
 export class CraftingData {
     resources: Record<string, Resource>;
     processes: Record<string, Process>;
@@ -137,7 +170,7 @@ export class CraftingData {
     }
 
     getRecipe(id: number): Recipe | undefined {
-        return this.recipes.find((element) => {element.id == id})
+        return this.recipes.find((element) => {return element.id == id})
     }
 
     removeResource(name: string) {
@@ -176,4 +209,73 @@ export class CraftingData {
     shallowClone() {
         return new CraftingData(this.resources, this.processes, this.recipes)
     }
+
+    createChainTree(start: recipeChainNode, dupeCheck: Set<string>) {
+        // We assume that the start has the recipe id and we are trying to fill in all of the src children
+        if (!this.getRecipe(start.rId)) {
+            console.log("Something went very wrong");
+            console.log(this.recipes);
+        } 
+
+        console.log(dupeCheck);
+        if (dupeCheck.size > 20) {
+            console.log("dupeCheck is probably in recursion. Killing.")
+            return;
+        }
+
+        for (let resourceName of this.getRecipe(start.rId)!.getInputNames()) {  // for every resource needed to complete the recipe
+
+            let tempItemRecipes = this.findRecipesFor(resourceName);  // Collect all recipes that could be used for this resource
+            let tempNodeArray: Array<recipeChainNode> = [];
+            for (let recipeId of tempItemRecipes) {
+                let dupeVal = JSON.stringify([recipeId, resourceName]);
+                if (!dupeCheck.has(dupeVal)) {  // Check if this part of the recipe has already been used in the chain
+                    let tempDupeCheck = new Set(dupeCheck);
+                    tempDupeCheck.add(dupeVal);  // Add current use to the dupe check
+                    let tempNode = new recipeChainNode(recipeId, resourceName);
+                    this.createChainTree(tempNode, tempDupeCheck);
+                    tempNodeArray.push(tempNode);
+                }
+            }
+            
+            start.src.push(tempNodeArray);
+        }
+    }
+
+    collectConsideredThings(start: recipeChainNode, collectionData: chainCollections) {
+        let storeCurrentPath = new Array(collectionData.currentPath);
+
+        collectionData.consideredRecipes.add(start.rId);
+        for (let resourceName of this.getRecipe(start.rId)!.getInputNames()) {
+            collectionData.consideredResources.add(resourceName);
+            if (this.findRecipesFor(resourceName).length == 0) {
+                collectionData.missingResources.add(resourceName);
+            }
+        }
+
+        for (let itemPart of start.src) {
+            
+        }
+
+    } 
+
+
+    calcChain(start: string) {
+        // Options hold all found paths to get to the item.
+        let options = [];
+        let dupeCheck: Set<string> = new Set();
+        for (let possibleRecipes of this.findRecipesFor(start)) {
+            let tempNode = new recipeChainNode(possibleRecipes, start);
+            this.createChainTree(tempNode, dupeCheck);
+            options.push(tempNode);
+        }
+
+        // Optimize to create the best tree
+        // I think we recommend the path that has the highest ratio of base items and if tied, the shortest path.
+
+        
+
+        return options;
+    }
+
 }

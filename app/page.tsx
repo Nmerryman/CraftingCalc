@@ -25,8 +25,9 @@ function devGenResources(): Record<string, Resource> {
     return {
         "stick": new Resource("stick"),
         "iron": new Resource("iron"),
-        "iron ore": new Resource("iron ore"),
+        "iron ore": new Resource("iron ore", {isBase: true}),
         "pickaxe": new Resource("pickaxe"),
+        "iron nuggets": new Resource("iron nuggets")
     }
 }
 
@@ -39,7 +40,10 @@ function devGenProcesses(): Record<string, Process> {
 
 function devGenRecipes(): Array<Recipe> {
     return [
-        new Recipe("furnace", [new Stack("iron ore")], [new Stack("iron")])
+        new Recipe("furnace", [new Stack("iron ore")], [new Stack("iron")]),
+        new Recipe("crafting table", [new Stack("iron nuggets", 9)], [new Stack("iron")]),
+        new Recipe("crafting table", [new Stack("stick", 2), new Stack("iron", 3)], [new Stack("pickaxe")]),
+        new Recipe("crafting table", [new Stack("iron")], [new Stack("iron nuggets", 9)])
     ]
 }
 
@@ -52,7 +56,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
-    craftingDispatch({type: "log"});
+    // craftingDispatch({type: "log"});
 
     if (value == "Empty" || value == "Default") {
         return
@@ -159,6 +163,8 @@ export default function Main() {
     var initialcraftingRequests: Record<string, Stack> = {}
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
 
+    useEffect(() => {PullPreset(dispatchData)}, []);  // Run update once
+
     return (
         <div className="">
             <Header craftingDispatch={dispatchData}/>
@@ -168,6 +174,8 @@ export default function Main() {
 
             <SVGTest/>
             <CalculateButton requestState={craftingRequestState}/>
+            <LinkBtn kind="callback" text="test thing" callback={() => {
+                console.log(craftingData.calcChain("pickaxe"))}}/>
         </div>
     );
 }

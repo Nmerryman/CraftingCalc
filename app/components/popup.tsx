@@ -1,24 +1,28 @@
 import { useState, Dispatch, SetStateAction } from "react";
 import Popup from 'reactjs-popup'
 import 'reactjs-popup/dist/index.css'
-
-
-const AddItem: React.FC = () => {
-    <div>
-        <h2>Add New Item</h2>
-        <label>
-            Item Name: <input name="item_name" />
-        </label>
-    </div>
-}
-
-
+import {CraftingData, Resource, Process, Recipe} from '../crafting/units'
+import { CraftingAction, craftingReducer } from "../components/crafting"
 
 export function togglePopupCallback(state: boolean, setter: Dispatch<SetStateAction<boolean>>) {
     return () => {console.log("toggle"); setter(!state)};
 }
 
-
+const AddItem = (
+    <div>
+    <label>
+        Item Name: <input id="item_name" className="popup_text"></input>
+    </label>
+    <label>
+        Is this a Base Material? <input type="checkbox" id="base_check"></input>
+    </label>    
+    <div>
+        <label>
+            What is the Durability of the Item (If Applicable): <input type="number" id="durability" defaultValue={''} min={0} className="popup_text"></input>
+        </label>
+    </div>
+</div>
+)
 
 // export function PopupEditor({popupState, popupToggle}: {popupState: boolean, popupToggle: () => void}) {
 //     if (popupState) {
@@ -36,21 +40,57 @@ export function togglePopupCallback(state: boolean, setter: Dispatch<SetStateAct
 //     }
 // }
 
-export function PopupEditor() {
+export function PopupEditor({craft_act, CraftingData}: {craft_act: Dispatch<CraftingAction>, CraftingData: CraftingData}) {
     const [tab, setTab] = useState<string>('addItem');
+    
+    const submit = (craft_act: Dispatch<CraftingAction>, CraftingData: CraftingData, close: any) => {
+        switch(tab) {
+            case 'addItem':
+                const name = document.getElementById('item_name') as HTMLInputElement
+                const base = document.getElementById('base_check') as HTMLInputElement
+                const dur = document.getElementById('durability') as HTMLInputElement
+                const quant = document.getElementById('base_quant') as HTMLInputElement
 
-    const render = () => {
+                var name_val = name?.value
+                var base_val = base?.value
+                var dur_val = dur?.value
+                var quant_val = quant?.value
+
+                const resource = new Resource(name_val, {isBase: base_val, durability: dur_val, baseQuantity: quant_val})
+                craft_act({type: 'set resource', anyValue: resource})
+
+                console.log(CraftingData.resources[name_val])
+                close();
+        }
+    }
+
+    const render = (craft_act: Dispatch<CraftingAction>, CraftingData: CraftingData, close: any) => {
         switch(tab) {
             case 'addItem':
                 return (
                     <div>
-                        <h2 className="popup_header text-center text-black">Add Item</h2>
-                        <label>
-                            Item Name: <input name="item_name" className="popup_text"></input>
-                        </label>
-                        <label>
-                            Item Name: <input name="item_name" className="popup_text"></input>
-                        </label>
+                        {AddItem}
+                        <div>
+                            What is the Smallest Quantity Attainable? <input id="base_quant" className="popup_text"></input>
+                        </div>
+                        <div>
+                            <button className='text-black bg-gray-200 hover:bg-gray-400 popup_button'
+                                onClick= {() => submit(craft_act, CraftingData, close)}>
+                                    <h2>Submit</h2>
+                            </button>
+                        </div>
+                    </div>
+                );
+            case 'addProcess':
+                return (
+                    <div>
+                        {AddItem}
+                        <div>
+                            <button className='text-black bg-gray-200 hover:bg-gray-400 popup_button'
+                                onClick= {() => submit(craft_act, CraftingData, close)}>
+                                    <h2>Submit</h2>
+                            </button>
+                        </div>
                     </div>
                 )
         }
@@ -65,17 +105,18 @@ export function PopupEditor() {
                 {
                     close => (
                         <div className='modal'>
-                            <div className='text-black text-center'>
-                                <h2>Add Item</h2>
-                                <label>
-                                    Item Name: <input name="item_name" className="popup_text"></input>
-                                </label>
-                            </div>
-                            <div>
+                            <div className="flex">
                                 <button className='text-black bg-gray-200 hover:bg-gray-400 popup_button'
-                                    onClick= {() => close()}>
-                                        <h2>Add</h2>
+                                    onClick={() => setTab('addItem')}>
+                                        <h2>Add Item</h2>
                                     </button>
+                                <button className='text-black bg-gray-200 hover:bg-gray-400 popup_button'
+                                    onClick={() => setTab('addProcess')}>
+                                        <h2>Add Process</h2>
+                                    </button>
+                            </div>
+                            <div className='text-black text-center'>
+                                {render(craft_act, CraftingData, close)}
                             </div>
                         </div>
                     )

@@ -1,3 +1,7 @@
+import * as _ from "lodash";
+import path from "path";
+import { printArray } from "../utils/format";
+import { Ribeye } from "next/font/google";
 
 class BaseThing {
     name: string;
@@ -103,34 +107,43 @@ export class Recipe {
 
 
 class recipeChainNode {
-    // src: [each item][each recipe]
+    // src: [each item][each recipe]  ie. what are the source resources to finish the recipe
     src: recipeChainNode[][] = [];
     constructor(public rId: number, public goal: string) {}
 }
 
-class recipeChainPathInfo {
-    // A recipeChain desision can be marked with [itemRecipeVal, ...]
-    // This is the path needed to get to the current place
-    path: Array<Array<number>> = [];
-    currentExcess: Array<string> = [];
-    currentCreated: Array<string> = [];
-    deadEnd: boolean = false;
+// [path part: [item index, optional choice]]
+type craftingPathChoice = Array<Array<number>>;
+type craftingPath = Array<Array<number>>;  
+
+// class recipeChainPathInfo {
+//     // A recipeChain desision can be marked with [itemRecipeVal, ...]
+//     // This is the path needed to get to the current place, starting from the finished item
+//     path: craftingPath = [];
+//     currentExcess: Array<string> = [];  // These will probably change to stacks later
+//     currentCreated: Array<string> = [];
+//     deadEnd: boolean = false;
 
 
-    constructor(public target: recipeChainNode) {}
+//     constructor(public target: recipeChainNode) {}
 
 
-}
+// }
 
 class chainCollections {
-    consideredResources: Set<string> = new Set();
-    missingResources: Set<string> = new Set();  // Missing crafting entries
-    consideredRecipes: Set<number> = new Set();
 
-    currentPath: Array<Array<number>> = [];
-    nodes: Array<recipeChainPathInfo> = [];
+    // collection: []
+    decisionNodes: Array<craftingPathChoice> = [];
 
 
+    // findNode(value: craftingPath): recipeChainPathInfo|null {
+    //     for (let node of this.nodes) {
+    //         if (_.isEqual(node.path, value)) {
+    //             return node;
+    //         }
+    //     }
+    //     return null;
+    // }
 
 }
 
@@ -242,22 +255,30 @@ export class CraftingData {
         }
     }
 
-    collectConsideredThings(start: recipeChainNode, collectionData: chainCollections) {
-        let storeCurrentPath = new Array(collectionData.currentPath);
+    collectDecisionHashes(start: recipeChainNode, collectionData: chainCollections, pathHash: craftingPathChoice) {
 
-        collectionData.consideredRecipes.add(start.rId);
-        for (let resourceName of this.getRecipe(start.rId)!.getInputNames()) {
-            collectionData.consideredResources.add(resourceName);
-            if (this.findRecipesFor(resourceName).length == 0) {
-                collectionData.missingResources.add(resourceName);
+        start.src.forEach((item, item_pos) => {
+            if (item.length > 1) {  // This item has multiple recipes.
+                collectionData.decisionNodes.push(_.cloneDeep(pathHash).concat([[item_pos, item.length]]));
             }
-        }
-
-        for (let itemPart of start.src) {
-            
-        }
-
+            item.forEach((recipe, recipe_pos) => {
+                this.collectDecisionHashes(recipe, collectionData, _.cloneDeep(pathHash).concat([[item_pos, recipe_pos]]));
+            })
+        })
     } 
+
+    generateChoicePermutations(choices: Array<craftingPathChoice>): Array<Array<craftingPathChoice>> {
+        let maxes: Array<number> = [];
+        let indexes: Array<number> = [];
+
+        for(let choice of choices) {
+            maxes.push(choice[choice.length - 1][1]);
+            indexes.push(0);
+        }
+
+        
+
+    }
 
 
     calcChain(start: string) {
@@ -269,6 +290,14 @@ export class CraftingData {
             this.createChainTree(tempNode, dupeCheck);
             options.push(tempNode);
         }
+
+        // Find decisions
+        let collectionStore = new chainCollections();
+        options.forEach((option, option_index) => {
+            this.collectDecisionHashes(option, collectionStore, [[option_index]]);
+        })
+        // printArray(collectionStore.decisionNodes)
+        console.log(collectionStore)
 
         // Optimize to create the best tree
         // I think we recommend the path that has the highest ratio of base items and if tied, the shortest path.

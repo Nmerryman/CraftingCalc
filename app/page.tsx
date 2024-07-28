@@ -27,7 +27,10 @@ function devGenResources(): Record<string, Resource> {
         "iron": new Resource("iron"),
         "iron ore": new Resource("iron ore", {isBase: true}),
         "pickaxe": new Resource("pickaxe"),
-        "iron nuggets": new Resource("iron nuggets")
+        "iron nuggets": new Resource("iron nuggets"),
+        "planks": new Resource("planks"),
+        "oak logs": new Resource("oak logs"),
+        "birch logs": new Resource("birch logs")
     }
 }
 
@@ -43,7 +46,10 @@ function devGenRecipes(): Array<Recipe> {
         new Recipe("furnace", [new Stack("iron ore")], [new Stack("iron")]),
         new Recipe("crafting table", [new Stack("iron nuggets", 9)], [new Stack("iron")]),
         new Recipe("crafting table", [new Stack("stick", 2), new Stack("iron", 3)], [new Stack("pickaxe")]),
-        new Recipe("crafting table", [new Stack("iron")], [new Stack("iron nuggets", 9)])
+        new Recipe("crafting table", [new Stack("iron")], [new Stack("iron nuggets", 9)]),
+        new Recipe("crafting table", [new Stack("planks")], [new Stack("stick")]), 
+        new Recipe("crafting table", [new Stack("oak logs")], [new Stack("planks")]),
+        new Recipe("crafting table", [new Stack("birch logs")], [new Stack("planks")])
     ]
 }
 
@@ -167,15 +173,15 @@ export default function Main() {
 
     return (
         <div className="">
-            <Header craftingDispatch={dispatchData}/>
+            {/* <Header craftingDispatch={dispatchData}/>
             <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor popupState={popupState} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
 
             <SVGTest/>
-            <CalculateButton requestState={craftingRequestState}/>
+            <CalculateButton requestState={craftingRequestState}/> */}
             <LinkBtn kind="callback" text="test thing" callback={() => {
-                console.log(craftingData.calcChain("pickaxe"))}}/>
+                craftingData.calcChain("pickaxe")}}/>
         </div>
     );
 }

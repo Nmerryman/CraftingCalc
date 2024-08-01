@@ -1,7 +1,6 @@
 import * as _ from "lodash";
 import path from "path";
 import { printArray } from "../utils/format";
-import { Ribeye } from "next/font/google";
 
 class BaseThing {
     name: string;
@@ -113,8 +112,21 @@ class recipeChainNode {
 }
 
 // [path part: [item index, optional choice]]  // last optional choice may also store total choice options at location
-type craftingPathChoice = Array<Array<number>>;
-type craftingPath = Array<Array<number>>;  
+// type craftingPathChoice = Array<Array<number>>;
+type craftingPathPart = {
+    itemIndex: number;
+    choice: number;
+}
+
+class craftingPathChoice {
+    rootIndex: number
+    path: Array<craftingPathPart> = []
+
+    constructor(rootIndex: number) {
+        this.rootIndex = rootIndex;
+    }
+
+}
 
 
 class chainCollections {
@@ -131,6 +143,66 @@ class chainCollections {
     //     }
     //     return null;
     // }
+
+}
+
+
+
+class chainHuristicsStats {
+    steps: number = 0;
+    input: Array<Stack> = [];
+    inputStack: Array<Stack> = [];
+    output: Array<Stack> = [];
+    longest_depth: number = 0;
+    // fixed_src: recipeChainNode;
+
+    constructor(public src: Array<recipeChainNode>, public choices: Array<craftingPathChoice>, public data: CraftingData) {
+        // Evaluate attributes here
+
+        this.applyChoices();
+
+    }
+
+    applyChoices() {
+        // this.fixed_src = this.src[this.choices[0]];
+
+        for (let choice of this.choices) {
+
+
+
+        }
+
+    }
+
+    extractInfo(current: recipeChainNode | null, depth: number = 0) {
+        if (!current) {
+            return;
+        }
+        
+        this.steps++;
+        this.longest_depth = Math.max(this.longest_depth, this.steps);
+
+        let recipe = this.data.getRecipe(current.rId) as Recipe;
+
+        // Handle current recipe output
+        if (this.inputStack.length == 0) {  // Only happens on the root of the tree
+            for (let resource of recipe.outputResources) {
+                this.output.push(resource)
+            }
+        } else {
+            // Does our current recipe get used to satisfy the last seen node?
+            let stackTarget = _.nth(this.inputStack, -1) as Stack;
+            let found = recipe.outputResources.find((res) => {return res.resourceName == stackTarget.resourceName});
+
+            if (found) {  // The only way to get a false positive is for an alternative output to match up with a different part of the input stack. I'm not handling that case as it's very unlikely (I hope).
+                let ratio = stackTarget.amount / found.amount;
+                this.inputStack.pop();
+                // for 
+            }
+
+        }
+
+    }
 
 }
 
@@ -246,10 +318,16 @@ export class CraftingData {
 
         start.src.forEach((item, item_pos) => {
             if (item.length > 1) {  // This item has multiple recipes.
-                collectionData.decisionNodes.push(_.cloneDeep(pathHash).concat([[item_pos, item.length]]));
+                let tempPath = _.cloneDeep(pathHash)
+                tempPath.path.push({itemIndex: item_pos, choice: item.length});
+
+                collectionData.decisionNodes.push(tempPath);
             }
             item.forEach((recipe, recipe_pos) => {
-                this.collectDecisionHashes(recipe, collectionData, _.cloneDeep(pathHash).concat([[item_pos, recipe_pos]]));
+                let tempPath = _.cloneDeep(pathHash);
+                tempPath.path.push({itemIndex: item_pos, choice: recipe_pos});
+
+                this.collectDecisionHashes(recipe, collectionData, tempPath);
             })
         })
     } 
@@ -260,17 +338,22 @@ export class CraftingData {
 
         // Extract data to set up state arrays
         for(let choice of choices) {
-            maxes.push(choice[choice.length - 1][1]);
+            maxes.push(choice.path.at(-1)!.choice);
             indexes.push(0);
         }
 
         // Loop stoping info
-        let start_state = _.clone(maxes);
+        let start_state = _.clone(indexes);
         let first = true;
 
         let result: Array<Array<craftingPathChoice>> = []
 
+        let iteration_count = 0;
         while (!_.isEqual(indexes, start_state) || first) {
+            if (iteration_count > 10000) { // This will stop insanely high numbers of permutations. Not sure if needed.
+                break;
+            }
+            iteration_count++;
             if (first) {
                 first = false;
             }
@@ -278,7 +361,7 @@ export class CraftingData {
             let temp_perm = [];
             for (let i = 0; i < indexes.length; i++) {  // For each permutation entry
                 let temp_choice = _.cloneDeep(choices[i]);
-                temp_choice[temp_choice.length - 1][1] = indexes[i];
+                temp_choice.path.at(-1)!.choice = indexes[i];
                 temp_perm.push(temp_choice);
             }
 
@@ -310,7 +393,7 @@ export class CraftingData {
 
     calcChain(start: string) {
         // Options hold all found paths to get to the item.
-        let options = [];
+        let options: Array<recipeChainNode> = [];
         let dupeCheck: Set<string> = new Set();
         for (let possibleRecipes of this.findRecipesFor(start)) {
             let tempNode = new recipeChainNode(possibleRecipes, start);
@@ -321,14 +404,14 @@ export class CraftingData {
         // Find decisions
         let collectionStore = new chainCollections();
         options.forEach((option, option_index) => {
-            this.collectDecisionHashes(option, collectionStore, [[option_index]]);
+            this.collectDecisionHashes(option, collectionStore, new craftingPathChoice(option_index));  // Set first value to be the option index
         })
         // printArray(collectionStore.decisionNodes)
         console.log(collectionStore)
 
         // Optimize to create the best tree
         // I think we recommend the path that has the highest ratio of base items and if tied, the shortest path.
-
+        console.log(this.generateChoicePermutations(collectionStore.decisionNodes))
         
 
         return options;

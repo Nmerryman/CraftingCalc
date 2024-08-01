@@ -112,23 +112,10 @@ class recipeChainNode {
     constructor(public rId: number, public goal: string) {}
 }
 
-// [path part: [item index, optional choice]]
+// [path part: [item index, optional choice]]  // last optional choice may also store total choice options at location
 type craftingPathChoice = Array<Array<number>>;
 type craftingPath = Array<Array<number>>;  
 
-// class recipeChainPathInfo {
-//     // A recipeChain desision can be marked with [itemRecipeVal, ...]
-//     // This is the path needed to get to the current place, starting from the finished item
-//     path: craftingPath = [];
-//     currentExcess: Array<string> = [];  // These will probably change to stacks later
-//     currentCreated: Array<string> = [];
-//     deadEnd: boolean = false;
-
-
-//     constructor(public target: recipeChainNode) {}
-
-
-// }
 
 class chainCollections {
 
@@ -271,13 +258,53 @@ export class CraftingData {
         let maxes: Array<number> = [];
         let indexes: Array<number> = [];
 
+        // Extract data to set up state arrays
         for(let choice of choices) {
             maxes.push(choice[choice.length - 1][1]);
             indexes.push(0);
         }
 
-        
+        // Loop stoping info
+        let start_state = _.clone(maxes);
+        let first = true;
 
+        let result: Array<Array<craftingPathChoice>> = []
+
+        while (!_.isEqual(indexes, start_state) || first) {
+            if (first) {
+                first = false;
+            }
+
+            let temp_perm = [];
+            for (let i = 0; i < indexes.length; i++) {  // For each permutation entry
+                let temp_choice = _.cloneDeep(choices[i]);
+                temp_choice[temp_choice.length - 1][1] = indexes[i];
+                temp_perm.push(temp_choice);
+            }
+
+            result.push(temp_perm);
+
+            // Increment the permutation
+            let mut_index = 0;
+            while (true) {
+                indexes[mut_index]++;
+                if (indexes[mut_index] == maxes[mut_index]) {
+                    indexes[mut_index] = 0;
+                    mut_index++;
+                } else {
+                    break;
+                }
+
+                // We reach the end of the "number"
+                if (mut_index == indexes.length) {
+                    break;
+                }
+            }
+
+        }
+
+
+        return result;
     }
 
 

@@ -149,8 +149,7 @@ class chainCollections {
 
 type choiceState = {
     node: recipeChainNode,
-    itemIndex: number,
-    variantIndex: number
+    location: craftingPathChoice
 }
 
 class chainHuristicsStats {
@@ -172,31 +171,35 @@ class chainHuristicsStats {
         // this.fixed_src = this.src[this.choices[0]];
         let root_fixed = new recipeChainNode(this.src.rId, this.src.goal, true);
 
-        let src_stack: Array<choiceState> = [{node: this.src, itemIndex: 0, variantIndex: 0}];
+        let src_stack: Array<choiceState> = [{node: this.src, location: {path: [{itemIndex: 0, choice: 0}]}}];
         let fixed_stack: Array<recipeChainNode> = [root_fixed];
 
         while (src_stack.length > 0) {
-            let current_src = src_stack[src_stack.length - 1];
+            let current_src = src_stack.at(-1)!;
+            let current_pointing = current_src.location.path.at(-1)!;
             // If item index is past the last needed index meaning we've been through all needed items.
-            if (current_src.itemIndex == current_src.node.src.items.length) {
+            if (current_pointing.itemIndex == current_src.node.src.items.length) {
                 src_stack.pop();
                 fixed_stack.pop();
-            } else if (current_src.variantIndex == current_src.node.src.items[current_src.itemIndex].variants.length) {
-                current_src.variantIndex = 0;
-                current_src.itemIndex++;
+            } else if (current_pointing.choice == current_src.node.src.items[current_pointing.itemIndex].variants.length) {
+                current_pointing.choice = 0;
+                current_pointing.itemIndex++;
             } else { // We are currently pointing at some valid variant
-                let tempPointing = current_src.node.src.items[current_src.itemIndex].variants[current_src.variantIndex];
+                let tempPointing = current_src.node.src.items[current_pointing.itemIndex].variants[current_pointing.choice];
                 let tempNew = new recipeChainNode(tempPointing.rId, tempPointing.goal);
-                
+
                 // Ensure that the fixed node skeleton is correct
                 while (fixed_stack[fixed_stack.length - 1].src.items.length != current_src.node.src.items.length) {
                     fixed_stack[fixed_stack.length - 1].src.items.push({variants: []})
                 }
                 
-                fixed_stack[fixed_stack.length - 1].src.items[current_src.itemIndex].variants.push(tempNew);
-                src_stack.push({node: tempPointing, itemIndex: 0, variantIndex: 0});
+                // Push changes
+                fixed_stack[fixed_stack.length - 1].src.items[current_pointing.itemIndex].variants.push(tempNew);
+                src_stack.push({node: tempPointing, location: {path: current_src.location.path.concat({itemIndex: 0, choice: 0})}});
                 fixed_stack.push(tempNew);
-                current_src.variantIndex++;
+
+                // Update state
+                current_pointing.choice++;
             }
         }
 

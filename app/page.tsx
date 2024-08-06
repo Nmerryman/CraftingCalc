@@ -49,7 +49,8 @@ function devGenRecipes(): Array<Recipe> {
         new Recipe("crafting table", [new Stack("iron")], [new Stack("iron nuggets", 9)]),
         new Recipe("crafting table", [new Stack("planks")], [new Stack("stick")]), 
         new Recipe("crafting table", [new Stack("oak logs")], [new Stack("planks")]),
-        new Recipe("crafting table", [new Stack("birch logs")], [new Stack("planks")])
+        new Recipe("crafting table", [new Stack("birch logs")], [new Stack("planks")]),
+        // new Recipe("crafting table", [new Stack("oak logs", 2), new Stack("iron nuggets", 3)], [new Stack("pickaxe")])
     ]
 }
 

@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import path from "path";
-import { printArray } from "../utils/format";
+import { log, printArray } from "../utils/format";
 
 class BaseThing {
     name: string;
@@ -126,7 +126,38 @@ type craftingPathPart = {
 
 class craftingPathChoice {
     path: Array<craftingPathPart> = []  // Last choice can also be used to carry the choice count.
+}
 
+// Check to see how much of one choice matches the other
+function matchTo(src: craftingPathChoice, other: craftingPathChoice): {matchDiff: number, lenDiff: number} {
+    // matchDiff
+    // 0 == exact match
+    // -x == This is x away from matching other
+    // +x == This matches other perfectly and then goes over the length
+    let testIndex = 0;
+    
+    while (true) {
+        let thisItem = src.path.at(testIndex);
+        let otherItem = other.path.at(testIndex);
+
+        if (!thisItem && !otherItem) {
+            // Both matched up to the end at the same time
+            return {matchDiff: 0, lenDiff: 0};
+        } else if (!thisItem) {
+            // This ran out first
+            return {matchDiff: other.path.length - testIndex, lenDiff: src.path.length - other.path.length};
+        } else if (!otherItem) {
+            // Other ran out first
+            return {matchDiff: src.path.length - testIndex, lenDiff: src.path.length - other.path.length};
+        } else {
+            // Both items are defined
+            if (!_.isEqual(thisItem, otherItem)) {
+                return {matchDiff: src.path.length - testIndex, lenDiff: src.path.length - other.path.length};
+            }
+        }
+
+        testIndex++;
+    }
 }
 
 
@@ -171,35 +202,78 @@ class chainHuristicsStats {
         // this.fixed_src = this.src[this.choices[0]];
         let root_fixed = new recipeChainNode(this.src.rId, this.src.goal, true);
 
+        // Init both the src and fixed to start with a single harness node
         let src_stack: Array<choiceState> = [{node: this.src, location: {path: [{itemIndex: 0, choice: 0}]}}];
         let fixed_stack: Array<recipeChainNode> = [root_fixed];
 
         while (src_stack.length > 0) {
+            
+            // Grab the top item from the src stack
             let current_src = src_stack.at(-1)!;
+            // Shorthand for grabbing the permutation option info that this location currently has
             let current_pointing = current_src.location.path.at(-1)!;
-            // If item index is past the last needed index meaning we've been through all needed items.
+
             if (current_pointing.itemIndex == current_src.node.src.items.length) {
+                // If item index is past the last needed index meaning we've been through all needed items.
                 src_stack.pop();
                 fixed_stack.pop();
             } else if (current_pointing.choice == current_src.node.src.items[current_pointing.itemIndex].variants.length) {
+                // If the variant choice is past the last variant index, we are done with all variants from the item and are moving on to the next item
                 current_pointing.choice = 0;
                 current_pointing.itemIndex++;
             } else { // We are currently pointing at some valid variant
-                let tempPointing = current_src.node.src.items[current_pointing.itemIndex].variants[current_pointing.choice];
-                let tempNew = new recipeChainNode(tempPointing.rId, tempPointing.goal);
+                // What node are we currently pointing at for exploration
+                let tempPointingNode = current_src.node.src.items[current_pointing.itemIndex].variants[current_pointing.choice];
+                // Create a new object to insert into the fixed stack
+                let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
 
                 // Ensure that the fixed node skeleton is correct
+                // We probably don't need this. We will just push the one correct option
                 while (fixed_stack[fixed_stack.length - 1].src.items.length != current_src.node.src.items.length) {
                     fixed_stack[fixed_stack.length - 1].src.items.push({variants: []})
                 }
                 
                 // Push changes
-                fixed_stack[fixed_stack.length - 1].src.items[current_pointing.itemIndex].variants.push(tempNew);
-                src_stack.push({node: tempPointing, location: {path: current_src.location.path.concat({itemIndex: 0, choice: 0})}});
-                fixed_stack.push(tempNew);
+                // No extra variants so business as usual
+                if (current_src.node.src.items[current_pointing.itemIndex].variants.length == 1) {
+                    fixed_stack[fixed_stack.length - 1].src.items[current_pointing.itemIndex].variants.push(tempNew);
+                    src_stack.push({node: tempPointingNode, location: {path: _.cloneDeep(current_src.location.path).concat({itemIndex: 0, choice: 0})}});
+                    fixed_stack.push(tempNew);
 
-                // Update state
-                current_pointing.choice++;
+                    // Update state (Could also just set to end)
+                    current_pointing.choice++;
+
+                } else {  // There are multiple variants
+                    console.log("multiple")
+                    log(current_src.location.path)
+                    
+                    // for (let c = 0; c < this.choices.length; c++) {
+                    //     log(this.choices[c].path)
+                    //     console.log(matchTo(current_src.location, this.choices[c]));
+                    // }
+                    let match = this.choices.find((choice: craftingPathChoice) => {
+                        let pathMatch = matchTo(current_src.location, choice);
+                        if (pathMatch.lenDiff == 0 && (pathMatch.matchDiff == 0 || pathMatch.matchDiff == 1)) {
+                            return choice;
+                        }
+                    })
+
+                    if (!match) {
+                        log("Could not find needed variant path match");
+                        return;
+                    }
+
+                    log(match);
+
+                    fixed_stack.at(-1)!.src.items[current_pointing.itemIndex].variants.push(tempNew);
+                    let custPath = _.cloneDeep(current_src.location.path)
+                    custPath.at(-1)!.itemIndex
+
+                    
+                    
+                    // Update state
+                    current_pointing.choice++;
+                }
             }
         }
 
@@ -324,7 +398,7 @@ export class CraftingData {
         // console.log(dupeCheck);
         if (dupeCheck.size > 20) {
             console.log("dupeCheck is probably in recursion. Killing.")
-            return;
+            return; 
         }
 
         for (let resourceName of this.getRecipe(start.rId)!.getInputNames()) {  // for every resource needed to complete the recipe
@@ -453,8 +527,8 @@ export class CraftingData {
         console.log(permutations);
 
         let huristics = new chainHuristicsStats(options, permutations[0], this);
-        console.log(JSON.stringify(options));
-        console.log(JSON.stringify(huristics.fixed_src));
+        // console.log(JSON.stringify(options));
+        // console.log(JSON.stringify(huristics.fixed_src));
         
 
         return options;

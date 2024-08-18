@@ -211,19 +211,20 @@ class chainHuristicsStats {
             // Grab the top item from the src stack
             let current_src = src_stack.at(-1)!;
             // Shorthand for grabbing the permutation option info that this location currently has
-            let current_pointing = current_src.location.path.at(-1)!;
+            let currentLastPointing = current_src.location.path.at(-1)!;
 
-            if (current_pointing.itemIndex == current_src.node.src.items.length) {
+            if (currentLastPointing.itemIndex == current_src.node.src.items.length  ||
+                currentLastPointing.choice == current_src.node.src.items[currentLastPointing.itemIndex].variants.length
+            ) {
                 // If item index is past the last needed index meaning we've been through all needed items.
                 src_stack.pop();
                 fixed_stack.pop();
-            } else if (current_pointing.choice == current_src.node.src.items[current_pointing.itemIndex].variants.length) {
-                // If the variant choice is past the last variant index, we are done with all variants from the item and are moving on to the next item
-                current_pointing.choice = 0;
-                current_pointing.itemIndex++;
+
             } else { // We are currently pointing at some valid variant
                 // What node are we currently pointing at for exploration
-                let tempPointingNode = current_src.node.src.items[current_pointing.itemIndex].variants[current_pointing.choice];
+                let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[currentLastPointing.choice];
+                // log(current_src)
+                // log(currentLastPointing)
                 // Create a new object to insert into the fixed stack
                 let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
 
@@ -235,22 +236,18 @@ class chainHuristicsStats {
                 
                 // Push changes
                 // No extra variants so business as usual
-                if (current_src.node.src.items[current_pointing.itemIndex].variants.length == 1) {
-                    fixed_stack[fixed_stack.length - 1].src.items[current_pointing.itemIndex].variants.push(tempNew);
+                if (current_src.node.src.items[currentLastPointing.itemIndex].variants.length == 1) {
+                    fixed_stack[fixed_stack.length - 1].src.items[currentLastPointing.itemIndex].variants.push(tempNew);
                     src_stack.push({node: tempPointingNode, location: {path: _.cloneDeep(current_src.location.path).concat({itemIndex: 0, choice: 0})}});
                     fixed_stack.push(tempNew);
 
                     // Update state (Could also just set to end)
-                    current_pointing.choice++;
+                    currentLastPointing.itemIndex++;
 
                 } else {  // There are multiple variants
                     console.log("multiple")
                     log(current_src.location.path)
                     
-                    // for (let c = 0; c < this.choices.length; c++) {
-                    //     log(this.choices[c].path)
-                    //     console.log(matchTo(current_src.location, this.choices[c]));
-                    // }
                     let match = this.choices.find((choice: craftingPathChoice) => {
                         let pathMatch = matchTo(current_src.location, choice);
                         if (pathMatch.lenDiff == 0 && (pathMatch.matchDiff == 0 || pathMatch.matchDiff == 1)) {
@@ -263,16 +260,14 @@ class chainHuristicsStats {
                         return;
                     }
 
-                    log(match);
-
-                    fixed_stack.at(-1)!.src.items[current_pointing.itemIndex].variants.push(tempNew);
-                    let custPath = _.cloneDeep(current_src.location.path)
-                    custPath.at(-1)!.itemIndex
-
-                    
+                    fixed_stack.at(-1)!.src.items[currentLastPointing.itemIndex].variants.push(tempNew);
+                    let custPath = _.cloneDeep(current_src.location.path);
+                    custPath.at(-1)!.choice = match.path.at(-1)!.choice;
+                    src_stack.push({node: tempPointingNode, location: {path: custPath.concat({itemIndex: 0, choice: 0})}})
+                    fixed_stack.push(tempNew);
                     
                     // Update state
-                    current_pointing.choice++;
+                    currentLastPointing.itemIndex++;
                 }
             }
         }
@@ -529,6 +524,7 @@ export class CraftingData {
         let huristics = new chainHuristicsStats(options, permutations[0], this);
         // console.log(JSON.stringify(options));
         // console.log(JSON.stringify(huristics.fixed_src));
+        log(JSON.stringify(huristics.fixed_src))
         
 
         return options;

@@ -199,6 +199,8 @@ class chainHuristicsStats {
     }
 
     applyChoices() {
+        // Create this.fixed_src. It cleans up the tree by applying the permutation choices onto the src tree.
+
         // this.fixed_src = this.src[this.choices[0]];
         let root_fixed = new recipeChainNode(this.src.rId, this.src.goal, true);
 
@@ -245,8 +247,8 @@ class chainHuristicsStats {
                     currentLastPointing.itemIndex++;
 
                 } else {  // There are multiple variants
-                    console.log("multiple")
-                    log(current_src.location.path)
+                    // console.log("multiple")
+                    // log(current_src.location.path)
                     
                     let match = this.choices.find((choice: craftingPathChoice) => {
                         let pathMatch = matchTo(current_src.location, choice);
@@ -276,12 +278,14 @@ class chainHuristicsStats {
     }
 
     extractInfo(current: recipeChainNode | null, depth: number = 0) {
+        // We have the current parameter so we can call this function recursively.
+
         if (!current) {
             return;
         }
         
         this.steps++;
-        this.longest_depth = Math.max(this.longest_depth, this.steps);
+        this.longest_depth = Math.max(this.longest_depth, depth);
 
         let recipe = this.data.getRecipe(current.rId) as Recipe;
 
@@ -292,7 +296,7 @@ class chainHuristicsStats {
             }
         } else {
             // Does our current recipe get used to satisfy the last seen node?
-            let stackTarget = _.nth(this.inputStack, -1) as Stack;
+            let stackTarget = this.input.at(-1) as Stack;
             let found = recipe.outputResources.find((res) => {return res.resourceName == stackTarget.resourceName});
 
             if (found) {  // The only way to get a false positive is for an alternative output to match up with a different part of the input stack. I'm not handling that case as it's very unlikely (I hope).
@@ -524,6 +528,8 @@ export class CraftingData {
         let huristics = new chainHuristicsStats(options, permutations[0], this);
         // console.log(JSON.stringify(options));
         // console.log(JSON.stringify(huristics.fixed_src));
+        // log(JSON.stringify(options))
+        // log(JSON.stringify(permutations[0]))
         log(JSON.stringify(huristics.fixed_src))
         
 

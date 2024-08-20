@@ -224,13 +224,7 @@ class chainHuristicsStats {
                 fixed_stack.pop();
 
             } else { // We are currently pointing at some valid variant
-                // What node are we currently pointing at for exploration
-                let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[currentLastPointing.choice];
-                // log(current_src)
-                // log(currentLastPointing)
-                // Create a new object to insert into the fixed stack
-                let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
-
+                
                 // Ensure that the fixed node skeleton is correct
                 // We probably don't need this. We will just push the one correct option
                 while (fixed_stack[fixed_stack.length - 1].src.items.length != current_src.node.src.items.length) {
@@ -240,6 +234,11 @@ class chainHuristicsStats {
                 // Push changes
                 // No extra variants so business as usual
                 if (current_src.node.src.items[currentLastPointing.itemIndex].variants.length == 1) {
+                    // What node are we currently pointing at for exploration
+                    let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[0];
+                    // Create a new object to insert into the fixed stack
+                    let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
+
                     fixed_stack[fixed_stack.length - 1].src.items[currentLastPointing.itemIndex].variants.push(tempNew);
                     src_stack.push({node: tempPointingNode, location: {path: _.cloneDeep(current_src.location.path).concat({itemIndex: 0, choice: 0})}});
                     fixed_stack.push(tempNew);
@@ -248,8 +247,6 @@ class chainHuristicsStats {
                     currentLastPointing.itemIndex++;
 
                 } else {  // There are multiple variants
-                    // console.log("multiple")
-                    // log(current_src.location.path)
                     
                     let match = this.choices.find((choice: craftingPathChoice) => {
                         let pathMatch = matchTo(current_src.location, choice);
@@ -257,11 +254,14 @@ class chainHuristicsStats {
                             return choice;
                         }
                     })
-
+                    
                     if (!match) {
                         log("Could not find needed variant path match");
                         return;
                     }
+
+                    let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[match.path.at(-1)!.choice]
+                    let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal)
 
                     fixed_stack.at(-1)!.src.items[currentLastPointing.itemIndex].variants.push(tempNew);
                     let custPath = _.cloneDeep(current_src.location.path);

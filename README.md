@@ -79,3 +79,10 @@ Make sure to have Nodejs installed
 
 
 
+## Notes/TODO
+Right now there will be no focus on handeling recursive recipes
+- iron -> nuggets -> iron
+- bucket -> milk bucket -> cake + bucket
+No focus on merging recipe paths
+- gravel -> sand + ore -> combined later
+No focus on using bonus chances

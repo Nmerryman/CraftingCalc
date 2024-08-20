@@ -30,7 +30,8 @@ function devGenResources(): Record<string, Resource> {
         "iron nuggets": new Resource("iron nuggets"),
         "planks": new Resource("planks"),
         "oak logs": new Resource("oak logs"),
-        "birch logs": new Resource("birch logs")
+        "birch logs": new Resource("birch logs"),
+        "plank dust": new Resource("plank dust")
     }
 }
 
@@ -47,8 +48,8 @@ function devGenRecipes(): Array<Recipe> {
         new Recipe("crafting table", [new Stack("iron nuggets", 9)], [new Stack("iron")]),
         new Recipe("crafting table", [new Stack("stick", 2), new Stack("iron", 3)], [new Stack("pickaxe")]),
         new Recipe("crafting table", [new Stack("iron")], [new Stack("iron nuggets", 9)]),
-        new Recipe("crafting table", [new Stack("planks")], [new Stack("stick")]), 
-        new Recipe("crafting table", [new Stack("oak logs")], [new Stack("planks")]),
+        new Recipe("crafting table", [new Stack("planks")], [new Stack("stick", 2)]), 
+        new Recipe("crafting table", [new Stack("oak logs")], [new Stack("planks", 2), new Stack("plank dust")]),
         new Recipe("crafting table", [new Stack("birch logs")], [new Stack("planks")]),
         // new Recipe("crafting table", [new Stack("oak logs", 2), new Stack("iron nuggets", 3)], [new Stack("pickaxe")])
     ]
@@ -182,7 +183,7 @@ export default function Main() {
             <SVGTest/>
             <CalculateButton requestState={craftingRequestState}/> */}
             <LinkBtn kind="callback" text="test thing" callback={() => {
-                craftingData.calcChain("pickaxe")}}/>
+                craftingData.calcChain(["pickaxe"])}}/>
         </div>
     );
 }

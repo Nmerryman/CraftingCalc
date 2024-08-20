@@ -195,6 +195,7 @@ class chainHuristicsStats {
         // Evaluate attributes here
 
         this.applyChoices();
+        this.extractInfo(this.fixed_src);
 
     }
 
@@ -284,27 +285,58 @@ class chainHuristicsStats {
             return;
         }
         
+        // Sure whatever
         this.steps++;
         this.longest_depth = Math.max(this.longest_depth, depth);
 
-        let recipe = this.data.getRecipe(current.rId) as Recipe;
-
-        // Handle current recipe output
-        if (this.inputStack.length == 0) {  // Only happens on the root of the tree
-            for (let resource of recipe.outputResources) {
-                this.output.push(resource)
+        // Handle the head
+        if (current.root) {
+            for (let items of current.src.items) {
+                let tempTargetStack = new Stack(items.variants[0].goal);
+                // Add the ones needed into the processing stack
+                this.inputStack.push(tempTargetStack);
+                // Also make sure we keep the ones that get finished(Later iterations don't store the goal)
+                this.output.push(tempTargetStack)
+                // Recurse
+                this.extractInfo(items.variants[0], depth + 1);
             }
         } else {
-            // Does our current recipe get used to satisfy the last seen node?
-            let stackTarget = this.input.at(-1) as Stack;
-            let found = recipe.outputResources.find((res) => {return res.resourceName == stackTarget.resourceName});
-
-            if (found) {  // The only way to get a false positive is for an alternative output to match up with a different part of the input stack. I'm not handling that case as it's very unlikely (I hope).
-                let ratio = stackTarget.amount / found.amount;
-                this.inputStack.pop();
-                // for 
+            // Get the last item put into the stack so we can calculate things like ratios
+            let recipeTarget = this.inputStack.pop() as Stack;
+            // Grab the recipe that this node represents
+            let recipe = this.data.getRecipe(current.rId) as Recipe;
+            
+            let targetOutput = recipe.outputResources.find((resource) => {return resource.resourceName == recipeTarget.resourceName}) as Stack;
+            // How many times do we need to run the recipe
+            let ratio = recipeTarget.amount / targetOutput.amount;
+            
+            for (let recipeOutput of recipe.outputResources) {
+                if (recipeOutput.resourceName != recipeTarget.resourceName) {
+                    // All extra items get put into the output
+                    let tempRecipeOutput = new Stack(recipeOutput.resourceName, recipeOutput.amount * ratio);
+                    this.output.push(tempRecipeOutput);
+                }
             }
 
+            for (let recipeInput of recipe.inputResources) {
+                // Match up the recipe input with a recipeChainNode
+                let node = current.src.items.find((item) => {
+                    if (item.variants.length > 0) {
+                        return item.variants[0].goal == recipeInput.resourceName;
+                    }
+                    return false;
+                }) as recipeVariants;
+
+                let tempRecipeInput = new Stack(recipeInput.resourceName, recipeInput.amount * ratio)
+                if (node) {
+                    // The input has a crafting recipe
+                    this.inputStack.push(tempRecipeInput);
+                    this.extractInfo(node.variants[0], depth + 1);
+                } else {
+                    // This input does not have a crafting recipe
+                    this.input.push(tempRecipeInput);
+                }
+            }
         }
 
     }
@@ -499,16 +531,19 @@ export class CraftingData {
 
 
 
-    calcChain(start: string) {
+    calcChain(start: Array<string>) {
         // Options hold all found paths to get to the item.
         // let options: Array<recipeChainNode> = [];
         let options = new recipeChainNode(0, "", true)  // Name is unique enough to not hit anything
-        options.src.items.push({variants: []});
         let dupeCheck: Set<string> = new Set();
-        for (let possibleRecipes of this.findRecipesFor(start)) {
-            let tempNode = new recipeChainNode(possibleRecipes, start);
-            this.createChainTree(tempNode, dupeCheck);
-            options.src.items[0].variants.push(tempNode);
+        for (let startingRecipes of start) {
+            for (let possibleRecipes of this.findRecipesFor(startingRecipes)) {
+                let tempNode = new recipeChainNode(possibleRecipes, startingRecipes);
+                this.createChainTree(tempNode, dupeCheck);
+                options.src.items.push({variants: []});
+                options.src.items.at(-1)!.variants.push(tempNode);
+            }
+
         }
 
         // Find decisions
@@ -516,6 +551,7 @@ export class CraftingData {
         // options.src.items[0].variants.forEach((option, option_index) => {
         //     this.collectDecisionHashes(option, collectionStore, new craftingPathChoice(option_index));  // Set first value to be the option index
         // })
+
         this.collectDecisionHashes(options, collectionStore, new craftingPathChoice())
         // printArray(collectionStore.decisionNodes)
         console.log(collectionStore)
@@ -525,12 +561,21 @@ export class CraftingData {
         let permutations = this.generateChoicePermutations(collectionStore.decisionNodes)
         console.log(permutations);
 
-        let huristics = new chainHuristicsStats(options, permutations[0], this);
+        // let huristics = new chainHuristicsStats(options, permutations[0], this);
         // console.log(JSON.stringify(options));
-        // console.log(JSON.stringify(huristics.fixed_src));
+        // console.log(JSON.stringify(huristics));
         // log(JSON.stringify(options))
         // log(JSON.stringify(permutations[0]))
-        log(JSON.stringify(huristics.fixed_src))
+        // log(JSON.stringify(huristics.fixed_src))
+        let count = 0;
+        for (let perm of permutations) {
+            let huristics = new chainHuristicsStats(options, perm, this);
+            log("------");
+            log("count: " + count);
+            log(huristics.choices);
+            log({steps: huristics.steps, input: huristics.input, output: huristics.output, max_depth: huristics.longest_depth})
+            count++;
+        }
         
 
         return options;

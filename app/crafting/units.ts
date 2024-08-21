@@ -115,6 +115,10 @@ type recipeSources = {
 class recipeChainNode {
     // src: [each item][each recipe]  ie. what are the source resources to finish the recipe
     src: recipeSources = {items: []};
+
+    // Extra field for carrying data in huristics step
+    hRatio: number = 1;
+
     constructor(public rId: number, public goal: string, public root: boolean = false) {}
 }
 
@@ -183,7 +187,7 @@ type choiceState = {
     location: craftingPathChoice
 }
 
-class chainHuristicsStats {
+export class chainHuristicsStats {
     steps: number = 0;
     input: Array<Stack> = [];
     inputStack: Array<Stack> = [];
@@ -309,6 +313,7 @@ class chainHuristicsStats {
             let targetOutput = recipe.outputResources.find((resource) => {return resource.resourceName == recipeTarget.resourceName}) as Stack;
             // How many times do we need to run the recipe
             let ratio = recipeTarget.amount / targetOutput.amount;
+            current.hRatio = ratio;
             
             for (let recipeOutput of recipe.outputResources) {
                 if (recipeOutput.resourceName != recipeTarget.resourceName) {
@@ -343,6 +348,8 @@ class chainHuristicsStats {
 
 }
 
+
+interface HuristicEval {(huristic: chainHuristicsStats): number}
 
 export class CraftingData {
     resources: Record<string, Resource>;
@@ -528,8 +535,42 @@ export class CraftingData {
     }
 
 
+    bestHuristic(options: Array<chainHuristicsStats>, evalFunc: HuristicEval) {
+        // We want lowest cost rn
+        let bestScore = null;
+        let bestOption = null;
+
+        for (let option of options) {
+            if (!bestOption) {
+                bestOption = option;
+                bestScore = evalFunc(option);
+            } else {
+                let tempScore = evalFunc(option);
+                if (tempScore < bestScore!) {
+                    bestScore = tempScore;
+                    bestOption = option;
+                }
+            }
+        }
+
+        return bestOption;
+    }
+
+    defaultHuristic(huristic: chainHuristicsStats): number {
+        let inputCount = 0;
+        
+        for (let h of huristic.input) {
+            inputCount += Math.ceil(h.amount);
+        }
+        
+        let outputCount = 0;
+        for (let h of huristic.output) {
+            outputCount += Math.ceil(h.amount)
+        }
 
 
+        return inputCount * 1000 + outputCount * 100 + huristic.longest_depth * 10 + huristic.steps;
+    }
 
     calcChain(start: Array<string>) {
         // Options hold all found paths to get to the item.
@@ -567,18 +608,22 @@ export class CraftingData {
         // log(JSON.stringify(options))
         // log(JSON.stringify(permutations[0]))
         // log(JSON.stringify(huristics.fixed_src))
+
+        let huristicOptions: Array<chainHuristicsStats> = [];
         let count = 0;
         for (let perm of permutations) {
             let huristics = new chainHuristicsStats(options, perm, this);
-            log("------");
-            log("count: " + count);
-            log(huristics.choices);
-            log({steps: huristics.steps, input: huristics.input, output: huristics.output, max_depth: huristics.longest_depth})
+            huristicOptions.push(huristics);
+            // log("------");
+            // log("count: " + count);
+            // log(huristics.choices);
+            // log({steps: huristics.steps, input: huristics.input, output: huristics.output, max_depth: huristics.longest_depth})
+            // log(huristics)
             count++;
         }
         
 
-        return options;
+        return huristicOptions;
     }
 
 }

@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
-import { CraftingData, Process, Recipe, Resource, Stack } from "./crafting/units";
+import { CraftingData, Process, Recipe, Resource, Stack, chainHuristicsStats } from "./crafting/units";
 import { PopupEditor, togglePopupCallback } from "./components/popup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
@@ -46,7 +46,7 @@ function devGenRecipes(): Array<Recipe> {
     return [
         new Recipe("furnace", [new Stack("iron ore")], [new Stack("iron")]),
         new Recipe("crafting table", [new Stack("iron nuggets", 9)], [new Stack("iron")]),
-        new Recipe("crafting table", [new Stack("stick", 2), new Stack("iron", 3)], [new Stack("pickaxe")]),
+        new Recipe("crafting table", [new Stack("stick", 3), new Stack("iron", 3)], [new Stack("pickaxe")]),
         new Recipe("crafting table", [new Stack("iron")], [new Stack("iron nuggets", 9)]),
         new Recipe("crafting table", [new Stack("planks")], [new Stack("stick", 2)]), 
         new Recipe("crafting table", [new Stack("oak logs")], [new Stack("planks", 2), new Stack("plank dust")]),
@@ -163,6 +163,34 @@ function SVGTest() {
     )
 }
 
+function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
+    let boxWidth = 300;
+    let widthPadding = 10;
+    let boxHeight = 100;
+    let breadthOffset = 30;
+    let depthOffset = (boxWidth - 2 * widthPadding) / (huristic.longest_depth - 1)
+
+
+
+
+    return (
+        <svg className="bg-white w-full h-[50vh]" viewBox={"0 0 " + boxWidth + " " + boxHeight}>
+ 
+        </svg>
+    )
+}
+
+// This wraps the component so that it can be generated after everything else loads
+function DEVSVGHuristic({data, state}: {data: CraftingData, state: boolean}) {
+    if (state) {
+        return (
+            <SVGHuristic huristic={data.calcChain(["pickaxe"])[0]}>
+
+            </SVGHuristic> 
+        )
+    }
+}
+
 
 export default function Main() {
     const [craftingData, dispatchData] = useReducer(craftingReducer, initialCraftingData);
@@ -170,8 +198,9 @@ export default function Main() {
 
     var initialcraftingRequests: Record<string, Stack> = {}
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
+    const [svgState, setSvgState] = useState(false);  // For dev automation
 
-    useEffect(() => {PullPreset(dispatchData)}, []);  // Run update once
+    useEffect(() => {PullPreset(dispatchData); setSvgState(true);}, []);  // Run update once
 
     return (
         <div className="">
@@ -183,7 +212,11 @@ export default function Main() {
             <SVGTest/>
             <CalculateButton requestState={craftingRequestState}/> */}
             <LinkBtn kind="callback" text="test thing" callback={() => {
-                craftingData.calcChain(["pickaxe"])}}/>
+                // let best = craftingData.bestHuristic(craftingData.calcChain(["pickaxe"]), craftingData.defaultHuristic);
+                console.log(craftingData.calcChain(["pickaxe"]));
+                // console.log(best);
+                }}/>
+            <DEVSVGHuristic data={craftingData} state={svgState}/>
         </div>
     );
 }

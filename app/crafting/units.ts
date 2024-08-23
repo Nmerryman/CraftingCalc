@@ -112,7 +112,7 @@ type recipeSources = {
     items: Array<recipeVariants>
 }
 
-class recipeChainNode {
+export class recipeChainNode {
     // src: [each item][each recipe]  ie. what are the source resources to finish the recipe
     src: recipeSources = {items: []};
 

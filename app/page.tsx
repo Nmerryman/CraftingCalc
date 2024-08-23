@@ -202,13 +202,11 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
             circle = new recipeCircle(currentNode[0], widthPadding + depth * depthOffset, heightPadding + depthCount[depth] * breadthOffset);
             depthCount[depth]++;
             circleCollection.push(circle);
+            if (circleStack.length > 1) {
+                arrowCollection.push(new recipeArrow(circleStack.at(-1)!, circle));
+            }
         } else {
             circle = circleStack.pop()!;
-        }
-
-
-        if (circleStack.length > 1) {
-            arrowCollection.push(new recipeArrow(circleStack.at(-1)!, circle));
         }
 
         if (currentNode[1] < currentNode[0].src.items.length) {
@@ -227,12 +225,12 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
         <svg className="bg-white w-full h-[50vh]" viewBox={Math.round(boxWidth / 2) + " 0 " + Math.round(3*boxWidth / 2) + " " + boxHeight}>
             {circleCollection.map((cir, i) => {
                 if (i != 0) { // Remove the root holding node that we don't actually need (for now.)
-                    return <TextCircle center={{x: cir.x, y: cir.y}} text={cir.node.goal}/>
+                    return <TextCircle center={{x: cir.x, y: cir.y}} text={cir.node.goal} key={[cir.node.goal, cir.x, cir.y].join(" ")}/>
                 }
             })}
             {arrowCollection.map((arrow) => {
                 let lineVals = calcArrows(arrow.from, arrow.to);
-                return <ArrowPath start={lineVals.b} end={lineVals.a}/>
+                return <ArrowPath start={lineVals.b} end={lineVals.a} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
             })}
         </svg>
     )

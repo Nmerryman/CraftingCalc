@@ -53,8 +53,8 @@ export function ArrowPath({start, end}: {start: Coordinate, end: Coordinate}) {
 
     // Constants to change the look of the arrows.
     let lineWidth = 1;
-    let arrowWidth = 2;
-    let arrowLength = 3;
+    let arrowWidth = 10;
+    let arrowLength = 10;
 
     // Get the slope as a vector and it's normal vector
     let T = new Vector(end.x - start.x, end.y - start.y);
@@ -78,18 +78,18 @@ export function ArrowPath({start, end}: {start: Coordinate, end: Coordinate}) {
 
 export function TextCircle({center, text, }: {center: Coordinate, text: string}) {
     // This is hard coded and not synced up with other radius uses.
-    let radius = 5;
+    let radius = 10;
     return (
         <g>
             <circle cx={center.x} cy={center.y} r={radius} fill="green"/>
-            <text x={center.x} y={center.y} fill="blue" textAnchor="middle" fontSize=".75em">{text}</text>
+            <text x={center.x} y={center.y - radius} fill="blue" textAnchor="middle" fontSize="2em">{text}</text>
         </g>
     )
 }
 
 
 export function calcArrows(start: Coordinate, end: Coordinate): {a: Coordinate, b: Coordinate} {
-    let radius = 5;
+    let radius = 10;
     let startVec = new Vector(start.x, start.y);
     let endVec = new Vector(end.x, end.y);
     let circleDistance = endVec.sub(startVec).unit!.mult(radius);

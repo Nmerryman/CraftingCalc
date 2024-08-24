@@ -55,6 +55,40 @@ function devGenRecipes(): Array<Recipe> {
     ]
 }
 
+function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
+
+    function addResources(r: Record<string, Resource>, names: Array<string>) {
+        for (let name of names) {
+            r[name] = new Resource(name);
+        }
+    }
+
+    function addProcesses(r: Record<string, Process>, names: Array<string>) {
+        for (let name of names) {
+            r[name] = new Process(name);
+        }
+    }
+
+    let resources = {}
+    addResources(resources, ["leather", "stone", "tanned leather", "woven cotton", "bound leather", "string", "cotton", "cobble stone", "backpack"]);
+
+    let processes = {}
+    addProcesses(processes, ["crafting", "drying", "smelting"]);
+
+    let recipes = [
+        new Recipe("crafting", [new Stack("stone", 2), new Stack("leather", 4), new Stack("woven cotton", 2), new Stack("tanned leather", 1)], [new Stack("backpack", 1)]),
+        new Recipe("smelting", [new Stack("cobble stone", 1)], [new Stack("stone", 1)]),
+        new Recipe("drying", [new Stack("bound leather", 1)], [new Stack("tanned leather", 1)]),
+        new Recipe("crafting", [new Stack("string", 5), new Stack("cotton", 4)], [new Stack("woven cotton", 1)]),
+        new Recipe("crafting", [new Stack("cotton", 3)], [new Stack("string", 1)]),
+        new Recipe("crafting", [new Stack("woven cotton", 1), new Stack("string", 4), new Stack("leather", 4)], [new Stack("bound leather", 1)])
+    ]
+
+    dispatch({type: "set resources", recordValue: resources});
+    dispatch({type: "set processes", recordValue: processes});
+    dispatch({type: "set recipes", arrayValue: recipes});
+
+}
 
 function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
@@ -64,6 +98,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
+    console.log(1)
     // craftingDispatch({type: "log"});
 
     if (value == "Empty" || value == "Default") {
@@ -72,6 +107,8 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
         craftingDispatch({type: "set resources", recordValue: devGenResources()});
         craftingDispatch({type: "set processes", recordValue: devGenProcesses()});
         craftingDispatch({type: "set recipes", arrayValue: devGenRecipes()});
+    } else if (value == "backpack") {
+        gtBackpackPreset(craftingDispatch);
     } else {
         console.log("Unkown preset set: " + value);
     }
@@ -100,6 +137,7 @@ function PresetMenu({craftingDispatch}: {craftingDispatch: Dispatch<CraftingActi
                     <option value="Dev"/>
                     <option value="Empty"/>
                     <option value="Default"/>
+                    <option value="backpack"/>
                 </datalist>
                 <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="text-center bg-white px-8 outline"></input>
@@ -151,13 +189,26 @@ function CalculateButton({requestState}: {requestState: CraftingRequestType}) {
 
 function SVGTest() {
     // 600 x 200 seems to be a decent svg size
+    let startX = 0;
+    let startY = 0;
+    let width = window.innerWidth;
+    let height = 0.5 * window.innerHeight;
+
+    let tl = {x: startX, y: startY};
+    let br = {x: startX + width, y: startY + height};
+    console.log(`x: ${window.innerWidth}, y: ${window.innerHeight}`);
+    console.log(window.screen)
+    // console.log(window.)
+
     let aCir = {x: 20, y: 100};
     let bCir = {x: 250, y: 140};
     let lineCalc = calcArrows(aCir, bCir);
     return (
-        <svg className="bg-white w-full h-[50vh]" viewBox="0 0 600 200">
+        <svg className="bg-white w-full h-[50vh]" viewBox={`${startX} ${startY} ${width} ${height}`}>
             <TextCircle center={aCir} text="A Circle"/>
             <TextCircle center={bCir} text="B Circle"/>
+            <TextCircle center={tl} text=""/>
+            <TextCircle center={br} text=""/>
             <ArrowPath start={lineCalc.a} end={lineCalc.b}/>
         </svg>
     )
@@ -165,7 +216,7 @@ function SVGTest() {
 
 
 class recipeCircle {
-    constructor(public node: recipeChainNode, public x: number, public y: number) {}
+    constructor(public node: recipeChainNode, public x: number, public y: number, public base: boolean = false) {}
 }
 
 class recipeArrow {
@@ -175,16 +226,22 @@ class recipeArrow {
 type itemIndex = number;
 
 function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
-    let boxWidth = 400
-    let widthPadding = 10;
-    let boxHeight = 100;
-    let heightPadding = 10;
-    let breadthOffset = 30;
-    let depthOffset = (boxWidth - 2 * widthPadding) / (huristic.longest_depth - 1);
+    console.log(huristic);
+    let boxStartX = 0;
+    // let boxStartY = 0;
+    let boxWidth = window.innerWidth;
+    let widthPadding = boxWidth / 10;
+    let screenHeight = 0.5;
+    let boxHeight = window.innerHeight * screenHeight;
+    let heightPadding = boxHeight / 10;
+    let breadthOffset = boxHeight / 5;  // This one will need to get scaled better latter
+    let depthOffset = (boxWidth - 2 * widthPadding) / (huristic.longest_depth);
+    boxStartX += 2 * depthOffset;
     
     let nodeStateStack: Array<[recipeChainNode, itemIndex]> = [[huristic.fixed_src, 0]];
     let circleStack: Array<recipeCircle> = []
-    let depthCount: Array<number> = [0, 0];  // I don't mind an off-by-1 if it works consistently via length
+    // let depthCount: Array<number> = [0, 0];  // I don't mind an off-by-1 if it works consistently via length?
+    let depthCount: Array<number> = Array(huristic.longest_depth + 3).fill(0);
     let lastPop = false;
 
     let circleCollection: Array<recipeCircle> = [];
@@ -193,9 +250,9 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
     while (nodeStateStack.length > 0) {
         let currentNode = nodeStateStack.at(-1)!;
         let depth = nodeStateStack.length;
-        if (depth >= depthCount.length) {
-            depthCount.push(0);
-        }
+        // if (depth >= depthCount.length) {
+        //     depthCount.push(0);
+        // }
         
         let circle: recipeCircle;
         if (!lastPop) {
@@ -216,17 +273,35 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
             currentNode[1]++;
             lastPop = false;
         } else {
+            if (currentNode[1] == 0) {  // This is the end of the recipe line
+                let items = huristic.data.getRecipe(currentNode[0].rId)!.inputResources;
+                for (let stack of items) {
+                    let tempRecipeNode = new recipeChainNode(0, stack.resourceName)
+                    tempRecipeNode.hRatio = stack.amount * circle.node.hRatio;  // Store the needed value in the node storage
+
+                    let finalCircle = new recipeCircle(tempRecipeNode, widthPadding + (depth + 1) * depthOffset, heightPadding + depthCount[depth + 1] * breadthOffset, true);
+                    depthCount[depth + 1]++;
+                    circleCollection.push(finalCircle);
+                    arrowCollection.push(new recipeArrow(circle, finalCircle));
+                }
+
+            }
             nodeStateStack.pop();
             lastPop = true;
         }
     }
 
     return (
-        <svg className="bg-white w-full h-[50vh]" viewBox={Math.round(boxWidth / 2) + " 0 " + Math.round(3*boxWidth / 2) + " " + boxHeight}>
+        <svg className={`bg-white w-full h-[${Math.round(screenHeight * 100)}vh]`} viewBox={`${boxStartX} 0 ${boxWidth} ${boxHeight}`}>
             {circleCollection.map((cir, i) => {
                 if (i != 0) { // Remove the root holding node that we don't actually need (for now.)
-                    let goalStack = huristic.data.getRecipe(cir.node.rId)!.outputResources.find(rec => rec.resourceName == cir.node.goal);
-                    let total = goalStack!.amount * cir.node.hRatio;
+                    let total: number;
+                    if (!cir.base) {
+                        let goalStack = huristic.data.getRecipe(cir.node.rId)!.outputResources.find(rec => rec.resourceName == cir.node.goal);
+                        total = goalStack!.amount * cir.node.hRatio;
+                    } else {
+                        total = cir.node.hRatio
+                    }
                     return <TextCircle center={{x: cir.x, y: cir.y}} text={`${total}x of ${cir.node.goal}`} key={[cir.node.goal, cir.x, cir.y].join(" ")}/>
                 }
             })}
@@ -234,6 +309,10 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
                 let lineVals = calcArrows(arrow.from, arrow.to);
                 return <ArrowPath start={lineVals.b} end={lineVals.a} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
             })}
+            {/* Debug circles */}
+            <TextCircle center={{x: boxStartX, y: 0}} text=""/>
+            <TextCircle center={{x: boxStartX + boxWidth, y: boxHeight}} text=""/>
+            
         </svg>
     )
 }
@@ -241,12 +320,44 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
 // This wraps the component so that it can be generated after everything else loads
 function DEVSVGHuristic({data, state}: {data: CraftingData, state: boolean}) {
     if (state) {
+        let huristic = data.calcChain(["pickaxe"])[3];
         return (
-            <SVGHuristic huristic={data.calcChain(["pickaxe"])[1]}>
-
-            </SVGHuristic> 
+            <>
+            <SVGHuristic huristic={huristic}/>
+            <HuristicStats huristic={huristic}/>
+            </>
         )
     }
+}
+
+
+function DisplayStack({stack}: {stack: Stack}) {
+    return (
+        <div>{stack.amount}x {stack.resourceName}</div>
+    )
+}
+
+function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
+    return (
+        <div className="flex justify-around pt-2">
+            <span>
+                <div>
+                    Required inputs
+                {
+                    huristic.input.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
+                }
+                </div>
+            </span>
+            <span>
+                <div>
+                    Resulting outputs
+                {
+                    huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
+                }
+                </div>
+            </span>
+        </div>
+    )
 }
 
 
@@ -267,14 +378,14 @@ export default function Main() {
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
 
-            <SVGTest/>
+            {/* <SVGTest/> */}
             <CalculateButton requestState={craftingRequestState}/>
             <LinkBtn kind="callback" text="test thing" callback={() => {
                 // let best = craftingData.bestHuristic(craftingData.calcChain(["pickaxe"]), craftingData.defaultHuristic);
                 console.log(craftingData.calcChain(["pickaxe"]));
                 // console.log(best);
                 }}/>
-            <DEVSVGHuristic data={craftingData} state={svgState}/>
+            {/* <DEVSVGHuristic data={craftingData} state={svgState}/> */}
         </div>
     );
 }

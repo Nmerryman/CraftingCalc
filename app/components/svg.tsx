@@ -76,20 +76,20 @@ export function ArrowPath({start, end}: {start: Coordinate, end: Coordinate}) {
 }
 
 
-export function TextCircle({center, text}: {center: Coordinate, text: string}) {
+export function TextCircle({center, text, }: {center: Coordinate, text: string}) {
     // This is hard coded and not synced up with other radius uses.
-    let radius = 50;
+    let radius = 5;
     return (
         <g>
             <circle cx={center.x} cy={center.y} r={radius} fill="green"/>
-            <text x={center.x} y={center.y} fill="blue" textAnchor="middle">{text}</text>
+            <text x={center.x} y={center.y} fill="blue" textAnchor="middle" fontSize=".75em">{text}</text>
         </g>
     )
 }
 
 
 export function calcArrows(start: Coordinate, end: Coordinate): {a: Coordinate, b: Coordinate} {
-    let radius = 50;
+    let radius = 5;
     let startVec = new Vector(start.x, start.y);
     let endVec = new Vector(end.x, end.y);
     let circleDistance = endVec.sub(startVec).unit!.mult(radius);

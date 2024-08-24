@@ -595,12 +595,12 @@ export class CraftingData {
 
         this.collectDecisionHashes(options, collectionStore, new craftingPathChoice())
         // printArray(collectionStore.decisionNodes)
-        console.log(collectionStore)
+        // console.log(collectionStore)
 
         // Optimize to create the best tree
         // I think we recommend the path that has the highest ratio of base items and if tied, the shortest path.
         let permutations = this.generateChoicePermutations(collectionStore.decisionNodes)
-        console.log(permutations);
+        // console.log(permutations);
 
         // let huristics = new chainHuristicsStats(options, permutations[0], this);
         // console.log(JSON.stringify(options));

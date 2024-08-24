@@ -175,7 +175,7 @@ class recipeArrow {
 type itemIndex = number;
 
 function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
-    let boxWidth = 250
+    let boxWidth = 400
     let widthPadding = 10;
     let boxHeight = 100;
     let heightPadding = 10;
@@ -225,7 +225,9 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
         <svg className="bg-white w-full h-[50vh]" viewBox={Math.round(boxWidth / 2) + " 0 " + Math.round(3*boxWidth / 2) + " " + boxHeight}>
             {circleCollection.map((cir, i) => {
                 if (i != 0) { // Remove the root holding node that we don't actually need (for now.)
-                    return <TextCircle center={{x: cir.x, y: cir.y}} text={cir.node.goal} key={[cir.node.goal, cir.x, cir.y].join(" ")}/>
+                    let goalStack = huristic.data.getRecipe(cir.node.rId)!.outputResources.find(rec => rec.resourceName == cir.node.goal);
+                    let total = goalStack!.amount * cir.node.hRatio;
+                    return <TextCircle center={{x: cir.x, y: cir.y}} text={`${total}x of ${cir.node.goal}`} key={[cir.node.goal, cir.x, cir.y].join(" ")}/>
                 }
             })}
             {arrowCollection.map((arrow) => {
@@ -240,7 +242,7 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
 function DEVSVGHuristic({data, state}: {data: CraftingData, state: boolean}) {
     if (state) {
         return (
-            <SVGHuristic huristic={data.calcChain(["pickaxe"])[3]}>
+            <SVGHuristic huristic={data.calcChain(["pickaxe"])[1]}>
 
             </SVGHuristic> 
         )
@@ -260,13 +262,13 @@ export default function Main() {
 
     return (
         <div className="">
-            {/* <Header craftingDispatch={dispatchData}/>
+            <Header craftingDispatch={dispatchData}/>
             <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor popupState={popupState} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
-            <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/> */}
+            <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
 
-            {/* <SVGTest/> */}
-            {/* <CalculateButton requestState={craftingRequestState}/> */}
+            <SVGTest/>
+            <CalculateButton requestState={craftingRequestState}/>
             <LinkBtn kind="callback" text="test thing" callback={() => {
                 // let best = craftingData.bestHuristic(craftingData.calcChain(["pickaxe"]), craftingData.defaultHuristic);
                 console.log(craftingData.calcChain(["pickaxe"]));

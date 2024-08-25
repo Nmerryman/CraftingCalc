@@ -79,10 +79,11 @@ export function ArrowPath({start, end}: {start: Coordinate, end: Coordinate}) {
 export function TextCircle({center, text, }: {center: Coordinate, text: string}) {
     // This is hard coded and not synced up with other radius uses.
     let radius = 10;
+    
     return (
         <g>
             <circle cx={center.x} cy={center.y} r={radius} fill="green"/>
-            <text x={center.x} y={center.y - radius} fill="blue" textAnchor="middle" fontSize="2em">{text}</text>
+            <text x={center.x} y={center.y - radius} fill="blue" textAnchor="middle" fontSize="1em">{text}</text>
         </g>
     )
 }

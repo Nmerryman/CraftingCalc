@@ -297,6 +297,7 @@ export class chainHuristicsStats {
 
         // Handle the head
         if (current.root) {
+            // log(current)
             for (let items of current.src.items) {
                 let tempTargetStack = new Stack(items.variants[0].goal);
                 // Add the ones needed into the processing stack
@@ -606,6 +607,10 @@ export class CraftingData {
                 options.src.items.at(-1)!.variants.push(tempNode);
             }
 
+            // Remove crafting request variant object if it's not needed
+            if (options.src.items.at(-1)!.variants.length == 0) {
+                options.src.items.pop();
+            }
         }
 
         // Find decisions

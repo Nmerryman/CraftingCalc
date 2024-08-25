@@ -10,6 +10,9 @@ import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./com
 import { ArrowPath, calcArrows, TextCircle } from "./components/svg";
 
 
+
+let resetRequestStateFunc: Function;  // Ugly hack to set a function, but in avoids passing a function through a bunch of innocent props.
+
 function CheckBackendStatus() {
     // Actually tries to fetch and update the status text
     return (
@@ -91,6 +94,11 @@ function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
 }
 
 function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
+
+    if (resetRequestStateFunc) {
+        resetRequestStateFunc();
+    }
+
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
@@ -376,6 +384,8 @@ export default function Main() {
 
     var initialcraftingRequests: Record<string, Stack> = {}
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
+    resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})
+
     const [svgState, setSvgState] = useState(false);  // For dev automation
 
     useEffect(() => {PullPreset(dispatchData); setSvgState(true);}, []);  // Run update once

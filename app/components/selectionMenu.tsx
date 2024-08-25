@@ -4,7 +4,7 @@ import xIcon from "./xIcon.png"
 
 
 type RequestMenuAction = {
-    type: "toggle"|"set"|"remove",
+    type: "toggle"|"set"|"remove"|"reset",
     name: string,
     value?: number
 }
@@ -28,6 +28,8 @@ export function requestMenuReducer(currentState: CraftingRequestType, action: Re
             temp[action.name] = new Stack(action.name, action.value);
         }
         return temp;
+    case "reset":
+        return {};
     }
 }
 

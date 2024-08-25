@@ -171,11 +171,20 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
 }
 
 
-function CalculateButton({requestState}: {requestState: CraftingRequestType}) {
+function CalculateButton({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
     if (Object.keys(requestState).length > 0) {
+        let goal = [];
+        for (let req of Object.values(requestState)) {
+            for (let i = 0; i < req.amount; i++) {
+                goal.push(req.resourceName);
+            }
+        }
+        let huristic = craftingData.bestHuristic(craftingData.calcChain(goal), craftingData.defaultHuristic)!;
         return (
-            <div className="flex justify-center">
-                <LinkBtn kind="callback" text="Calculate" callback={() => {console.log("Start calculating, probably by updating some state.")}}/>
+            <div>
+
+                <SVGHuristic huristic={huristic}/>
+                <HuristicStats huristic={huristic}/>
             </div>
         )
     } else {
@@ -374,17 +383,17 @@ export default function Main() {
     return (
         <div className="">
             <Header craftingDispatch={dispatchData}/>
-            <LogButton text="testing" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
+            <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
 
             {/* <SVGTest/> */}
-            <CalculateButton requestState={craftingRequestState}/>
-            <LinkBtn kind="callback" text="test thing" callback={() => {
+            <CalculateButton requestState={craftingRequestState} craftingData={craftingData}/>
+            {/* <LinkBtn kind="callback" text="test thing" callback={() => {
                 // let best = craftingData.bestHuristic(craftingData.calcChain(["pickaxe"]), craftingData.defaultHuristic);
                 console.log(craftingData.calcChain(["pickaxe"]));
                 // console.log(best);
-                }}/>
+                }}/> */}
             {/* <DEVSVGHuristic data={craftingData} state={svgState}/> */}
         </div>
     );

@@ -553,6 +553,9 @@ export class CraftingData {
             }
         }
 
+        if (!bestOption) {
+            console.log("FAILED TO FIND ANY WORKING OPTION.")
+        }
         return bestOption;
     }
 

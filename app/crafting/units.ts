@@ -242,6 +242,7 @@ export class chainHuristicsStats {
                     let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[0];
                     // Create a new object to insert into the fixed stack
                     let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
+                    tempNew.hRatio = tempPointingNode.hRatio;
 
                     fixed_stack[fixed_stack.length - 1].src.items[currentLastPointing.itemIndex].variants.push(tempNew);
                     src_stack.push({node: tempPointingNode, location: {path: _.cloneDeep(current_src.location.path).concat({itemIndex: 0, choice: 0})}});
@@ -266,6 +267,7 @@ export class chainHuristicsStats {
 
                     let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[match.path.at(-1)!.choice]
                     let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal)
+                    tempNew.hRatio = tempPointingNode.hRatio;
 
                     fixed_stack.at(-1)!.src.items[currentLastPointing.itemIndex].variants.push(tempNew);
                     let custPath = _.cloneDeep(current_src.location.path);
@@ -312,7 +314,7 @@ export class chainHuristicsStats {
             
             let targetOutput = recipe.outputResources.find((resource) => {return resource.resourceName == recipeTarget.resourceName}) as Stack;
             // How many times do we need to run the recipe
-            let ratio = recipeTarget.amount / targetOutput.amount;
+            let ratio = current.hRatio * recipeTarget.amount / targetOutput.amount;
             current.hRatio = ratio;
             
             for (let recipeOutput of recipe.outputResources) {
@@ -576,13 +578,24 @@ export class CraftingData {
     }
 
     calcChain(start: Array<string>) {
+        // Merge all identical requests into a single larger one
+        let startConsolidate: Record<string, Stack> = {}
+        for (let s of start) {
+            if (s in startConsolidate) {
+                startConsolidate[s].amount++;
+            } else {
+                startConsolidate[s] = new Stack(s, 1)
+            }
+        }
+
         // Options hold all found paths to get to the item.
         // let options: Array<recipeChainNode> = [];
         let options = new recipeChainNode(0, "", true)  // Name is unique enough to not hit anything
         let dupeCheck: Set<string> = new Set();
-        for (let startingRecipes of start) {
-            for (let possibleRecipes of this.findRecipesFor(startingRecipes)) {
-                let tempNode = new recipeChainNode(possibleRecipes, startingRecipes);
+        for (let startingRecipes of Object.values(startConsolidate)) {
+            for (let possibleRecipes of this.findRecipesFor(startingRecipes.resourceName)) {
+                let tempNode = new recipeChainNode(possibleRecipes, startingRecipes.resourceName);
+                tempNode.hRatio = startingRecipes.amount;
                 this.createChainTree(tempNode, dupeCheck);
                 options.src.items.push({variants: []});
                 options.src.items.at(-1)!.variants.push(tempNode);

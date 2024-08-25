@@ -384,7 +384,7 @@ export default function Main() {
 
     var initialcraftingRequests: Record<string, Stack> = {}
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
-    resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})
+    resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})  // load the global shortcut
 
     const [svgState, setSvgState] = useState(false);  // For dev automation
 

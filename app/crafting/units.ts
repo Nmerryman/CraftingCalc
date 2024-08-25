@@ -200,6 +200,7 @@ export class chainHuristicsStats {
 
         this.applyChoices();
         this.extractInfo(this.fixed_src);
+        this.mergeStacks();
 
     }
 
@@ -346,6 +347,40 @@ export class chainHuristicsStats {
                 }
             }
         }
+
+    }
+
+    mergeStacks() {
+
+        let a = 0;
+        while (a < this.input.length) {
+            let b = a + 1;
+            while (b < this.input.length) {
+                if (this.input[a].resourceName == this.input[b].resourceName) {
+                    this.input[a].amount += this.input[b].amount;
+                    this.input.splice(b, 1);
+                } else {
+                    b++;
+                }
+            }
+            a++;
+        }
+
+        a = 0;
+        while (a < this.output.length) {
+            let b = a + 1;
+            while (b < this.output.length) {
+                if (this.output[a].resourceName == this.output[b].resourceName) {
+                    this.output[a].amount += this.output[b].amount;
+                    this.output.splice(b, 1);
+                } else {
+                    b++;
+                }
+            }
+            a++;
+        }
+
+    
 
     }
 

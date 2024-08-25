@@ -457,7 +457,9 @@ export class CraftingData {
                 }
             }
             
-            start.src.items.push(variantArray);
+            if (variantArray.variants.length > 0) {
+                start.src.items.push(variantArray);
+            }
         }
     }
 

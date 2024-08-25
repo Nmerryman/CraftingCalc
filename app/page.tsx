@@ -188,13 +188,21 @@ function CalculateButton({requestState, craftingData}: {requestState: CraftingRe
             }
         }
         let huristic = craftingData.bestHuristic(craftingData.calcChain(goal), craftingData.defaultHuristic)!;
-        return (
-            <div>
-
-                <SVGHuristic huristic={huristic}/>
-                <HuristicStats huristic={huristic}/>
-            </div>
-        )
+        if (huristic.longest_depth == 0) {
+            return (
+                <div className="text-center">
+                    No resources in Crafting Request have crafting recipes.
+                </div>
+            )
+        } else {
+            return (
+                <div>
+    
+                    <SVGHuristic huristic={huristic}/>
+                    <HuristicStats huristic={huristic}/>
+                </div>
+            )
+        }
     } else {
         return (
             <></>
@@ -243,7 +251,7 @@ class recipeArrow {
 type itemIndex = number;
 
 function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
-    console.log(huristic);
+    // console.log(huristic);
     let boxStartX = 0;
     // let boxStartY = 0;
     let boxWidth = window.innerWidth;
@@ -252,7 +260,7 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
     let boxHeight = window.innerHeight * screenHeight;
     let heightPadding = boxHeight / 10;
     let breadthOffset = boxHeight / 5;  // This one will need to get scaled better latter
-    let depthOffset = (boxWidth - 2 * widthPadding) / (huristic.longest_depth);
+    let depthOffset = (boxWidth - 2 * widthPadding) / (Math.max(huristic.longest_depth, 0));
     boxStartX += 2 * depthOffset;
     
     let nodeStateStack: Array<[recipeChainNode, itemIndex]> = [[huristic.fixed_src, 0]];

@@ -479,6 +479,11 @@ export class CraftingData {
     } 
 
     generateChoicePermutations(choices: Array<craftingPathChoice>): Array<Array<craftingPathChoice>> {
+        // Check for no choice case
+        if (choices.length == 0) {
+            return []
+        }
+
         let maxes: Array<number> = [];
         let indexes: Array<number> = [];
 
@@ -540,7 +545,7 @@ export class CraftingData {
     bestHuristic(options: Array<chainHuristicsStats>, evalFunc: HuristicEval) {
         // We want lowest cost rn
         let bestScore = null;
-        let bestOption = null;
+        let bestOption: chainHuristicsStats|null = null;
 
         for (let option of options) {
             if (!bestOption) {
@@ -558,7 +563,7 @@ export class CraftingData {
         if (!bestOption) {
             console.log("FAILED TO FIND ANY WORKING OPTION.")
         }
-        return bestOption;
+        return bestOption!;
     }
 
     defaultHuristic(huristic: chainHuristicsStats): number {
@@ -626,19 +631,22 @@ export class CraftingData {
         // log(JSON.stringify(huristics.fixed_src))
 
         let huristicOptions: Array<chainHuristicsStats> = [];
-        let count = 0;
-        for (let perm of permutations) {
-            let huristics = new chainHuristicsStats(options, perm, this);
-            huristicOptions.push(huristics);
-            // log("------");
-            // log("count: " + count);
-            // log(huristics.choices);
-            // log({steps: huristics.steps, input: huristics.input, output: huristics.output, max_depth: huristics.longest_depth})
-            // log(huristics)
-            count++;
+        if (permutations.length == 0) {
+            huristicOptions.push(new chainHuristicsStats(options, [], this))
+        } else {
+            let count = 0;
+            for (let perm of permutations) {
+                let huristics = new chainHuristicsStats(options, perm, this);
+                huristicOptions.push(huristics);
+                // log("------");
+                // log("count: " + count);
+                // log(huristics.choices);
+                // log({steps: huristics.steps, input: huristics.input, output: huristics.output, max_depth: huristics.longest_depth})
+                // log(huristics)
+                count++;
+            }
         }
         
-
         return huristicOptions;
     }
 

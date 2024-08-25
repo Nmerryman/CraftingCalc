@@ -598,11 +598,11 @@ export class CraftingData {
         let options = new recipeChainNode(0, "", true)  // Name is unique enough to not hit anything
         let dupeCheck: Set<string> = new Set();
         for (let startingRecipes of Object.values(startConsolidate)) {
+            options.src.items.push({variants: []});
             for (let possibleRecipes of this.findRecipesFor(startingRecipes.resourceName)) {
                 let tempNode = new recipeChainNode(possibleRecipes, startingRecipes.resourceName);
                 tempNode.hRatio = startingRecipes.amount;
                 this.createChainTree(tempNode, dupeCheck);
-                options.src.items.push({variants: []});
                 options.src.items.at(-1)!.variants.push(tempNode);
             }
 
@@ -647,6 +647,7 @@ export class CraftingData {
             }
         }
         
+        // log(options)
         return huristicOptions;
     }
 

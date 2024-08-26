@@ -118,6 +118,7 @@ export class recipeChainNode {
 
     // Extra field for carrying data in huristics step
     hRatio: number = 1;
+    hWidth: number = 1;
 
     constructor(public rId: number, public goal: string, public root: boolean = false) {}
 }
@@ -192,6 +193,7 @@ export class chainHuristicsStats {
     input: Array<Stack> = [];
     inputStack: Array<Stack> = [];
     output: Array<Stack> = [];
+    intermediate: Array<Stack> = [];
     longest_depth: number = 0;
     fixed_src: recipeChainNode = new recipeChainNode(0, "");
 
@@ -199,8 +201,10 @@ export class chainHuristicsStats {
         // Evaluate attributes here
 
         this.applyChoices();
-        this.extractInfo(this.fixed_src);
+        this.extractInfoDepth(this.fixed_src);
+        this.extractInfoRevBreadth();
         this.mergeStacks();
+        // log(this)
 
     }
 
@@ -285,7 +289,8 @@ export class chainHuristicsStats {
         this.fixed_src = root_fixed;
     }
 
-    extractInfo(current: recipeChainNode | null, depth: number = 0) {
+    extractInfoDepth(current: recipeChainNode | null, depth: number = 0) {
+        // Extract info from current node and iterate in a depth first recursive method.
         // We have the current parameter so we can call this function recursively.
 
         if (!current) {
@@ -306,7 +311,7 @@ export class chainHuristicsStats {
                 // Also make sure we keep the ones that get finished(Later iterations don't store the goal)
                 this.output.push(tempTargetStack)
                 // Recurse
-                this.extractInfo(items.variants[0], depth + 1);
+                this.extractInfoDepth(items.variants[0], depth + 1);
             }
         } else {
             // Get the last item put into the stack so we can calculate things like ratios
@@ -340,7 +345,7 @@ export class chainHuristicsStats {
                 if (node) {
                     // The input has a crafting recipe
                     this.inputStack.push(tempRecipeInput);
-                    this.extractInfo(node.variants[0], depth + 1);
+                    this.extractInfoDepth(node.variants[0], depth + 1);
                 } else {
                     // This input does not have a crafting recipe
                     this.input.push(tempRecipeInput);
@@ -350,37 +355,65 @@ export class chainHuristicsStats {
 
     }
 
+    extractInfoRevBreadth() {
+        // Loop through all nodes from the bottom up.
+        // This could have been done through postorder traversal, but I wanted to try this way.
+
+        // Flatten the tree via bfs
+        let nodes: Array<recipeChainNode> = [];
+        let queue = [this.fixed_src];
+        let index = 0;
+
+        while (index < queue.length) {
+            let current = queue[index];
+            nodes.push(current);
+            for (let item of current.src.items) {
+                queue.push(item.variants[0]);
+            }
+            index++;
+        }
+
+        nodes.reverse();
+
+        let avoidGoals = [""];
+        this.fixed_src.src.items.map((item) => {avoidGoals.push(item.variants[0].goal)})
+
+        // Calculate the width of each node including child nodes
+        for (let node of nodes) {
+            let width = _.sum(node.src.items.map(item => item.variants[0].hWidth));
+            node.hWidth = Math.max(1, width);
+
+            if (!(avoidGoals.includes(node.goal))){
+                // Store all intermediate crafts
+                // This could be done in the depth traversal, but then I lose the ordering
+                let recipe = this.data.getRecipe(node.rId)!
+                let count = recipe.outputResources.find(r => r.resourceName == node.goal)!.amount;
+                this.intermediate.push(new Stack(node.goal, count * node.hRatio))
+
+            }
+
+        }
+
+    }
+
     mergeStacks() {
+        // Take input, output and other applicaple stacks and merge ones that can be. 
 
-        let a = 0;
-        while (a < this.input.length) {
-            let b = a + 1;
-            while (b < this.input.length) {
-                if (this.input[a].resourceName == this.input[b].resourceName) {
-                    this.input[a].amount += this.input[b].amount;
-                    this.input.splice(b, 1);
-                } else {
-                    b++;
+        for (let sArray of [this.input, this.output, this.intermediate]) {
+            let a = 0;
+            while (a < sArray.length) {
+                let b = a + 1;
+                while (b < sArray.length) {
+                    if (sArray[a].resourceName == sArray[b].resourceName) {
+                        sArray[a].amount += sArray[b].amount;
+                        sArray.splice(b, 1);
+                    } else {
+                        b++;
+                    }
                 }
+                a++;
             }
-            a++;
         }
-
-        a = 0;
-        while (a < this.output.length) {
-            let b = a + 1;
-            while (b < this.output.length) {
-                if (this.output[a].resourceName == this.output[b].resourceName) {
-                    this.output[a].amount += this.output[b].amount;
-                    this.output.splice(b, 1);
-                } else {
-                    b++;
-                }
-            }
-            a++;
-        }
-
-    
 
     }
 

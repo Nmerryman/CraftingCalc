@@ -367,17 +367,25 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
         <div className="flex justify-around pt-2">
             <span>
                 <div>
-                    Required inputs
+                    Resulting outputs
                 {
-                    huristic.input.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
+                    huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
                 }
                 </div>
             </span>
             <span>
                 <div>
-                    Resulting outputs
+                    Intermediate crafting requirements
                 {
-                    huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
+                    huristic.intermediate.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
+                }
+                </div>
+            </span>
+            <span>
+                <div>
+                    Required inputs
+                {
+                    huristic.input.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
                 }
                 </div>
             </span>

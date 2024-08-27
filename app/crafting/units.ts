@@ -204,7 +204,6 @@ export class chainHuristicsStats {
         this.extractInfoDepth(this.fixed_src);
         this.extractInfoRevBreadth();
         this.mergeStacks();
-        // log(this)
 
     }
 
@@ -305,7 +304,9 @@ export class chainHuristicsStats {
         if (current.root) {
             // log(current)
             for (let items of current.src.items) {
-                let tempTargetStack = new Stack(items.variants[0].goal);
+                let childNode = items.variants[0];
+                let recipeStack = this.data.getRecipe(childNode.rId)!.outputResources.find(resource => resource.resourceName == childNode.goal)
+                let tempTargetStack = new Stack(items.variants[0].goal, childNode.hRatio / recipeStack!.amount);  // FIXME I bet that just using hRatio is not enough. Check else statement.
                 // Add the ones needed into the processing stack
                 this.inputStack.push(tempTargetStack);
                 // Also make sure we keep the ones that get finished(Later iterations don't store the goal)
@@ -321,8 +322,10 @@ export class chainHuristicsStats {
             
             let targetOutput = recipe.outputResources.find((resource) => {return resource.resourceName == recipeTarget.resourceName}) as Stack;
             // How many times do we need to run the recipe
-            let ratio = current.hRatio * recipeTarget.amount / targetOutput.amount;
-            current.hRatio = ratio;
+
+            let ratio = Math.max(current.hRatio, recipeTarget.amount) / targetOutput.amount;
+
+            current.hRatio = ratio;  // How many times we need to run the recipe
             
             for (let recipeOutput of recipe.outputResources) {
                 if (recipeOutput.resourceName != recipeTarget.resourceName) {
@@ -722,7 +725,6 @@ export class CraftingData {
             }
         }
         
-        // log(options)
         return huristicOptions;
     }
 

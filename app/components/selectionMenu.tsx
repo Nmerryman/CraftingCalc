@@ -1,6 +1,8 @@
-import { Dispatch, SyntheticEvent } from "react"
+import { Dispatch, SyntheticEvent, useState } from "react"
 import { CraftingData, Resource, Stack } from "../crafting/units"
 import xIcon from "./xIcon.png"
+import * as levenshtein from "js-levenshtein"
+import { OnEnterCall } from "../utils/onEnter"
 
 
 type RequestMenuAction = {
@@ -42,11 +44,58 @@ function ResourceListItem({resource, dispatch}: {resource: Resource, dispatch: D
 }
 
 
+function textMatch(pattern: string, onTo: string): boolean {
+    // Semi fuzzy match for putting the pattern on the target string.
+    // The entire pattern must match, but it can skip characters on the onTo string.
+    pattern = pattern.toLowerCase();
+    onTo = onTo.toLowerCase();
+    let pIndex = 0;
+    let oIndex = 0;
+
+    while (pIndex < pattern.length && oIndex < onTo.length) {
+        if (pattern[pIndex] == onTo[oIndex]) {
+            oIndex++;
+        }
+        pIndex++;
+    }
+
+    if (pIndex == pattern.length) {
+        return true;
+    }
+    
+    return false;
+}
+
+
 function ListResources({craftingData, requestDispatch}: {craftingData: CraftingData, requestDispatch: Dispatch<RequestMenuAction>}) {
+    const [textState, setText] = useState("");
+    let topName = "";
+
+    function updateText() {
+        let selectTextBox = document.getElementById("resource_search") as HTMLInputElement;
+        setText(selectTextBox.value);
+    }
+
     return (
         <ul>
-            <span className="font-bold">Resource List</span>
-            {Object.values(craftingData.resources).map((rval) => {return <ResourceListItem key={rval.name} resource={rval} dispatch={requestDispatch}/>})}
+            <div className="font-bold">Resource List</div>
+            <input placeholder="Resource" id="resource_search" className="text-black" onChange={() => updateText()} onKeyDown={OnEnterCall(() => requestDispatch({type: "toggle", name: topName}))}/>
+            {Object.values(craftingData.resources)
+                .sort((rValA, rValB) => { 
+                    // This works, but I think I'd rather use a filter via the TextMatch function defined above. 
+                    // This method does not handle shortened versions of text comparisons well (leather vs tanned leather)
+                    if (levenshtein(textState, rValA.name) < levenshtein(textState, rValB.name)) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                })
+                .map((rval, rIndex) => {
+                    if (rIndex == 0) {  // Store the name of the top item in the sort so that we can reference it in an enter toggle later.
+                        topName = rval.name;
+                    }
+                    return <ResourceListItem key={rval.name} resource={rval} dispatch={requestDispatch}/>
+                    })}
         </ul>
     )
 }
@@ -106,7 +155,7 @@ function ListRequests({requestState, requestDispatch}: {requestState: CraftingRe
 export function SelectionDisplay({craftingData, requestState, requestDispatch}: {craftingData: CraftingData, requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <>
-        <div className="flex justify-around">
+        <div className="flex justify-around h-[40vh] overflow-hidden">
             <ListResources craftingData={craftingData} requestDispatch={requestDispatch}/>
             <ListProcesses craftingData={craftingData}/>
             <ListRequests requestState={requestState} requestDispatch={requestDispatch}/>

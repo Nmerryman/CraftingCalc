@@ -1,8 +1,9 @@
 import { Dispatch, SyntheticEvent, useState } from "react"
 import { CraftingData, Resource, Stack } from "../crafting/units"
 import xIcon from "./xIcon.png"
-import * as levenshtein from "js-levenshtein"
+// import * as levenshtein from "js-levenshtein"
 import { OnEnterCall } from "../utils/onEnter"
+import levenshtein from "js-levenshtein"
 
 
 type RequestMenuAction = {

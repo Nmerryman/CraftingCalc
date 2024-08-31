@@ -33,8 +33,11 @@ export function craftingReducer(state: CraftingData, action: CraftingAction): Cr
     case "set recipe":
         state.setRecipe(action.anyValue as Recipe);
         return state.shallowClone();
+    case "replace all":  // Used to load a new piece of data
+        return action.anyValue as CraftingData;
     default:
         console.log("Unkown action: " + action.type);
         return state
     }
+    
 }

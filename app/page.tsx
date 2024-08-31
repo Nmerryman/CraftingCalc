@@ -127,25 +127,49 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
 }
 
 
-function PresetMenu({craftingDispatch}: {craftingDispatch: Dispatch<CraftingAction>}) {
+function PresetMenu({craftingDispatch, craftingData}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData}) {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
 
-    // useEffect(() => {
-    //     // The default is set to dev while we are in dev mode for now
-    //     const element = document.getElementById("preset_input") as HTMLInputElement;
-    //     element.value = "Dev";
-    //     PullPreset(craftingDispatch);
-    // })
+    let availablePresetNamesStr = localStorage.getItem("_available");  // We assume there is no preset called _available. TODO hard code a check when setting?
+    let availablePresetNames: Array<string> = [];
+
+    if (!availablePresetNamesStr) {  // When I wake back up. Chop this out of the rendering function. It updates itself and loops
+        // I'm probably putting way to much logic in the preset menu area in general. Just move more stuff closer to main
+
+        // Add defaults
+        // Dev
+        craftingDispatch({type: "reset"});
+        craftingDispatch({type: "set resources", recordValue: devGenResources()});
+        craftingDispatch({type: "set processes", recordValue: devGenProcesses()});
+        craftingDispatch({type: "set recipes", arrayValue: devGenRecipes()}); 
+        localStorage.setItem("Dev", JSON.stringify(craftingData));
+        availablePresetNames.push("Dev");
+
+        // Empty
+        craftingDispatch({type: "reset"});
+        localStorage.setItem("Empty", JSON.stringify(craftingData));
+        availablePresetNames.push("Empty");
+        localStorage.setItem("Default", JSON.stringify(craftingData));
+        availablePresetNames.push("Default")
+
+        // Backpack
+        craftingDispatch({type: "reset"});
+        gtBackpackPreset(craftingDispatch);
+        localStorage.setItem("Backpack", JSON.stringify(craftingData));
+        availablePresetNames.push("Backpack");
+        
+    }
 
     return (
         <div className="w-full">
             <CheckBackendStatus/>
             <div className="text-black">
                 <datalist id="preset_names">
-                    <option value="Dev"/>
-                    <option value="Empty"/>
-                    <option value="Default"/>
-                    <option value="backpack"/>
+                    {
+                        availablePresetNames.map(name => {
+                            return <option value={name}/>
+                        })
+                    }
                 </datalist>
                 <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="text-center bg-white px-8 outline"></input>
@@ -156,7 +180,7 @@ function PresetMenu({craftingDispatch}: {craftingDispatch: Dispatch<CraftingActi
 }
 
 
-function Header({craftingDispatch}: {craftingDispatch: Dispatch<CraftingAction>}) {
+function Header({craftingDispatch, craftingData}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData}) {
     return (
         <div>
             <div className="text-3xl font-bold underline w-screen bg-slate-950 flex justify-center">
@@ -165,7 +189,7 @@ function Header({craftingDispatch}: {craftingDispatch: Dispatch<CraftingAction>}
             <div className="flex justify-around ">
                 <LinkBtn kind="link" text="Help" url="wiki" debugText="Clicked Help"/>
                 <LinkBtn kind="link" text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
-                <PresetMenu craftingDispatch={craftingDispatch}/>
+                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData}/>
             </div>
         </div>
     )
@@ -266,8 +290,6 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
     
     let nodeStateStack: Array<[recipeChainNode, itemIndex, drawOffset]> = [[huristic.fixed_src, 0, 0]];
     let circleStack: Array<recipeCircle> = []
-    // let depthCount: Array<number> = [0, 0];  // I don't mind an off-by-1 if it works consistently via length?
-    // let depthCount: Array<number> = Array(huristic.longest_depth + 3).fill(0);
     let lastPop = false;
 
     let circleCollection: Array<recipeCircle> = [];
@@ -416,7 +438,7 @@ export default function Main() {
 
     return (
         <div className="">
-            <Header craftingDispatch={dispatchData}/>
+            <Header craftingDispatch={dispatchData} craftingData={craftingData}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>

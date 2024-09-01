@@ -1,8 +1,10 @@
 import { CraftingData, Process, Recipe, Resource } from "../crafting/units";
 
 
+type CraftingTypeOptions = "log"|"reset"|"set resources"|"set processes"|"set recipes"|"set resource"|"set process"|"set recipe"|"replace all"
+
 export type CraftingAction = {
-    type: string,
+    type: CraftingTypeOptions,
     value?: string,
     recordValue?: Record<string, any>,
     arrayValue?: Array<any>,

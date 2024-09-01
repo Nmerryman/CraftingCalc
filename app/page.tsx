@@ -179,7 +179,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames}: {craft
                 <datalist id="preset_names">
                     {
                         availablePresetNames.map(name => {
-                            return <option value={name}/>
+                            return <option value={name} key={name}/>
                         })
                     }
                 </datalist>

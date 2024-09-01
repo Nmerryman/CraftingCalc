@@ -36,7 +36,20 @@ export function craftingReducer(state: CraftingData, action: CraftingAction): Cr
         state.setRecipe(action.anyValue as Recipe);
         return state.shallowClone();
     case "replace all":  // Used to load a new piece of data
-        return action.anyValue as CraftingData;
+        let src = action.anyValue as CraftingData;
+        let temp = new CraftingData()
+        // We have to individually create every object because json doesn't store any methods.
+        for (let resource of Object.keys(src.resources)) {
+            temp.setResource(new Resource(resource, src.resources[resource]));
+        }
+        for (let process of Object.keys(src.processes)) {
+            temp.setProcess(new Process(process, src.processes[process]));
+        }
+        for (let recipe of src.recipes) {
+            temp.setRecipe(new Recipe(recipe.processUsed, recipe.inputResources, recipe.outputResources, recipe.outputBonusChances, recipe.timeSpent));
+        }
+
+        return temp;
     default:
         console.log("Unkown action: " + action.type);
         return state

@@ -1,6 +1,6 @@
 'use client'
 
-import { Dispatch, SetStateAction, useEffect, useReducer, useState } from "react";
+import { Dispatch, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
 import { CraftingData, Process, Recipe, Resource, Stack, chainHuristicsStats, recipeChainNode } from "./crafting/units";
 import { PopupEditor, togglePopupCallback } from "./components/popup";
@@ -106,58 +106,70 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
-    console.log(1)
-    // craftingDispatch({type: "log"});
 
-    if (value == "Empty" || value == "Default") {
-        return
-    } else if (value == "Dev") {
-        craftingDispatch({type: "set resources", recordValue: devGenResources()});
-        craftingDispatch({type: "set processes", recordValue: devGenProcesses()});
-        craftingDispatch({type: "set recipes", arrayValue: devGenRecipes()});
-    } else if (value == "backpack") {
-        gtBackpackPreset(craftingDispatch);
+    let presetNames = JSON.parse(localStorage.getItem("_available")!) as Array<string>
+
+    if (presetNames.includes(value)) {
+        craftingDispatch({type: "replace all", anyValue: JSON.parse(localStorage.getItem(value)!)})
     } else {
         console.log("Unkown preset set: " + value);
     }
 
     craftingDispatch({type: "log"});
 
-
 }
 
 
-function PresetMenu({craftingDispatch, craftingData}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData}) {
-    // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
-
+function ensureDefaultPresets() {
+    
+    localStorage.clear();
+    
     let availablePresetNamesStr = localStorage.getItem("_available");  // We assume there is no preset called _available. TODO hard code a check when setting?
-    let availablePresetNames: Array<string> = [];
+    let availablePresetNames = [];
 
-    if (!availablePresetNamesStr) {  // When I wake back up. Chop this out of the rendering function. It updates itself and loops
-        // I'm probably putting way to much logic in the preset menu area in general. Just move more stuff closer to main
+    // Create temp object
+    let tempData = new CraftingData();
+    function fakeDispatch(action: CraftingAction) {  // Simulate the regular dispatcher without triggering any prop updates.
+        tempData = craftingReducer(tempData, action);
+    }
+
+    if (!availablePresetNamesStr) {  // If this item is not found in localStorage. It must be empty
 
         // Add defaults
         // Dev
-        craftingDispatch({type: "reset"});
-        craftingDispatch({type: "set resources", recordValue: devGenResources()});
-        craftingDispatch({type: "set processes", recordValue: devGenProcesses()});
-        craftingDispatch({type: "set recipes", arrayValue: devGenRecipes()}); 
-        localStorage.setItem("Dev", JSON.stringify(craftingData));
+        fakeDispatch({type: "reset"});
+        fakeDispatch({type: "set resources", recordValue: devGenResources()});
+        fakeDispatch({type: "set processes", recordValue: devGenProcesses()});
+        fakeDispatch({type: "set recipes", arrayValue: devGenRecipes()}); 
+        localStorage.setItem("Dev", JSON.stringify(tempData));
         availablePresetNames.push("Dev");
 
         // Empty
-        craftingDispatch({type: "reset"});
-        localStorage.setItem("Empty", JSON.stringify(craftingData));
+        fakeDispatch({type: "reset"});
+        localStorage.setItem("Empty", JSON.stringify(tempData));
         availablePresetNames.push("Empty");
-        localStorage.setItem("Default", JSON.stringify(craftingData));
+        localStorage.setItem("Default", JSON.stringify(tempData));
         availablePresetNames.push("Default")
 
         // Backpack
-        craftingDispatch({type: "reset"});
-        gtBackpackPreset(craftingDispatch);
-        localStorage.setItem("Backpack", JSON.stringify(craftingData));
+        fakeDispatch({type: "reset"});
+        gtBackpackPreset(fakeDispatch);
+        localStorage.setItem("Backpack", JSON.stringify(tempData));
         availablePresetNames.push("Backpack");
         
+        localStorage.setItem("_available", JSON.stringify(availablePresetNames));
+
+    }
+}
+
+
+function PresetMenu({craftingDispatch, craftingData, currentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string}) {
+    // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
+
+
+    let availablePresetNames: Array<string> = []
+    if (currentPresetNames) {
+        availablePresetNames = JSON.parse(currentPresetNames);
     }
 
     return (
@@ -180,7 +192,7 @@ function PresetMenu({craftingDispatch, craftingData}: {craftingDispatch: Dispatc
 }
 
 
-function Header({craftingDispatch, craftingData}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData}) {
+function Header({craftingDispatch, craftingData, currentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string}) {
     return (
         <div>
             <div className="text-3xl font-bold underline w-screen bg-slate-950 flex justify-center">
@@ -189,7 +201,7 @@ function Header({craftingDispatch, craftingData}: {craftingDispatch: Dispatch<Cr
             <div className="flex justify-around ">
                 <LinkBtn kind="link" text="Help" url="wiki" debugText="Clicked Help"/>
                 <LinkBtn kind="link" text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
-                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData}/>
+                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData} currentPresetNames={currentPresetNames}/>
             </div>
         </div>
     )
@@ -276,7 +288,7 @@ type itemIndex = number;
 type drawOffset = number;
 
 function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
-    console.log(huristic);
+    // console.log(huristic);
     let boxStartX = 0;
     // let boxStartY = 0;
     let boxWidth = window.innerWidth;
@@ -320,7 +332,6 @@ function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
             for (let itemNum = 0; itemNum < currentNode[1]; itemNum++) {
                 currentBreadth += currentNode[0].src.items[itemNum].variants[0].hWidth;
             }
-            console.log(currentBreadth)
             // Store the next child on the stack
             nodeStateStack.push([currentNode[0].src.items[currentNode[1]].variants[0], 0, currentNode[2] + currentBreadth * breadthOffset]);
             circleStack.push(circle);
@@ -431,14 +442,20 @@ export default function Main() {
     var initialcraftingRequests: Record<string, Stack> = {}
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
     resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})  // load the global shortcut
+    const [currentPresetNames, setCurrentPresetNames] = useState("");  // By storing the value as a json string, we don't need to use a reducer given that we alway deserialize it.
 
     const [svgState, setSvgState] = useState(false);  // For dev automation
 
-    useEffect(() => {PullPreset(dispatchData); setSvgState(true);}, []);  // Run update once
+    useEffect(() => {
+        ensureDefaultPresets(); 
+        setCurrentPresetNames(localStorage.getItem("_available")!)
+        PullPreset(dispatchData); 
+        setSvgState(true);
+    }, []);  // Run update once
 
     return (
         <div className="">
-            <Header craftingDispatch={dispatchData} craftingData={craftingData}/>
+            <Header craftingDispatch={dispatchData} craftingData={craftingData} currentPresetNames={currentPresetNames}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>

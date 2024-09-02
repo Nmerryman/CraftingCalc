@@ -59,7 +59,7 @@ header {
 }
 
 .input_button {
-  @apply input_field hover:bg-gray-400 cursor-pointer
+  @apply input_field hover:bg-gray-400 cursor-pointer active:bg-gray-600
 }
 
 .bow_text {

@@ -119,7 +119,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
                     }
                 </datalist>
                 <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
-                <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="text-center bg-white px-8 outline"></input>
+                <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="input_button"></input>
                 <PresetConfig currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
         </div>

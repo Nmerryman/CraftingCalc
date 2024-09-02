@@ -8,7 +8,9 @@ import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
 import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { SVGHuristic } from "./components/svgHuristics";
+import { PresetConfig } from "./components/presetConfig";
 import { gtBackpackPreset, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import Popup from "reactjs-popup";
 
 
 
@@ -96,7 +98,8 @@ function ensureDefaultPresets() {
 }
 
 
-function PresetMenu({craftingDispatch, craftingData, currentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string}) {
+
+function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurrentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
 
     let availablePresetNames: Array<string> = []
@@ -117,13 +120,14 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames}: {craft
                 </datalist>
                 <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="text-center bg-white px-8 outline"></input>
+                <PresetConfig currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
         </div>
     )
 }
 
 
-function Header({craftingDispatch, craftingData, currentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string}) {
+function Header({craftingDispatch, craftingData, currentPresetNames, setCurrentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
     return (
         <div>
             <div className="text-3xl font-bold underline w-screen bg-slate-950 flex justify-center">
@@ -132,7 +136,7 @@ function Header({craftingDispatch, craftingData, currentPresetNames}: {craftingD
             <div className="flex justify-around ">
                 <LinkBtn kind="link" text="Help" url="wiki" debugText="Clicked Help"/>
                 <LinkBtn kind="link" text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
-                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData} currentPresetNames={currentPresetNames}/>
+                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
         </div>
     )
@@ -234,7 +238,7 @@ export default function Main() {
 
     return (
         <div className="">
-            <Header craftingDispatch={dispatchData} craftingData={craftingData} currentPresetNames={currentPresetNames}/>
+            <Header craftingDispatch={dispatchData} craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>

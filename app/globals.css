@@ -53,3 +53,15 @@ header {
 .popup_header {
   font-size: medium;
 }
+
+.input_field {
+  @apply text-center bg-white px-8 outline text-black
+}
+
+.input_button {
+  @apply input_field hover:bg-gray-400 cursor-pointer
+}
+
+.bow_text {
+  @apply text-black text-center
+}

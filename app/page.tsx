@@ -10,7 +10,6 @@ import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./com
 import { SVGHuristic } from "./components/svgHuristics";
 import { PresetConfig } from "./components/presetConfig";
 import { gtBackpackPreset, vanillaPickaxePreset } from "./crafting/defaultPresets";
-import Popup from "reactjs-popup";
 
 
 
@@ -19,9 +18,23 @@ let resetRequestStateFunc: Function;  // Ugly hack to set a function, but in avo
 
 function CheckBackendStatus() {
     // Actually tries to fetch and update the status text
+    const [backendStatus, setBackendStatus] = useState("Unchecked");
+
+    function netCheck() {
+        fetch("http://p8000.hydris.dev/test", {cache: "no-store"})  // no-store to make sure that we don't cache any status (Probbaly doesn't matter though)
+            .then(resp => {
+                setBackendStatus("Server is alive!")
+            })
+            .catch(err => {
+                console.log(err);
+                setBackendStatus("Backend target is unreachable.")
+            })
+    }
+
     return (
-        <div>
-            Backend check missing.
+        <div className="my-1">
+            <input type="button" className="input_button mr-3" value="Check" onClick={netCheck}/>
+            {backendStatus}
         </div>
     )
 }

@@ -42,7 +42,8 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
 
-    let presetNames = JSON.parse(localStorage.getItem("_available")!) as Array<string>
+    let presetNames = JSON.parse(localStorage.getItem("_available_local")!) as Array<string>
+    console.log(presetNames)
 
     if (presetNames.includes(value)) {  // We check this because it's my "best practices", but we can bypass this and just check the value for undifined directly.
         craftingDispatch({type: "replace all", anyValue: JSON.parse(localStorage.getItem(value)!)})
@@ -60,7 +61,7 @@ function ensureDefaultPresets() {
     // DEBUG clear
     localStorage.clear();
     
-    let availablePresetNamesStr = localStorage.getItem("_available");  // We assume there is no preset called _available. TODO hard code a check when setting?
+    let availablePresetNamesStr = localStorage.getItem("_available_local");  // We assume there is no preset called _available. TODO hard code a check when setting?
     let availablePresetNames = [];
 
     // Create temp object
@@ -92,7 +93,7 @@ function ensureDefaultPresets() {
         availablePresetNames.push("Backpack");
         
         // Store the currently available items
-        localStorage.setItem("_available", JSON.stringify(availablePresetNames));
+        localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
 
     }
 }
@@ -120,7 +121,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
                 </datalist>
                 <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="input_button"></input>
-                <PresetConfig currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
+                <PresetConfig craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
         </div>
     )
@@ -232,7 +233,7 @@ export default function Main() {
 
     useEffect(() => {
         ensureDefaultPresets(); 
-        setCurrentPresetNames(localStorage.getItem("_available")!)
+        setCurrentPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
     }, []);  // Run update once after main page load
 

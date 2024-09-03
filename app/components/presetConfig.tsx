@@ -1,9 +1,10 @@
-import { ChangeEvent, Dispatch, useState } from "react";
+import { ChangeEvent, Dispatch, useEffect, useState } from "react";
 import { Popup } from "reactjs-popup"
 import xIcon from "./xIcon.png"
+import { CraftingData } from "../crafting/units";
 
 
-export function PresetConfig({currentPresetNames, setCurrentPresetNames}: {currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
+export function PresetConfig({craftingData, currentPresetNames, setCurrentPresetNames}: {craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
 
     const [popupState, setPopupState] = useState(false);
     const closePopup = () => {setPopupState(false)};
@@ -14,14 +15,14 @@ export function PresetConfig({currentPresetNames, setCurrentPresetNames}: {curre
 
 
     // This indirection/wrapping is needed for input validation
-    const saveInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    function saveInputChange(event: ChangeEvent<HTMLInputElement>) {
         let val = event.currentTarget.value;
         if (val != "_available_local"  && val != "_available_backend") {
             setSaveInput(val);
         }
     }
 
-    const downloadInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    function downloadInputChange(event: ChangeEvent<HTMLInputElement>) {
         let val = event.currentTarget.value;
         if (val != "_available_local" && val != "_available_backend") {
             setDownloadInput(val);
@@ -29,8 +30,36 @@ export function PresetConfig({currentPresetNames, setCurrentPresetNames}: {curre
     }
 
     // Dev callback to change text when buttons are clicked
-    const tempStatus = (name: string) => {
+    function tempStatus(name: string) {
         return () => {setStatusText("Clicked " + name + " button.")}
+    }
+
+    function removeFromLocal() {
+        let current = JSON.parse(currentPresetNames) as Array<string>;
+
+        localStorage.removeItem(saveInput);
+        current = current.filter(val => val != saveInput);
+
+        let tempText = JSON.stringify(current)  // We have to do this because setCurrentPresetNames is async and won't update in time for reuse.
+        setCurrentPresetNames(tempText);
+        localStorage.setItem("_available_local", tempText)
+        
+        setStatusText(`Removed "${saveInput}" from localStorage.`)
+    }
+
+    function addToLocal() {
+        let current = JSON.parse(currentPresetNames) as Array<string>;
+
+        if (!current.includes(saveInput)) {
+            current.push(saveInput);
+        }
+        localStorage.setItem(saveInput, JSON.stringify(craftingData));
+
+        let tempText = JSON.stringify(current)  // We have to do this because setCurrentPresetNames is async and won't update in time for reuse.
+        setCurrentPresetNames(tempText);
+        localStorage.setItem("_available_local", tempText)
+
+        setStatusText(`Stored "${saveInput}" preset into locolStorage.`)
     }
 
     return (
@@ -45,8 +74,8 @@ export function PresetConfig({currentPresetNames, setCurrentPresetNames}: {curre
                         Save Current Preset
                     </span>
                     <input type="text" className="input_field" placeholder="Preset Name" value={saveInput} onChange={saveInputChange}></input>
-                    <input type="button" className="input_button" value="Save Local"/>
-                    <input type="button" className="input_button" value="Delete Local"/>
+                    <input type="button" className="input_button" value="Set/Save Local" onClick={addToLocal}/>
+                    <input type="button" className="input_button" value="Delete Local" onClick={removeFromLocal}/>
                     <input type="button" className="input_button" value="Push Backend" onClick={tempStatus("Push Backend")}/>
                     <span>
                     Download Preset

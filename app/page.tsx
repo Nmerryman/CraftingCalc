@@ -208,7 +208,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
         <div className="flex justify-around pt-2">
             <span>
                 <div>
-                    Resulting outputs
+                    Resulting A#Wdb
                 {
                     huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
                 }

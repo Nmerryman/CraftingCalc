@@ -117,11 +117,12 @@ git push                        # Push the changes to the shared repository
 
 ## Npm - The thing that hosts the test website
 npm install # Install packages for development
+
 npm run dev # Host the dev website. It has hot reloading.
 
 
 # Easy tasks?
-Make text and buttons look ok for different resolutions
-Make Change the way anything that could be improved looks
-Add check boxes to each thing under thing under the SVG
-Add a dropdown to select which crafting path chosen (Currently only the "Best" is chosen)
+- Make text and buttons look ok for different resolutions
+- Make Change the way anything that could be improved looks
+- Add check boxes to each thing under thing under the SVG
+- Add a dropdown to select which crafting path chosen (Currently only the "Best" is chosen)

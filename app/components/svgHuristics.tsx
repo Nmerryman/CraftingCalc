@@ -84,6 +84,10 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
 
     return (
         <svg className={`bg-white w-full h-[${Math.round(boxHeight)}px]`} viewBox={`${boxStartX} 0 ${boxWidth} ${boxHeight}`}>
+            {arrowCollection.map((arrow) => {
+                let lineVals = calcArrows(arrow.from, arrow.to);
+                return <ArrowPath start={lineVals.b} end={lineVals.a} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
+            })}
             {circleCollection.map((cir, i) => {
                 if (i != 0) { // Remove the root holding node that we don't actually need (for now.)
                     let total: number;
@@ -95,10 +99,6 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
                     }
                     return <TextCircle center={{x: cir.x, y: cir.y}} text={`${total}x of ${cir.node.goal}`} key={[cir.node.goal, cir.x, cir.y].join(" ")}/>
                 }
-            })}
-            {arrowCollection.map((arrow) => {
-                let lineVals = calcArrows(arrow.from, arrow.to);
-                return <ArrowPath start={lineVals.b} end={lineVals.a} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
             })}
             {/* Debug circles */}
             <TextCircle center={{x: boxStartX, y: 0}} text=""/>

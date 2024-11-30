@@ -132,7 +132,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
                         })
                     }
                 </datalist>
-                <input autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
+                <input autoComplete="on" list="preset_names" placeholder=" Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="input_button"></input>
                 <PresetConfig craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
@@ -208,7 +208,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
         <div className="flex justify-around pt-2">
             <span>
                 <div>
-                    Resulting A#Wdb
+                    Resulting output
                 {
                     huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
                 }

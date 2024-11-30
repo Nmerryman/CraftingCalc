@@ -93,15 +93,26 @@ No focus on using bonus chances
 
 # Helping Instructions
 ## Git - Downloading and pushing file updates
+command #(divider)# description
+
 git pull                        # download updates
+
 git checkout [branch name]      # Go to other version of files
+
 git checkout -b [branch name]   # Go there and make the branch if it doesn't already exist
+
 git status                      # List what files have changed
+
 git diff                        # Look at all of the changes. Arrows to move and q to quit
+
 git add [list of names]         # What files to save
+
 git add .                       # Mark all changed files to save
+
 git commit -m "[What was done?]" # Save all changes to git
+
 git merge [branch name]         # Pull updates from branch name into the current one
+
 git push                        # Push the changes to the shared repository
 
 ## Npm - The thing that hosts the test website

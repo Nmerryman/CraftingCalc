@@ -82,7 +82,9 @@ export function TextCircle({center, text, }: {center: Coordinate, text: string})
     
     return (
         <g>
+           {/* //Text and circle calculator visual display */}
             <circle cx={center.x} cy={center.y} r={radius} fill="green"/>
+
             <text x={center.x} y={center.y -6 - radius} fill="blue" textAnchor="middle" fontSize="1em">{text}</text>
         </g>
     )

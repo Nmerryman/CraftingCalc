@@ -144,7 +144,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
 function Header({craftingDispatch, craftingData, currentPresetNames, setCurrentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
     return (
         <div>
-            <div className="text-3xl font-bold underline w-screen bg-slate-950 flex justify-center">
+            <div className="text-3xl font-bold underline w-screen bg-slate-700 flex justify-center pb-2">
                 Crafting Site
             </div>
             <div className="flex justify-around ">
@@ -207,24 +207,30 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
     return (
         <div className="flex justify-around pt-2">
             <span>
-                <div>
+                <div className="font-bold text-lime-500">
                     Resulting output
+                </div>
+                <div>
                 {
                     huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
                 }
                 </div>
             </span>
             <span>
-                <div>
+                <div className="font-bold text-yellow-300">
                     Intermediate crafting requirements
+                </div>
+                <div>
                 {
                     huristic.intermediate.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
                 }
                 </div>
             </span>
             <span>
-                <div>
+                <div className="font-bold text-red-500">
                     Required inputs
+                </div>
+                <div>
                 {
                     huristic.input.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
                 }

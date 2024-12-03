@@ -107,7 +107,7 @@ function PopupForm({state, craftingDispatch, craftingData, closePopup}: {state: 
 
 
 export function PopupEditor({craftingDispatch, craftingData}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData}) {
-    // This is the actual popup element.
+    // This is the actual popup element for adding items/processes.
 
     const [tab, setTab] = useState<string>('addItem');
     const [open, setOpen] = useState<boolean>(false);

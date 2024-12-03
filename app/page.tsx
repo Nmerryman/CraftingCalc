@@ -21,7 +21,7 @@ function CheckBackendStatus() {
     const [backendStatus, setBackendStatus] = useState("Unchecked");
 
     function netCheck() {
-        fetch("http://p8000.hydris.dev/test", {cache: "no-store"})  // no-store to make sure that we don't cache any status (Probbaly doesn't matter though)
+        fetch("http://p8000.hydris.dev/test", {cache: "no-store"})  // no-store to make sure that we don't cache any status (Probably doesn't matter though)
             .then(resp => {
                 setBackendStatus("Server is alive!")
             })
@@ -112,7 +112,7 @@ function ensureDefaultPresets() {
 }
 
 
-
+// Preset Menu of Nav Bar
 function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurrentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
 
@@ -140,7 +140,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
     )
 }
 
-
+// Header and Nav Bar
 function Header({craftingDispatch, craftingData, currentPresetNames, setCurrentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
     return (
         <div>
@@ -202,7 +202,7 @@ function DisplayStack({stack}: {stack: Stack}) {
     )
 }
 
-
+// Calculation itemized lists
 function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
     return (
         <div className="flex justify-around pt-2">
@@ -240,7 +240,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
     )
 }
 
-
+// Homepage Displays and general root
 export default function Main() {
     const [craftingData, dispatchData] = useReducer(craftingReducer, initialCraftingData);
     const [popupState, setPopupState] = useState(false);

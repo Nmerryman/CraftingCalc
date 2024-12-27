@@ -83,7 +83,7 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
     }
 
     return (
-        <svg className={`bg-white w-full h-[${Math.round(boxHeight)}px]`} viewBox={`${boxStartX} 0 ${boxWidth} ${boxHeight}`}>
+        <svg className={`bg-neutral-100 w-full h-[${Math.round(boxHeight)}px]`} viewBox={`${boxStartX} 0 ${boxWidth} ${boxHeight}`}>
             {arrowCollection.map((arrow) => {
                 let lineVals = calcArrows(arrow.from, arrow.to);
                 return <ArrowPath start={lineVals.b} end={lineVals.a} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>

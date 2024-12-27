@@ -7,15 +7,15 @@ import { Dispatch } from "react";
 // These three functions exist as legacy versions of creating dev test data.
 function devGenResources(): Record<string, Resource> {
     return {
-        "stick": new Resource("stick"),
-        "iron": new Resource("iron"),
-        "iron ore": new Resource("iron ore", {isBase: true}),
-        "pickaxe": new Resource("pickaxe"),
-        "iron nuggets": new Resource("iron nuggets"),
-        "planks": new Resource("planks"),
-        "oak logs": new Resource("oak logs"),
-        "birch logs": new Resource("birch logs"),
-        "plank dust": new Resource("plank dust"),
+        "Stick": new Resource("Stick"),
+        "Iron Ingot": new Resource("Iron Ingot"),
+        "Iron Ore": new Resource("Iron Ore", {isBase: true}),
+        "Iron Pickaxe": new Resource("Iron Pickaxe"),
+        "Iron Nuggets": new Resource("Iron Nuggets"),
+        "Planks": new Resource("Planks"),
+        "Oak Logs": new Resource("Oak Logs"),
+        "Birch Logs": new Resource("Birch Logs"),
+        "Plank Dust": new Resource("Plank Dust"),
         "Bucket": new Resource("Bucket"),
     }
 }
@@ -23,23 +23,23 @@ function devGenResources(): Record<string, Resource> {
 
 function devGenProcesses(): Record<string, Process> {
     return {
-        "crafting table": new Process("crafting table"),
-        "furnace": new Process("furnace")
+        "Crafting Table": new Process("Crafting Table"),
+        "Furnace": new Process("Furnace")
     }
 }
 
 
 function devGenRecipes(): Array<Recipe> {
     return [
-        new Recipe("furnace", [new Stack("iron ore")], [new Stack("iron")]),
-        new Recipe("crafting table", [new Stack("iron nuggets", 9)], [new Stack("iron")]),
-        new Recipe("crafting table", [new Stack("stick", 3), new Stack("iron", 3)], [new Stack("pickaxe")]),
-        new Recipe("crafting table", [new Stack("iron")], [new Stack("iron nuggets", 9)]),
-        new Recipe("crafting table", [new Stack("planks")], [new Stack("stick", 2)]), 
-        new Recipe("crafting table", [new Stack("oak logs")], [new Stack("planks", 2), new Stack("plank dust")]),
-        new Recipe("crafting table", [new Stack("birch logs")], [new Stack("planks")]),
-        new Recipe("crafting table", [new Stack("iron", 3)], [new Stack("Bucket")]),
-        // new Recipe("crafting table", [new Stack("oak logs", 2), new Stack("iron nuggets", 3)], [new Stack("pickaxe")])
+        new Recipe("Furnace", [new Stack("Iron Ore")], [new Stack("Iron Ingot")]),
+        new Recipe("Crafting Table", [new Stack("Iron Nuggets", 9)], [new Stack("Iron Ingot")]),
+        new Recipe("Crafting Table", [new Stack("Stick", 3), new Stack("Iron Ingot", 3)], [new Stack("Iron Pickaxe")]),
+        new Recipe("Crafting Table", [new Stack("Iron Ingot")], [new Stack("Iron Nuggets", 9)]),
+        new Recipe("Crafting Table", [new Stack("Planks")], [new Stack("Stick", 2)]), 
+        new Recipe("Crafting Table", [new Stack("Oak Logs")], [new Stack("Planks", 2), new Stack("Plank Dust")]),
+        new Recipe("Crafting Table", [new Stack("Birch Logs")], [new Stack("Planks")]),
+        new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),
+        // new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")])
     ]
 }
 
@@ -66,18 +66,18 @@ export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
     }
 
     let resources = {}
-    addResources(resources, ["leather", "stone", "tanned leather", "woven cotton", "bound leather", "string", "cotton", "cobble stone", "backpack"]);
+    addResources(resources, ["Leather", "Stone", "Tanned Leather", "Woven Cotton", "Bound Leather", "String", "Cotton", "Cobble Stone", "Backpack"]);
 
     let processes = {}
-    addProcesses(processes, ["crafting", "drying", "smelting"]);
+    addProcesses(processes, ["Crafting", "Drying", "Smelting"]);
 
     let recipes = [
-        new Recipe("crafting", [new Stack("stone", 2), new Stack("leather", 4), new Stack("woven cotton", 2), new Stack("tanned leather", 1)], [new Stack("backpack", 1)]),
-        new Recipe("smelting", [new Stack("cobble stone", 1)], [new Stack("stone", 1)]),
-        new Recipe("drying", [new Stack("bound leather", 1)], [new Stack("tanned leather", 1)]),
-        new Recipe("crafting", [new Stack("string", 5), new Stack("cotton", 4)], [new Stack("woven cotton", 1)]),
-        new Recipe("crafting", [new Stack("cotton", 3)], [new Stack("string", 1)]),
-        new Recipe("crafting", [new Stack("leather", 4), new Stack("woven cotton", 1), new Stack("string", 4),], [new Stack("bound leather", 1)])
+        new Recipe("Crafting", [new Stack("Stone", 2), new Stack("Leather", 4), new Stack("Woven Cotton", 2), new Stack("Tanned Leather", 1)], [new Stack("Backpack", 1)]),
+        new Recipe("Smelting", [new Stack("Cobble Stone", 1)], [new Stack("Stone", 1)]),
+        new Recipe("Drying", [new Stack("Bound Leather", 1)], [new Stack("Tanned Leather", 1)]),
+        new Recipe("Crafting", [new Stack("String", 5), new Stack("Cotton", 4)], [new Stack("Woven Cotton", 1)]),
+        new Recipe("Crafting", [new Stack("Cotton", 3)], [new Stack("String", 1)]),
+        new Recipe("Crafting", [new Stack("Leather", 4), new Stack("Woven Cotton", 1), new Stack("String", 4),], [new Stack("Bound Leather", 1)])
     ]
 
     dispatch({type: "set resources", recordValue: resources});

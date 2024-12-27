@@ -33,7 +33,7 @@ function CheckBackendStatus() {
 
     return (
         <div className="my-1">
-            <input type="button" className="input_button mr-3" value="Check" onClick={netCheck}/>
+            <input type="button" className="checkloadconfig" value="Check" onClick={netCheck}/>
             {backendStatus}
         </div>
     )
@@ -133,7 +133,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
                     }
                 </datalist>
                 <input autoComplete="on" list="preset_names" placeholder=" Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
-                <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="input_button"></input>
+                <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="checkloadconfig ml-1"></input>
                 <PresetConfig craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
         </div>

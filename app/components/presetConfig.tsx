@@ -64,7 +64,7 @@ export function PresetConfig({craftingData, currentPresetNames, setCurrentPreset
 
     return (
         <>
-            <input type="button" value="config" className="input_button" onClick={() => setPopupState(true)}/>
+            <input type="button" value="Config" className="input_button" onClick={() => setPopupState(true)}/>
             <Popup open={popupState} onClose={closePopup}>
                 <div className="text-black items-center justify-center flex"><strong>Preset Config</strong>
                     <img src={xIcon.src} className="h-7 absolute right-0" onClick={closePopup}/>

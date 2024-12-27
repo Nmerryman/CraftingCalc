@@ -115,15 +115,15 @@ export function PopupEditor({craftingDispatch, craftingData}: {craftingDispatch:
     
     return (
         <div> 
-            <button onClick={() => setOpen(true)}> Popup Test</button>
+            <button className="navbar_button" onClick={() => setOpen(true)}>Add Item/Process</button>
             <Popup open={open} onClose={closePopup}>
                 <div className='modal'>
                     <div className="flex">
-                        <button className='text-black bg-gray-200 hover:bg-gray-400 popup_button'
+                        <button className='popup_button'
                             onClick={() => setTab('addItem')}>
                                 <h2>Add Item</h2>
                         </button>
-                        <button className='text-black bg-gray-200 hover:bg-gray-400 popup_button'
+                        <button className='popup_button'
                             onClick={() => setTab('addProcess')}>
                                 <h2>Add Process</h2>
                         </button>

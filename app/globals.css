@@ -43,6 +43,7 @@ header {
   padding: 4px;
   width: 15%;
   margin-top: 5px;
+  @apply text-black bg-gray-200 hover:bg-gray-400
 }
 
 .popup_text {
@@ -54,14 +55,18 @@ header {
   font-size: medium;
 }
 
-.input_field {
-  @apply text-center bg-white px-8 outline text-black
+.checkloadconfig {
+  @apply text-center bg-white px-1 mr-1 text-black hover:ring-blue-500 hover:ring-2 hover:bg-gray-400
 }
 
 .input_button {
-  @apply input_field hover:bg-gray-400 cursor-pointer active:bg-gray-600
+  @apply checkloadconfig hover:bg-gray-400 cursor-pointer active:bg-gray-600
 }
 
 .bow_text {
   @apply text-black text-center
+}
+
+.navbar_button {
+  @apply text-black ml-2 px-2 hover:ring-blue-500 hover:ring-2 bg-gray-200 hover:bg-gray-400
 }

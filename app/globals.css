@@ -56,11 +56,11 @@ header {
 }
 
 .checkloadconfig {
-  @apply text-center bg-white px-1 mr-1 text-black hover:ring-blue-500 hover:ring-2 hover:bg-gray-400
+  @apply text-center bg-white px-1 mr-1 text-black hover:ring-blue-500 hover:ring-2 hover:bg-gray-400 hover:rounded-sm
 }
 
 .input_button {
-  @apply checkloadconfig hover:bg-gray-400 cursor-pointer active:bg-gray-600
+  @apply checkloadconfig hover:bg-gray-400 cursor-pointer active:bg-gray-600 hover:rounded-sm
 }
 
 .bow_text {
@@ -68,5 +68,5 @@ header {
 }
 
 .navbar_button {
-  @apply text-black ml-2 px-2 hover:ring-blue-500 hover:ring-2 bg-gray-200 hover:bg-gray-400
+  @apply text-black ml-2 px-2 hover:ring-blue-500 hover:ring-2 bg-gray-200 hover:bg-gray-400 hover:rounded-sm
 }

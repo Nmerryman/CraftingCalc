@@ -132,7 +132,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
                         })
                     }
                 </datalist>
-                <input autoComplete="on" list="preset_names" placeholder=" Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
+                <input className="pl-2" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="checkloadconfig ml-1"></input>
                 <PresetConfig craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
@@ -205,8 +205,8 @@ function DisplayStack({stack}: {stack: Stack}) {
 // Calculation itemized lists
 function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
     return (
-        <div className="flex justify-around pt-2">
-            <span>
+        <div className="flex justify-around mb-4 pt-2 divide-x-2 divide-dashed divide-slate-600/30">
+            <span className="px-5">
                 <div className="font-bold text-lime-500">
                     Resulting output
                 </div>
@@ -216,7 +216,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 }
                 </div>
             </span>
-            <span>
+            <span className="px-5">
                 <div className="font-bold text-yellow-300">
                     Intermediate crafting requirements
                 </div>
@@ -226,7 +226,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 }
                 </div>
             </span>
-            <span>
+            <span className="px-5">
                 <div className="font-bold text-red-500">
                     Required inputs
                 </div>

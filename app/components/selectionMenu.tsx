@@ -79,8 +79,8 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
 
     return (
         <ul>
-            <div className="font-bold">Resource List</div>
-            <input placeholder="Resource" id="resource_search" className="text-black" onChange={() => updateText()} onKeyDown={OnEnterCall(() => requestDispatch({type: "toggle", name: topName}))}/>
+            <div className="font-bold text-lime-500">Resource List</div>
+            <input placeholder="Resource" id="resource_search" className="text-black pl-1" onChange={() => updateText()} onKeyDown={OnEnterCall(() => requestDispatch({type: "toggle", name: topName}))}/>
             {Object.values(craftingData.resources)
                 .sort((rValA, rValB) => { 
                     // This works, but I think I'd rather use a filter via the TextMatch function defined above. 
@@ -104,8 +104,8 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
 
 function ListProcesses({craftingData}: {craftingData: CraftingData}) {
     return (
-        <ul>
-            <span className="font-bold">Process List</span>
+        <ul className="px-5">
+            <span className="font-bold text-yellow-300">Process List</span>
             {Object.values(craftingData.processes).map((pval) => {return <li key={pval.name}>{pval.name}</li>})}
         </ul>
     )
@@ -131,11 +131,11 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
     return (
         <li key={item.resourceName} className="h-8">
             <label>
-                <input className="bg-slate-900" type="number" defaultValue={item.amount} onChange={(e) => {updateRequestMenu(e, item.resourceName, requestDispatch)}}/>
+                <input className="bg-slate-900 px-2" type="number" defaultValue={item.amount} onChange={(e) => {updateRequestMenu(e, item.resourceName, requestDispatch)}}/>
                 x {item.resourceName}
             </label>
             <img src={xIcon.src} 
-                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8"/>
+                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer"/>
         </li>
     )
 
@@ -144,8 +144,8 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
 
 function ListRequests({requestState, requestDispatch}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
-        <ul>
-            <span className="font-bold">Crafting Request</span>
+        <ul className="px-5">
+            <span className="font-bold text-red-500">Crafting Request</span>
             {Object.values(requestState).map((rval) => {return <RequestListItem key={rval.resourceName} item={rval} requestDispatch={requestDispatch}/>})}
         </ul>
     )
@@ -156,7 +156,7 @@ function ListRequests({requestState, requestDispatch}: {requestState: CraftingRe
 export function SelectionDisplay({craftingData, requestState, requestDispatch}: {craftingData: CraftingData, requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <>
-        <div className="flex justify-around h-[40vh] overflow-hidden">
+        <div className="flex justify-around h-[40vh] overflow-hidden divide-x-2 divide-dashed divide-slate-600/30">
             <ListResources craftingData={craftingData} requestDispatch={requestDispatch}/>
             <ListProcesses craftingData={craftingData}/>
             <ListRequests requestState={requestState} requestDispatch={requestDispatch}/>

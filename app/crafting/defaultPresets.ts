@@ -15,7 +15,8 @@ function devGenResources(): Record<string, Resource> {
         "planks": new Resource("planks"),
         "oak logs": new Resource("oak logs"),
         "birch logs": new Resource("birch logs"),
-        "plank dust": new Resource("plank dust")
+        "plank dust": new Resource("plank dust"),
+        "Bucket": new Resource("Bucket"),
     }
 }
 
@@ -37,6 +38,7 @@ function devGenRecipes(): Array<Recipe> {
         new Recipe("crafting table", [new Stack("planks")], [new Stack("stick", 2)]), 
         new Recipe("crafting table", [new Stack("oak logs")], [new Stack("planks", 2), new Stack("plank dust")]),
         new Recipe("crafting table", [new Stack("birch logs")], [new Stack("planks")]),
+        new Recipe("crafting table", [new Stack("iron", 3)], [new Stack("Bucket")]),
         // new Recipe("crafting table", [new Stack("oak logs", 2), new Stack("iron nuggets", 3)], [new Stack("pickaxe")])
     ]
 }
@@ -75,7 +77,7 @@ export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
         new Recipe("drying", [new Stack("bound leather", 1)], [new Stack("tanned leather", 1)]),
         new Recipe("crafting", [new Stack("string", 5), new Stack("cotton", 4)], [new Stack("woven cotton", 1)]),
         new Recipe("crafting", [new Stack("cotton", 3)], [new Stack("string", 1)]),
-        new Recipe("crafting", [new Stack("woven cotton", 1), new Stack("string", 4), new Stack("leather", 4)], [new Stack("bound leather", 1)])
+        new Recipe("crafting", [new Stack("leather", 4), new Stack("woven cotton", 1), new Stack("string", 4),], [new Stack("bound leather", 1)])
     ]
 
     dispatch({type: "set resources", recordValue: resources});

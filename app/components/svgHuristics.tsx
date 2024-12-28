@@ -1,8 +1,8 @@
-import { recipeChainNode, chainHuristicsStats } from "../crafting/units";
+import { postPermRecipeChainNode, chainHuristicsStats } from "../crafting/units";
 import { TextCircle, ArrowPath, calcArrows } from "./svg";
 
 class recipeCircle {
-    constructor(public node: recipeChainNode, public x: number, public y: number, public base: boolean = false) {}
+    constructor(public node: postPermRecipeChainNode, public x: number, public y: number, public base: boolean = false) {}
 }
 
 class recipeArrow {
@@ -10,7 +10,7 @@ class recipeArrow {
 }
 
 class nodeState {
-    constructor(public recipeNode: recipeChainNode, public itemIndex: number, public drawOffset: number) {}
+    constructor(public recipeNode: postPermRecipeChainNode, public itemIndex: number, public drawOffset: number) {}
 }
 
 
@@ -52,15 +52,15 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
             circle = circleStack.pop()!;
         }
 
-        if (currentNode.itemIndex < currentNode.recipeNode.src.items.length) {
+        if (currentNode.itemIndex < currentNode.recipeNode.src.length) {
             // If we haven't exhausted our current node
             // Calculate the breadth offset currently in place
             let currentBreadth = 0;
             for (let itemNum = 0; itemNum < currentNode.itemIndex; itemNum++) {
-                currentBreadth += currentNode.recipeNode.src.items[itemNum].variants[0].hWidth;
+                currentBreadth += currentNode.recipeNode.src[itemNum].hWidth;
             }
             // Store the next child on the stack
-            nodeStateStack.push(new nodeState(currentNode.recipeNode.src.items[currentNode.itemIndex].variants[0], 0, currentNode.drawOffset + currentBreadth * breadthOffset));
+            nodeStateStack.push(new nodeState(currentNode.recipeNode.src[currentNode.itemIndex], 0, currentNode.drawOffset + currentBreadth * breadthOffset));
             circleStack.push(circle);
             currentNode.itemIndex++;
             lastPop = false;
@@ -69,7 +69,7 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
                 let items = huristic.data.getRecipe(currentNode.recipeNode.rId)!.inputResources;
                 for (let itemIndex = 0; itemIndex < items.length; itemIndex++) { // Hack on circles for the final items in the chain
                     let stack = items[itemIndex];
-                    let tempRecipeNode = new recipeChainNode(0, stack.resourceName)
+                    let tempRecipeNode = new postPermRecipeChainNode(0, stack.resourceName)
                     tempRecipeNode.hRatio = stack.amount * circle.node.hRatio;  // Store the needed value in the node storage
 
                     let finalCircle = new recipeCircle(tempRecipeNode, widthPadding + (depth + 1) * depthOffset, heightPadding + currentNode.drawOffset + breadthOffset * (itemIndex + 0.5), true);

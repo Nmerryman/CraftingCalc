@@ -336,17 +336,14 @@ export class chainHuristicsStats {
             for (let recipeInput of recipe.inputResources) {
                 // Match up the recipe input with a recipeChainNode
                 let node = current.src.find((item) => {
-                    if (item.length > 0) {
-                        return item.goal == recipeInput.resourceName;
-                    }
-                    return false;
-                }) as recipeVariants;
+                    return item.goal == recipeInput.resourceName;
+                }) as postPermRecipeChainNode;
 
                 let tempRecipeInput = new Stack(recipeInput.resourceName, recipeInput.amount * ratio)
                 if (node) {
                     // The input has a crafting recipe
                     this.inputStack.push(tempRecipeInput);
-                    this.extractInfoDepth(node.variants[0], depth + 1);
+                    this.extractInfoDepth(node, depth + 1);
                 } else {
                     // This input does not have a crafting recipe
                     this.input.push(tempRecipeInput);
@@ -361,15 +358,15 @@ export class chainHuristicsStats {
         // This could have been done through postorder traversal, but I wanted to try this way.
 
         // Flatten the tree via bfs
-        let nodes: Array<recipeChainNode> = [];
+        let nodes: Array<postPermRecipeChainNode> = [];
         let queue = [this.fixed_src];
         let index = 0;
 
         while (index < queue.length) {
             let current = queue[index];
             nodes.push(current);
-            for (let item of current.src.items) {
-                queue.push(item.variants[0]);
+            for (let item of current.src) {
+                queue.push(item);
             }
             index++;
         }
@@ -377,11 +374,11 @@ export class chainHuristicsStats {
         nodes.reverse();
 
         let avoidGoals = [""];
-        this.fixed_src.src.items.map((item) => {avoidGoals.push(item.variants[0].goal)})
+        this.fixed_src.src.map((item) => {avoidGoals.push(item.goal)})
 
         // Calculate the width of each node including child nodes
         for (let node of nodes) {
-            let width = _.sum(node.src.items.map(item => item.variants[0].hWidth));
+            let width = _.sum(node.src.map(item => item.hWidth));
             node.hWidth = Math.max(1, width);
 
             if (!(avoidGoals.includes(node.goal))){
@@ -498,7 +495,8 @@ export class CraftingData {
         return new CraftingData(this.resources, this.processes, this.recipes)
     }
 
-    createChainTree(start: recipeChainNode, dupeCheck: Set<string> = new Set()) {
+    // Build the initial recipeChainNode tree based on a single starting node
+    createChainTree(start: prePermRecipeChainNode, dupeCheck: Set<string> = new Set()) {
         // console.log(">", start.goal)
         // We assume that the start has the recipe id and we are trying to fill in all of the src children
         if (!this.getRecipe(start.rId)) {
@@ -521,7 +519,7 @@ export class CraftingData {
                 if (!dupeCheck.has(dupeVal)) {  // Check if this part of the recipe has already been used in the chain
                     let tempDupeCheck = new Set(dupeCheck);
                     tempDupeCheck.add(dupeVal);  // Add current use to the dupe check
-                    let tempNode = new recipeChainNode(recipeId, resourceName);
+                    let tempNode = new prePermRecipeChainNode(recipeId, resourceName);
                     this.createChainTree(tempNode, tempDupeCheck);
                     variantArray.variants.push(tempNode);
                 }
@@ -542,7 +540,8 @@ export class CraftingData {
         }
     }
 
-    collectDecisionHashes(start: recipeChainNode, collectionData: chainCollections, pathHash: craftingPathChoice = new craftingPathChoice()) {
+    // Explore the node to find all places that have multiple variants
+    collectDecisionHashes(start: prePermRecipeChainNode, collectionData: chainCollections, pathHash: craftingPathChoice = new craftingPathChoice()) {
 
         start.src.items.forEach((item, item_pos) => {
             if (item.variants.length > 1) {  // This item has multiple recipes.
@@ -560,6 +559,7 @@ export class CraftingData {
         })
     } 
 
+    // Expand a list of available permutations into each possible iteration
     generateChoicePermutations(choices: Array<craftingPathChoice>): Array<Array<craftingPathChoice>> {
         // Check for no choice case
         if (choices.length == 0) {
@@ -623,7 +623,7 @@ export class CraftingData {
         return result;
     }
 
-
+    // A basic wrapper function to apply the eval function to each huristic and return the best one. Lower is better
     bestHuristic(options: Array<chainHuristicsStats>, evalFunc: HuristicEval) {
         // We want lowest cost rn
         let bestScore = null;
@@ -648,6 +648,7 @@ export class CraftingData {
         return bestOption!;
     }
 
+    // A default implementation of a huristic eval function. It seems good enough for now. In order of impact: total number of input items > total number of resulting items > depth of longest chain > total nodes
     defaultHuristic(huristic: chainHuristicsStats): number {
         let inputCount = 0;
         
@@ -664,6 +665,8 @@ export class CraftingData {
         return inputCount * 1000 + outputCount * 100 + huristic.longest_depth * 10 + huristic.steps;
     }
 
+    // This does the work
+    // Based on a list of requested items, return all huristic analysis
     calcChain(start: Array<string>) {
         // Merge all identical requests into a single larger one
         let startConsolidate: Record<string, Stack> = {}
@@ -677,13 +680,13 @@ export class CraftingData {
 
         // Options hold all found paths to get to the item.
         // let options: Array<recipeChainNode> = [];
-        let options = new recipeChainNode(0, "", true)  // Name is unique enough to not hit anything
+        let options = new prePermRecipeChainNode(0, "", true)  // Name is unique enough to not hit anything
         for (let startingRecipes of Object.values(startConsolidate)) {
             // console.log(startingRecipes.resourceName)
             let variantsArray: recipeVariants = {variants: []};
             for (let possibleRecipes of this.findRecipesFor(startingRecipes.resourceName)) {
-                let tempNode = new recipeChainNode(possibleRecipes, startingRecipes.resourceName);
-                tempNode.hRatio = startingRecipes.amount;
+                let tempNode = new prePermRecipeChainNode(possibleRecipes, startingRecipes.resourceName);
+                // tempNode.hRatio = startingRecipes.amount;  // This needs to get applied again later
                 this.createChainTree(tempNode);
                 variantsArray.variants.push(tempNode);
                 // console.log(tempNode)

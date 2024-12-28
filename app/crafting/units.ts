@@ -106,15 +106,22 @@ export class Recipe {
 
 
 type recipeVariants = {
-    variants: Array<recipeChainNode>
+    variants: Array<prePermRecipeChainNode>
 }
 type recipeSources = {
     items: Array<recipeVariants>
 }
 
-export class recipeChainNode {
+class prePermRecipeChainNode {
     // src: [each item][each recipe]  ie. what are the source resources to finish the recipe
     src: recipeSources = {items: []};
+
+    constructor(public rId: number, public goal: string, public root: boolean = false) {}
+}
+
+export class postPermRecipeChainNode {
+    // src: [each recipe]  ie. what are the source resources to finish the recipe
+    src: Array<postPermRecipeChainNode> = []
 
     // Extra field for carrying data in huristics step
     hRatio: number = 1;
@@ -184,7 +191,7 @@ class chainCollections {
 }
 
 type choiceState = {
-    node: recipeChainNode,
+    node: prePermRecipeChainNode,
     location: craftingPathChoice
 }
 
@@ -195,9 +202,9 @@ export class chainHuristicsStats {
     output: Array<Stack> = [];
     intermediate: Array<Stack> = [];
     longest_depth: number = 0;
-    fixed_src: recipeChainNode = new recipeChainNode(0, "");
+    fixed_src: postPermRecipeChainNode = new postPermRecipeChainNode(0, "");
 
-    constructor(public src: recipeChainNode, public choices: Array<craftingPathChoice>, public data: CraftingData) {
+    constructor(public src: prePermRecipeChainNode, public choices: Array<craftingPathChoice>, public data: CraftingData) {
         // Evaluate attributes here
 
         this.applyChoices();
@@ -211,11 +218,11 @@ export class chainHuristicsStats {
         // Create this.fixed_src. It cleans up the tree by applying the permutation choices onto the src tree.
 
         // this.fixed_src = this.src[this.choices[0]];
-        let root_fixed = new recipeChainNode(this.src.rId, this.src.goal, true);
+        let root_fixed = new postPermRecipeChainNode(this.src.rId, this.src.goal, true);
 
         // Init both the src and fixed to start with a single harness node
         let src_stack: Array<choiceState> = [{node: this.src, location: {path: [{itemIndex: 0, choice: 0}]}}];
-        let fixed_stack: Array<recipeChainNode> = [root_fixed];
+        let fixed_stack: Array<postPermRecipeChainNode> = [root_fixed];
 
         while (src_stack.length > 0) {
             
@@ -232,23 +239,16 @@ export class chainHuristicsStats {
                 fixed_stack.pop();
 
             } else { // We are currently pointing at some valid variant
-                
-                // Ensure that the fixed node skeleton is correct
-                // We probably don't need this. We will just push the one correct option
-                while (fixed_stack[fixed_stack.length - 1].src.items.length != current_src.node.src.items.length) {
-                    fixed_stack[fixed_stack.length - 1].src.items.push({variants: []})
-                }
-                
+                                
                 // Push changes
                 // No extra variants so business as usual
                 if (current_src.node.src.items[currentLastPointing.itemIndex].variants.length == 1) {
                     // What node are we currently pointing at for exploration
                     let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[0];
                     // Create a new object to insert into the fixed stack
-                    let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
-                    tempNew.hRatio = tempPointingNode.hRatio;
+                    let tempNew = new postPermRecipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
 
-                    fixed_stack[fixed_stack.length - 1].src.items[currentLastPointing.itemIndex].variants.push(tempNew);
+                    fixed_stack[fixed_stack.length - 1].src.push(tempNew);
                     src_stack.push({node: tempPointingNode, location: {path: _.cloneDeep(current_src.location.path).concat({itemIndex: 0, choice: 0})}});
                     fixed_stack.push(tempNew);
 
@@ -270,10 +270,9 @@ export class chainHuristicsStats {
                     }
 
                     let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[match.path.at(-1)!.choice]
-                    let tempNew = new recipeChainNode(tempPointingNode.rId, tempPointingNode.goal)
-                    tempNew.hRatio = tempPointingNode.hRatio;
+                    let tempNew = new postPermRecipeChainNode(tempPointingNode.rId, tempPointingNode.goal)
 
-                    fixed_stack.at(-1)!.src.items[currentLastPointing.itemIndex].variants.push(tempNew);
+                    fixed_stack.at(-1)!.src.push(tempNew);
                     let custPath = _.cloneDeep(current_src.location.path);
                     custPath.at(-1)!.choice = match.path.at(-1)!.choice;
                     src_stack.push({node: tempPointingNode, location: {path: custPath.concat({itemIndex: 0, choice: 0})}})
@@ -288,7 +287,7 @@ export class chainHuristicsStats {
         this.fixed_src = root_fixed;
     }
 
-    extractInfoDepth(current: recipeChainNode | null, depth: number = 0) {
+    extractInfoDepth(current: postPermRecipeChainNode | null, depth: number = 0) {
         // Extract info from current node and iterate in a depth first recursive method.
         // We have the current parameter so we can call this function recursively.
 
@@ -303,16 +302,15 @@ export class chainHuristicsStats {
         // Handle the head
         if (current.root) {
             // log(current)
-            for (let items of current.src.items) {
-                let childNode = items.variants[0];
-                let recipeStack = this.data.getRecipe(childNode.rId)!.outputResources.find(resource => resource.resourceName == childNode.goal)
-                let tempTargetStack = new Stack(items.variants[0].goal, childNode.hRatio / recipeStack!.amount);  // FIXME I bet that just using hRatio is not enough. Check else statement.
+            for (let item of current.src) {
+                let recipeStack = this.data.getRecipe(item.rId)!.outputResources.find(resource => resource.resourceName == item.goal)
+                let tempTargetStack = new Stack(item.goal, item.hRatio / recipeStack!.amount);  // FIXME I bet that just using hRatio is not enough. Check else statement.
                 // Add the ones needed into the processing stack
                 this.inputStack.push(tempTargetStack);
                 // Also make sure we keep the ones that get finished(Later iterations don't store the goal)
                 this.output.push(tempTargetStack)
                 // Recurse
-                this.extractInfoDepth(items.variants[0], depth + 1);
+                this.extractInfoDepth(item, depth + 1);
             }
         } else {
             // Get the last item put into the stack so we can calculate things like ratios
@@ -337,9 +335,9 @@ export class chainHuristicsStats {
 
             for (let recipeInput of recipe.inputResources) {
                 // Match up the recipe input with a recipeChainNode
-                let node = current.src.items.find((item) => {
-                    if (item.variants.length > 0) {
-                        return item.variants[0].goal == recipeInput.resourceName;
+                let node = current.src.find((item) => {
+                    if (item.length > 0) {
+                        return item.goal == recipeInput.resourceName;
                     }
                     return false;
                 }) as recipeVariants;

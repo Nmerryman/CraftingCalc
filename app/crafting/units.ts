@@ -204,10 +204,11 @@ export class chainHuristicsStats {
     longest_depth: number = 0;
     fixed_src: postPermRecipeChainNode = new postPermRecipeChainNode(0, "");
 
-    constructor(public src: prePermRecipeChainNode, public choices: Array<craftingPathChoice>, public data: CraftingData) {
+    constructor(public src: prePermRecipeChainNode, public choices: Array<craftingPathChoice>, public data: CraftingData, public finalReqs: Record<string, Stack>) {
         // Evaluate attributes here
 
         this.applyChoices();
+        this.updateRatioReqs();
         this.extractInfoDepth(this.fixed_src);
         this.extractInfoRevBreadth();
         this.mergeStacks();
@@ -285,6 +286,13 @@ export class chainHuristicsStats {
         }
 
         this.fixed_src = root_fixed;
+    }
+
+    updateRatioReqs() {
+
+        for (let node of this.fixed_src.src) {
+            node.hRatio = this.finalReqs[node.goal].amount;
+        }
     }
 
     extractInfoDepth(current: postPermRecipeChainNode | null, depth: number = 0) {
@@ -727,11 +735,11 @@ export class CraftingData {
 
         let huristicOptions: Array<chainHuristicsStats> = [];
         if (permutations.length == 0) {
-            huristicOptions.push(new chainHuristicsStats(options, [], this))
+            huristicOptions.push(new chainHuristicsStats(options, [], this, startConsolidate))
         } else {
             let count = 0;
             for (let perm of permutations) {
-                let huristics = new chainHuristicsStats(options, perm, this);
+                let huristics = new chainHuristicsStats(options, perm, this, startConsolidate);
                 huristicOptions.push(huristics);
                 // console.log("------");
                 // console.log(huristics)

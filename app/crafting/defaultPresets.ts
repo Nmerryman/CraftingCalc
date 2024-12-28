@@ -77,7 +77,8 @@ export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
         new Recipe("Drying", [new Stack("Bound Leather", 1)], [new Stack("Tanned Leather", 1)]),
         new Recipe("Crafting", [new Stack("String", 5), new Stack("Cotton", 4)], [new Stack("Woven Cotton", 1)]),
         new Recipe("Crafting", [new Stack("Cotton", 3)], [new Stack("String", 1)]),
-        new Recipe("Crafting", [new Stack("Leather", 4), new Stack("Woven Cotton", 1), new Stack("String", 4),], [new Stack("Bound Leather", 1)])
+        new Recipe("Crafting", [new Stack("Leather", 4), new Stack("Woven Cotton", 1), new Stack("String", 4),], [new Stack("Bound Leather", 1)]),
+
     ]
 
     dispatch({type: "set resources", recordValue: resources});

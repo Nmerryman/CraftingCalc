@@ -50,7 +50,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        value = "Dev";
+        value = "Backpack";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -163,6 +163,13 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
     )
 }
 
+function LogCraftinghuristics({huristic}: {huristic: Array<chainHuristicsStats>}) {
+    return (
+        <button onClick={() => {
+            console.log(huristic);
+        }}>Log the crafting huristics</button>
+    )
+}
 
 function CalculateButton({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
     if (Object.keys(requestState).length > 0) {
@@ -176,12 +183,14 @@ function CalculateButton({requestState, craftingData}: {requestState: CraftingRe
         if (huristic.longest_depth == 0) {
             return (
                 <div className="text-center">
+                    {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
                     No resources in Crafting Request have crafting recipes.
                 </div>
             )
         } else {
             return (
                 <div>
+                    {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
     
                     <SVGHuristic huristic={huristic}/>
                     <HuristicStats huristic={huristic}/>

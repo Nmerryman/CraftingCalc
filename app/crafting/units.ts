@@ -500,7 +500,8 @@ export class CraftingData {
         return new CraftingData(this.resources, this.processes, this.recipes)
     }
 
-    createChainTree(start: recipeChainNode, dupeCheck: Set<string>) {
+    createChainTree(start: recipeChainNode, dupeCheck: Set<string> = new Set()) {
+        // console.log(">", start.goal)
         // We assume that the start has the recipe id and we are trying to fill in all of the src children
         if (!this.getRecipe(start.rId)) {
             console.log("Something went very wrong");
@@ -518,7 +519,7 @@ export class CraftingData {
             let tempItemRecipes = this.findRecipesFor(resourceName);  // Collect all recipes that could be used for this resource
             let variantArray: recipeVariants = {variants: []};
             for (let recipeId of tempItemRecipes) {
-                let dupeVal = JSON.stringify([recipeId, resourceName]);
+                let dupeVal = `[${recipeId}, ${resourceName}]`;  // Check value for which recipe and for which item it's used for
                 if (!dupeCheck.has(dupeVal)) {  // Check if this part of the recipe has already been used in the chain
                     let tempDupeCheck = new Set(dupeCheck);
                     tempDupeCheck.add(dupeVal);  // Add current use to the dupe check
@@ -527,14 +528,23 @@ export class CraftingData {
                     variantArray.variants.push(tempNode);
                 }
             }
+            // if (resourceName == "Cobble Stone") {
+            //     console.log(tempItemRecipes)
+            //     console.log(variantArray)
+            // }
             
             if (variantArray.variants.length > 0) {
                 start.src.items.push(variantArray);
             }
+
+            // if (start.rId == 0) {
+            //     console.log(start.src.items);
+            // }
+            // console.log("<", start.goal);
         }
     }
 
-    collectDecisionHashes(start: recipeChainNode, collectionData: chainCollections, pathHash: craftingPathChoice) {
+    collectDecisionHashes(start: recipeChainNode, collectionData: chainCollections, pathHash: craftingPathChoice = new craftingPathChoice()) {
 
         start.src.items.forEach((item, item_pos) => {
             if (item.variants.length > 1) {  // This item has multiple recipes.
@@ -670,21 +680,27 @@ export class CraftingData {
         // Options hold all found paths to get to the item.
         // let options: Array<recipeChainNode> = [];
         let options = new recipeChainNode(0, "", true)  // Name is unique enough to not hit anything
-        let dupeCheck: Set<string> = new Set();
         for (let startingRecipes of Object.values(startConsolidate)) {
-            options.src.items.push({variants: []});
+            // console.log(startingRecipes.resourceName)
+            let variantsArray: recipeVariants = {variants: []};
             for (let possibleRecipes of this.findRecipesFor(startingRecipes.resourceName)) {
                 let tempNode = new recipeChainNode(possibleRecipes, startingRecipes.resourceName);
                 tempNode.hRatio = startingRecipes.amount;
-                this.createChainTree(tempNode, dupeCheck);
-                options.src.items.at(-1)!.variants.push(tempNode);
+                this.createChainTree(tempNode);
+                variantsArray.variants.push(tempNode);
+                // console.log(tempNode)
+            }
+
+            if (variantsArray.variants.length > 0) {
+                options.src.items.push(variantsArray);
             }
 
             // Remove crafting request variant object if it's not needed
-            if (options.src.items.at(-1)!.variants.length == 0) {
-                options.src.items.pop();
-            }
+            // if (options.src.items.at(-1)!.variants.length == 0) {
+            //     options.src.items.pop();
+            // }
         }
+        // console.log(options)
 
         // Find decisions
         let collectionStore = new chainCollections();
@@ -692,7 +708,7 @@ export class CraftingData {
         //     this.collectDecisionHashes(option, collectionStore, new craftingPathChoice(option_index));  // Set first value to be the option index
         // })
 
-        this.collectDecisionHashes(options, collectionStore, new craftingPathChoice())
+        this.collectDecisionHashes(options, collectionStore)
         // printArray(collectionStore.decisionNodes)
         // console.log(collectionStore)
 
@@ -716,15 +732,16 @@ export class CraftingData {
             for (let perm of permutations) {
                 let huristics = new chainHuristicsStats(options, perm, this);
                 huristicOptions.push(huristics);
-                // log("------");
+                // console.log("------");
+                // console.log(huristics)
                 // log("count: " + count);
                 // log(huristics.choices);
                 // log({steps: huristics.steps, input: huristics.input, output: huristics.output, max_depth: huristics.longest_depth})
-                // log(huristics)
                 count++;
             }
         }
         
+        console.log(huristicOptions);
         return huristicOptions;
     }
 

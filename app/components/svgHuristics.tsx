@@ -9,8 +9,10 @@ class recipeArrow {
     constructor(public from: recipeCircle, public to: recipeCircle) {}
 }
 
-type itemIndex = number;
-type drawOffset = number;
+class nodeState {
+    constructor(public recipeNode: recipeChainNode, public itemIndex: number, public drawOffset: number) {}
+}
+
 
 export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
     // console.log(huristic);
@@ -25,7 +27,7 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
     let depthOffset = (boxWidth - 2 * widthPadding) / (Math.max(huristic.longest_depth, 0));
     boxStartX += 2 * depthOffset;
     
-    let nodeStateStack: Array<[recipeChainNode, itemIndex, drawOffset]> = [[huristic.fixed_src, 0, 0]];
+    let nodeStateStack: Array<nodeState> = [new nodeState(huristic.fixed_src, 0, 0)];
     let circleStack: Array<recipeCircle> = []
     let lastPop = false;
 
@@ -40,7 +42,7 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
         let circle: recipeCircle;
         if (!lastPop) {
             // If we aren't returning from an exhausted node (Only happens on new node)
-            circle = new recipeCircle(currentNode[0], widthPadding + depth * depthOffset, heightPadding + currentNode[2] + breadthOffset * currentNode[0].hWidth / 2);
+            circle = new recipeCircle(currentNode.recipeNode, widthPadding + depth * depthOffset, heightPadding + currentNode.drawOffset + breadthOffset * currentNode.recipeNode.hWidth / 2);
             circleCollection.push(circle);
             if (circleStack.length > 1) {
                 arrowCollection.push(new recipeArrow(circleStack.at(-1)!, circle));
@@ -50,31 +52,39 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
             circle = circleStack.pop()!;
         }
 
-        if (currentNode[1] < currentNode[0].src.items.length) {
+        if (currentNode.itemIndex < currentNode.recipeNode.src.items.length) {
             // If we haven't exhausted our current node
             // Calculate the breadth offset currently in place
             let currentBreadth = 0;
-            for (let itemNum = 0; itemNum < currentNode[1]; itemNum++) {
-                currentBreadth += currentNode[0].src.items[itemNum].variants[0].hWidth;
+            for (let itemNum = 0; itemNum < currentNode.itemIndex; itemNum++) {
+                currentBreadth += currentNode.recipeNode.src.items[itemNum].variants[0].hWidth;
             }
             // Store the next child on the stack
-            nodeStateStack.push([currentNode[0].src.items[currentNode[1]].variants[0], 0, currentNode[2] + currentBreadth * breadthOffset]);
+            nodeStateStack.push(new nodeState(currentNode.recipeNode.src.items[currentNode.itemIndex].variants[0], 0, currentNode.drawOffset + currentBreadth * breadthOffset));
             circleStack.push(circle);
-            currentNode[1]++;
+            currentNode.itemIndex++;
             lastPop = false;
         } else {
-            if (currentNode[1] == 0) {  // This is the end of the recipe line
-                let items = huristic.data.getRecipe(currentNode[0].rId)!.inputResources;
+            if (currentNode.itemIndex == 0) {  // This is the end of the recipe line
+                let items = huristic.data.getRecipe(currentNode.recipeNode.rId)!.inputResources;
                 for (let itemIndex = 0; itemIndex < items.length; itemIndex++) { // Hack on circles for the final items in the chain
                     let stack = items[itemIndex];
                     let tempRecipeNode = new recipeChainNode(0, stack.resourceName)
                     tempRecipeNode.hRatio = stack.amount * circle.node.hRatio;  // Store the needed value in the node storage
 
-                    let finalCircle = new recipeCircle(tempRecipeNode, widthPadding + (depth + 1) * depthOffset, heightPadding + currentNode[2] + breadthOffset * (itemIndex + 0.5), true);
+                    let finalCircle = new recipeCircle(tempRecipeNode, widthPadding + (depth + 1) * depthOffset, heightPadding + currentNode.drawOffset + breadthOffset * (itemIndex + 0.5), true);
 
                     circleCollection.push(finalCircle);
                     arrowCollection.push(new recipeArrow(circle, finalCircle));
                 }
+
+            } else {  // find other final items attached to this recipe that got missed TODO
+                // let expectedItems = huristic.data.getRecipe(currentNode.recipeNode.rId)!.inputResources;
+                // for (let item of currentNode.recipeNode.src.items) {
+                //     if (item.variants.length == 0) {
+                //         let stack = 
+                //     }
+                // }
 
             }
             nodeStateStack.pop();

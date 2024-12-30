@@ -115,6 +115,10 @@ git merge [branch name]         # Pull updates from branch name into the current
 
 git push                        # Push the changes to the shared repository
 
+git stash                       # Temporarily remove uncommited changes (Saves it for later)
+
+git stash pop                   # Reapply the uncommited changes
+
 ## Npm - The thing that hosts the test website
 npm install # Install packages for development
 

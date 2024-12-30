@@ -1,6 +1,6 @@
 'use client'
 
-import { Dispatch, useEffect, useReducer, useState } from "react";
+import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
 import { CraftingData, Stack, chainHuristicsStats } from "./crafting/units";
 import { PopupEditor, togglePopupCallback } from "./components/popup";
@@ -171,16 +171,47 @@ function LogCraftinghuristics({huristic}: {huristic: Array<chainHuristicsStats>}
     )
 }
 
-function CalculateButton({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
+function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristicList}: {boxState: boolean, huristicNum: number, updateHuristicNum: Dispatch<number>, huristicList: Array<chainHuristicsStats>}) {
+
+    function numCallback(e: ChangeEvent<HTMLInputElement>) {
+        if (e.target.value) {
+            updateHuristicNum(parseInt(e.target.value));
+        }
+    }
+
+    if (boxState) {
+        return (
+            <></>
+        )
+    } else {
+        return (
+            <div>       
+                <label>
+                    Select Huristic:
+                    <input type="number" min={0} max={huristicList.length - 1} value={huristicNum} onChange={numCallback} className="checkloadconfig"></input>
+                </label>
+            </div>
+        )
+    }
+}
+
+function HuristicsInfoDisplay({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
+
+    const [modeCheckbox, updateModeCheckbox] = useState(true);
+    const [huristicNum, updateHuristicNum] = useState(0);
+
     if (Object.keys(requestState).length > 0) {
-        let goal = [];
+        let goal: Array<string> = [];
         for (let req of Object.values(requestState)) {
             for (let i = 0; i < req.amount; i++) {
                 goal.push(req.resourceName);
             }
         }
-        let huristic = craftingData.bestHuristic(craftingData.calcChain(goal), craftingData.defaultHuristic)!;
-        if (huristic.longest_depth == 0) {
+        
+        let huristicList = craftingData.calcChain(goal);
+        console.log(huristicList)
+        let bestHuristic = craftingData.bestHuristic(huristicList, craftingData.defaultHuristic)!;
+        if (bestHuristic.longest_depth == 0) {
             return (
                 <div className="text-center">
                     {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
@@ -188,12 +219,15 @@ function CalculateButton({requestState, craftingData}: {requestState: CraftingRe
                 </div>
             )
         } else {
+            if (!modeCheckbox) {
+                bestHuristic = huristicList[huristicNum]
+            }
             return (
                 <div>
-                    {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
-    
-                    <SVGHuristic huristic={huristic}/>
-                    <HuristicStats huristic={huristic}/>
+                    <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use Best Huristic"}</label>
+                    <HuristicNumberChoice boxState={modeCheckbox} huristicNum={huristicNum} updateHuristicNum={updateHuristicNum} huristicList={huristicList}/> 
+                    <SVGHuristic huristic={bestHuristic}/>
+                    <HuristicStats huristic={bestHuristic}/>
                 </div>
             )
         }
@@ -273,7 +307,7 @@ export default function Main() {
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
 
-            <CalculateButton requestState={craftingRequestState} craftingData={craftingData}/>
+            <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
         </div>
     );
 }

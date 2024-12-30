@@ -174,19 +174,7 @@ function matchTo(src: craftingPathChoice, other: craftingPathChoice): {matchDiff
 
 
 class chainCollections {
-
-    // collection: []
     decisionNodes: Array<craftingPathChoice> = [];
-
-
-    // findNode(value: craftingPath): recipeChainPathInfo|null {
-    //     for (let node of this.nodes) {
-    //         if (_.isEqual(node.path, value)) {
-    //             return node;
-    //         }
-    //     }
-    //     return null;
-    // }
 
 }
 
@@ -289,7 +277,7 @@ export class chainHuristicsStats {
     }
 
     updateRatioReqs() {
-
+        // Set the requested ratios for each final item
         for (let node of this.fixed_src.src) {
             node.hRatio = this.finalReqs[node.goal].amount;
         }
@@ -309,9 +297,9 @@ export class chainHuristicsStats {
 
         // Handle the head
         if (current.root) {
-            // log(current)
             for (let item of current.src) {
-                let recipeStack = this.data.getRecipe(item.rId)!.outputResources.find(resource => resource.resourceName == item.goal)
+                // let recipeStack = this.data.getRecipe(item.rId)!.outputResources.find(resource => resource.resourceName == item.goal)
+                let recipeStack = this.data.getRecipeOutputAmount(item.rId, item.goal)
                 let tempTargetStack = new Stack(item.goal, item.hRatio / recipeStack!.amount);  // FIXME I bet that just using hRatio is not enough. Check else statement.
                 // Add the ones needed into the processing stack
                 this.inputStack.push(tempTargetStack);
@@ -379,23 +367,21 @@ export class chainHuristicsStats {
             index++;
         }
 
-        nodes.reverse();
-
-        let avoidGoals = [""];
-        this.fixed_src.src.map((item) => {avoidGoals.push(item.goal)})
+        nodes.reverse(); // Reversing lets us gaurentee we work all children before the parent
 
         // Calculate the width of each node including child nodes
         for (let node of nodes) {
-            let width = _.sum(node.src.map(item => item.hWidth));
-            node.hWidth = Math.max(1, width);
+            node.hWidth = node.src.reduce((acc: number, val: postPermRecipeChainNode) => acc + val.hWidth, 0)
+            if (!node.root) { // Check for unaccounted ingredients when not at root
+                node.hWidth += this.srcItemsWithoutRecipe(node).length;
+            }
 
-            if (!(avoidGoals.includes(node.goal))){
+            if (!node.root){
                 // Store all intermediate crafts
                 // This could be done in the depth traversal, but then I lose the ordering
                 let recipe = this.data.getRecipe(node.rId)!
                 let count = recipe.outputResources.find(r => r.resourceName == node.goal)!.amount;
                 this.intermediate.push(new Stack(node.goal, count * node.hRatio))
-
             }
 
         }
@@ -422,6 +408,20 @@ export class chainHuristicsStats {
         }
 
     }
+
+    srcItemsWithoutRecipe(node: postPermRecipeChainNode) {
+        const expected = this.data.getRecipe(node.rId)!.inputResources;
+        const remaining = expected.filter((val: Stack) => {
+            for (const item of node.src) {
+                if (item.goal == val.resourceName) {
+                    return false;
+                }
+            }
+            return true;
+        })
+        return remaining;
+    }
+
 
 }
 
@@ -466,6 +466,14 @@ export class CraftingData {
         return this.recipes.find((element) => {return element.id == id})
     }
 
+    getRecipeInputAmount(id: number, target: string) {
+        return this.getRecipe(id)!.inputResources.find((element: Stack) => {return element.resourceName == target})
+    }
+
+    getRecipeOutputAmount(id: number, target: string) {
+        return this.getRecipe(id)!.outputResources.find((element: Stack) => {return element.resourceName == target})
+    }
+
     removeResource(name: string) {
         delete this.resources[name];
     }
@@ -490,6 +498,8 @@ export class CraftingData {
         return matches;
 
     }
+
+
 
     validateRecipeIds() {
         // Just set them all. That way there will never be an issue with gaps
@@ -749,8 +759,7 @@ export class CraftingData {
                 count++;
             }
         }
-        
-        console.log(huristicOptions);
+       
         return huristicOptions;
     }
 

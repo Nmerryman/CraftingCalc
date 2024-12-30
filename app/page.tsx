@@ -9,7 +9,7 @@ import { OnEnterCall } from "./utils/onEnter";
 import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { SVGHuristic } from "./components/svgHuristics";
 import { PresetConfig } from "./components/presetConfig";
-import { gtBackpackPreset, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { gtBackpackPreset, gtBlastFurnace, vanillaPickaxePreset } from "./crafting/defaultPresets";
 
 
 
@@ -50,7 +50,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        value = "Backpack";
+        value = "BBF";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -104,6 +104,12 @@ function ensureDefaultPresets() {
         gtBackpackPreset(fakeDispatch);
         localStorage.setItem("Backpack", JSON.stringify(tempData));
         availablePresetNames.push("Backpack");
+
+        // BBF
+        fakeDispatch({type: "reset"});
+        gtBlastFurnace(fakeDispatch);
+        localStorage.setItem("BBF", JSON.stringify(tempData));
+        availablePresetNames.push("BBF");
         
         // Store the currently available items
         localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
@@ -297,7 +303,7 @@ export default function Main() {
         ensureDefaultPresets(); 
         setCurrentPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
-        dispatchCraftingRequest({type: "toggle", name: "Backpack"})
+        dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
     }, []);  // Run update once after main page load
 
     return (

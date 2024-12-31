@@ -524,7 +524,7 @@ export class CraftingData {
 
         // console.log(dupeCheck);
         if (dupeCheck.size > 20) {
-            console.log("dupeCheck is probably in recursion. Killing.")
+            console.log("dupeCheck is going deeper than expected. Killing.")
             return; 
         }
 

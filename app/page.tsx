@@ -64,7 +64,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
         console.log("Unkown preset set: " + value);
     }
 
-    craftingDispatch({type: "log"});
+    // craftingDispatch({type: "log"});
 
 }
 
@@ -169,13 +169,6 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
     )
 }
 
-function LogCraftinghuristics({huristic}: {huristic: Array<chainHuristicsStats>}) {
-    return (
-        <button onClick={() => {
-            console.log(huristic);
-        }}>Log the crafting huristics</button>
-    )
-}
 
 function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristicList}: {boxState: boolean, huristicNum: number, updateHuristicNum: Dispatch<number>, huristicList: Array<chainHuristicsStats>}) {
 

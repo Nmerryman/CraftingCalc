@@ -513,9 +513,29 @@ export class CraftingData {
 
     runHealthChecks() {
 
-        this.passedHealthCheck = true;  // Assume working by default. negate on any failed check.
-        this.passedHealthCheck = this.passedHealthCheck && this.healthCheckBaseItems();
+        this.passedHealthCheck = this.healthCheckNoMissingThings() && this.healthCheckBaseItems();
         
+    }
+
+    healthCheckNoMissingThings() {
+        // Make sure we're not missing things
+
+        // Make sure that all items used in recipes are accounted for
+        const itemsInRecipes = this.recipes.map(r => [r.getInputNames(), r.getOutputNames()]).flat(2)
+        
+        let missing: Set<string> = new Set();
+        for (const item of itemsInRecipes) {
+            if (!(item in this.resources)) {
+                missing.add(item);
+            }
+        }
+
+        if (missing.size> 0) {
+            console.log("The following items are listed in recipes but don't exist as items:");
+            console.log(missing);
+            return false;
+        }
+        return true
     }
 
     healthCheckBaseItems() {

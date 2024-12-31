@@ -563,21 +563,25 @@ export class CraftingData {
     }
 
     // Build the initial recipeChainNode tree based on a single starting node
+    // Returns if this node is considered "valid". Not sure if this ruins the function structure
     createChainTree(start: prePermRecipeChainNode, dupeCheck: Set<string> = new Set()) {
         // console.log(">", start.goal)
         // We assume that the start has the recipe id and we are trying to fill in all of the src children
         if (!this.getRecipe(start.rId)) {
-            console.log("Something went very wrong");
-            console.log(this.recipes);
+            console.log("Something went very wrong. This starting recipe doesn't exist");
+            console.log(start, this.recipes);
         } 
 
         // console.log(dupeCheck);
         if (dupeCheck.size > 20) {
             console.log("dupeCheck is going deeper than expected. Killing.")
-            return; 
+            return false; 
         }
 
         for (let resourceName of this.getRecipe(start.rId)!.getInputNames()) {  // for every resource needed to complete the recipe
+            if (this.resources[resourceName].isDisabled) {  // Check if this recipe tries to use a disabled resource
+                return false;
+            }
 
             let tempItemRecipes = this.findRecipesFor(resourceName);  // Collect all recipes that could be used for this resource
             let variantArray: recipeVariants = {variants: []};
@@ -587,9 +591,13 @@ export class CraftingData {
                     let tempDupeCheck = new Set(dupeCheck);
                     tempDupeCheck.add(dupeVal);  // Add current use to the dupe check
                     let tempNode = new prePermRecipeChainNode(recipeId, resourceName);
-                    this.createChainTree(tempNode, tempDupeCheck);
-                    variantArray.variants.push(tempNode);
+                    if (this.createChainTree(tempNode, tempDupeCheck)) {
+                        variantArray.variants.push(tempNode);
+                    }
                 }
+            }
+            if (variantArray.variants.length == 0 && tempItemRecipes.length > 0) {
+                return false;
             }
             // if (resourceName == "Cobble Stone") {
             //     console.log(tempItemRecipes)
@@ -605,6 +613,8 @@ export class CraftingData {
             // }
             // console.log("<", start.goal);
         }
+
+        return true;
     }
 
     // Explore the node to find all places that have multiple variants

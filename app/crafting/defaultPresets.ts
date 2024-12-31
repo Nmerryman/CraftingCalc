@@ -100,6 +100,12 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
         }
     }
 
+    function disableResources(r: Record<string, Resource>, names: Array<string>) {
+        for (const name of names) {
+            r[name].isDisabled = true;
+        }
+    }
+
     function addProcesses(r: Record<string, Process>, names: Array<string>) {
         for (let name of names) {
             r[name] = new Process(name);
@@ -112,10 +118,12 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
         "Clay Dust", "XP Bucket", "Impure Pile of Gypsum Dust", "Crushed Gypsum Ore", "Gypsum Ore", "Calcite Dust", "Stone Dust",
         "Quartz Sand", "Water Bucket", "Bucket", "Impure Pile of Calcite Dust", "Crushed Calcite Ore", "Calcite Ore", "Cactus Juice",
         "Cactus", "Cobblestone", "Mortar", "Sand", "Small Pile of Brick Dust", "Brick", "Hardened Clay", "Unfired Clay Brick", 
-        "Mold (Ingot)", "Wooden Form (Brick)", ]);
+        "Mold (Ingot)", "Wooden Form (Brick)", "Gravel", "Clay"]);
 
     markAsBaseResources(resources, ["Wrench", "Iron Ingot", "Hammer", "XP Bucket", "Gypsum Ore", "Calcite Ore", "Cactus", "Cobblestone",
-        "Mortar", "Sand", "Hardened Clay", "Mold (Ingot)", "Wooden Form (Brick)"])
+        "Mortar", "Sand", "Hardened Clay", "Mold (Ingot)", "Wooden Form (Brick)", "Gravel", "Clay"])
+
+    disableResources(resources, ["XP Bucket"]);
 
     let processes = {}
     addProcesses(processes, ["Crafting", "Forge Hammer", "Smelting", "Compressor", "Cauldron Washing", "Macerator", "Right Clicking Source",

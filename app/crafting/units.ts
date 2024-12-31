@@ -133,56 +133,52 @@ export class postPermRecipeChainNode {
 
 
 type craftingPathPart = {
-    itemIndex: number;
-    choice: number;
+    goal: string,
+    rIdOptions: Array<number>
 }
 
-class craftingPathChoice {
-    path: Array<craftingPathPart> = []  // Last choice can also be used to carry the choice count.
+class craftingPathChoices {
+    choices: Record<string, craftingPathPart> = {} // Last choice can also be used to carry the choice count.
 }
 
-// Check to see how much of one choice matches the other
-function matchTo(src: craftingPathChoice, other: craftingPathChoice): {matchDiff: number, lenDiff: number} {
-    // matchDiff
-    // 0 == exact match
-    // -x == This is x away from matching other
-    // +x == This matches other perfectly and then goes over the length
-    let testIndex = 0;
+
+// // Check to see how much of one choice matches the other  // TODO check if this is still needed
+// function matchTo(src: craftingPathChoice, other: craftingPathChoice): {matchDiff: number, lenDiff: number} {
+//     // matchDiff
+//     // 0 == exact match
+//     // -x == This is x away from matching other
+//     // +x == This matches other perfectly and then goes over the length
+//     let testIndex = 0;
     
-    while (true) {
-        let thisItem = src.path.at(testIndex);
-        let otherItem = other.path.at(testIndex);
+//     while (true) {
+//         let thisItem = src.path.at(testIndex);
+//         let otherItem = other.path.at(testIndex);
 
-        if (!thisItem && !otherItem) {
-            // Both matched up to the end at the same time
-            return {matchDiff: 0, lenDiff: 0};
-        } else if (!thisItem) {
-            // This ran out first
-            return {matchDiff: other.path.length - testIndex, lenDiff: src.path.length - other.path.length};
-        } else if (!otherItem) {
-            // Other ran out first
-            return {matchDiff: src.path.length - testIndex, lenDiff: src.path.length - other.path.length};
-        } else {
-            // Both items are defined
-            if (!_.isEqual(thisItem, otherItem)) {
-                return {matchDiff: src.path.length - testIndex, lenDiff: src.path.length - other.path.length};
-            }
-        }
+//         if (!thisItem && !otherItem) {
+//             // Both matched up to the end at the same time
+//             return {matchDiff: 0, lenDiff: 0};
+//         } else if (!thisItem) {
+//             // This ran out first
+//             return {matchDiff: other.path.length - testIndex, lenDiff: src.path.length - other.path.length};
+//         } else if (!otherItem) {
+//             // Other ran out first
+//             return {matchDiff: src.path.length - testIndex, lenDiff: src.path.length - other.path.length};
+//         } else {
+//             // Both items are defined
+//             if (!_.isEqual(thisItem, otherItem)) {
+//                 return {matchDiff: src.path.length - testIndex, lenDiff: src.path.length - other.path.length};
+//             }
+//         }
 
-        testIndex++;
-    }
-}
+//         testIndex++;
+//     }
+// }
 
 
-class chainCollections {
-    decisionNodes: Array<craftingPathChoice> = [];
-
-}
-
-type choiceState = {
-    node: prePermRecipeChainNode,
-    location: craftingPathChoice
-}
+// type choiceState = {
+//     node: prePermRecipeChainNode,
+//     location: craftingPathChoice
+// }
 
 export class chainHuristicsStats {
     steps: number = 0;
@@ -193,7 +189,7 @@ export class chainHuristicsStats {
     longest_depth: number = 0;
     fixed_src: postPermRecipeChainNode = new postPermRecipeChainNode(0, "");
 
-    constructor(public src: prePermRecipeChainNode, public choices: Array<craftingPathChoice>, public data: CraftingData, public finalReqs: Record<string, Stack>) {
+    constructor(public src: prePermRecipeChainNode, public choices: craftingPathChoices, public data: CraftingData, public finalReqs: Record<string, Stack>) {
         // Evaluate attributes here
 
         this.applyChoices();
@@ -207,72 +203,107 @@ export class chainHuristicsStats {
     applyChoices() {
         // Create this.fixed_src. It cleans up the tree by applying the permutation choices onto the src tree.
 
-        // this.fixed_src = this.src[this.choices[0]];
         let root_fixed = new postPermRecipeChainNode(this.src.rId, this.src.goal, true);
 
         // Init both the src and fixed to start with a single harness node
-        let src_stack: Array<choiceState> = [{node: this.src, location: {path: [{itemIndex: 0, choice: 0}]}}];
-        let fixed_stack: Array<postPermRecipeChainNode> = [root_fixed];
+        // let src_stack: Array<choiceState> = [{node: this.src, location: {path: [{itemIndex: 0, choice: 0}]}}];
+        let src_queue: Array<prePermRecipeChainNode> = [this.src];
+        let fixed_queue: Array<postPermRecipeChainNode> = [root_fixed];
 
-        while (src_stack.length > 0) {
-            
-            // Grab the top item from the src stack
-            let current_src = src_stack.at(-1)!;
-            // Shorthand for grabbing the permutation option info that this location currently has
-            let currentLastPointing = current_src.location.path.at(-1)!;
+        while (src_queue.length > 0) {
+            // console.log(_.cloneDeep(src_queue))
+            let current_src = src_queue.pop()!;
+            let current_fixed = fixed_queue.pop()!;
 
-            if (currentLastPointing.itemIndex == current_src.node.src.items.length  ||
-                currentLastPointing.choice == current_src.node.src.items[currentLastPointing.itemIndex].variants.length
-            ) {
-                // If item index is past the last needed index meaning we've been through all needed items.
-                src_stack.pop();
-                fixed_stack.pop();
+            for (let src_item of current_src.src.items) {
+                if (src_item.variants.length == 1) {
+                    let srcChild = src_item.variants[0];
+                    let tempPost = new postPermRecipeChainNode(srcChild.rId, srcChild.goal);
+                    current_fixed.src.push(tempPost);
 
-            } else { // We are currently pointing at some valid variant
-                                
-                // Push changes
-                // No extra variants so business as usual
-                if (current_src.node.src.items[currentLastPointing.itemIndex].variants.length == 1) {
-                    // What node are we currently pointing at for exploration
-                    let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[0];
-                    // Create a new object to insert into the fixed stack
-                    let tempNew = new postPermRecipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
+                    // Add children to the queue
+                    src_queue.push(srcChild);
+                    fixed_queue.push(tempPost);
+                } else if (src_item.variants.length > 1) {  // multiple variants available
+                    let exampleSrcChild = src_item.variants[0];
+                    let exampleGoal = exampleSrcChild.goal;
+                    let tempPost = new postPermRecipeChainNode(this.choices.choices[exampleGoal].rIdOptions[0], exampleGoal);
+                    current_fixed.src.push(tempPost);
 
-                    fixed_stack[fixed_stack.length - 1].src.push(tempNew);
-                    src_stack.push({node: tempPointingNode, location: {path: _.cloneDeep(current_src.location.path).concat({itemIndex: 0, choice: 0})}});
-                    fixed_stack.push(tempNew);
+                    // Add children to the queue
+                    let tempVal = src_item.variants.find(v => v.rId == this.choices.choices[exampleGoal].rIdOptions[0])!;
+                    // if (tempVal === undefined) {
+                    //     console.log("v", src_item.variants);
+                    //     console.log(exampleGoal)
+                    //     console.log(this.choices.choices)
+                    // }
 
-                    // Update state (Could also just set to end)
-                    currentLastPointing.itemIndex++;
-
-                } else {  // There are multiple variants
-                    
-                    let match = this.choices.find((choice: craftingPathChoice) => {
-                        let pathMatch = matchTo(current_src.location, choice);
-                        if (pathMatch.lenDiff == 0 && (pathMatch.matchDiff == 0 || pathMatch.matchDiff == 1)) {
-                            return choice;
-                        }
-                    })
-                    
-                    if (!match) {
-                        log("Could not find needed variant path match");
-                        return;
-                    }
-
-                    let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[match.path.at(-1)!.choice]
-                    let tempNew = new postPermRecipeChainNode(tempPointingNode.rId, tempPointingNode.goal)
-
-                    fixed_stack.at(-1)!.src.push(tempNew);
-                    let custPath = _.cloneDeep(current_src.location.path);
-                    custPath.at(-1)!.choice = match.path.at(-1)!.choice;
-                    src_stack.push({node: tempPointingNode, location: {path: custPath.concat({itemIndex: 0, choice: 0})}})
-                    fixed_stack.push(tempNew);
-                    
-                    // Update state
-                    currentLastPointing.itemIndex++;
+                    src_queue.push(tempVal);
+                    fixed_queue.push(tempPost);
                 }
             }
+
         }
+        
+        // while (src_stack.length > 0) {
+            
+        //     // Grab the top item from the src stack
+        //     let current_src = src_stack.at(-1)!;
+        //     // Shorthand for grabbing the permutation option info that this location currently has
+        //     let currentLastPointing = current_src.location.path.at(-1)!;
+
+        //     if (currentLastPointing.itemIndex == current_src.node.src.items.length  ||
+        //         currentLastPointing.choice == current_src.node.src.items[currentLastPointing.itemIndex].variants.length
+        //     ) {
+        //         // If item index is past the last needed index meaning we've been through all needed items.
+        //         src_stack.pop();
+        //         fixed_stack.pop();
+
+        //     } else { // We are currently pointing at some valid variant
+                                
+        //         // Push changes
+        //         // No extra variants so business as usual
+        //         if (current_src.node.src.items[currentLastPointing.itemIndex].variants.length == 1) {
+        //             // What node are we currently pointing at for exploration
+        //             let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[0];
+        //             // Create a new object to insert into the fixed stack
+        //             let tempNew = new postPermRecipeChainNode(tempPointingNode.rId, tempPointingNode.goal);
+
+        //             fixed_stack[fixed_stack.length - 1].src.push(tempNew);
+        //             src_stack.push({node: tempPointingNode, location: {path: _.cloneDeep(current_src.location.path).concat({itemIndex: 0, choice: 0})}});
+        //             fixed_stack.push(tempNew);
+
+        //             // Update state (Could also just set to end)
+        //             currentLastPointing.itemIndex++;
+
+        //         } else {  // There are multiple variants
+                    
+        //             let match = this.choices.find((choice: craftingPathChoice) => {
+        //                 let pathMatch = matchTo(current_src.location, choice);
+        //                 if (pathMatch.lenDiff == 0 && (pathMatch.matchDiff == 0 || pathMatch.matchDiff == 1)) {
+        //                     return choice;
+        //                 }
+        //             })
+                    
+        //             if (!match) {
+        //                 log("Could not find needed variant path match");
+        //                 return;
+        //             }
+
+        //             let tempPointingNode = current_src.node.src.items[currentLastPointing.itemIndex].variants[match.path.at(-1)!.choice]
+        //             let tempNew = new postPermRecipeChainNode(tempPointingNode.rId, tempPointingNode.goal)
+
+        //             fixed_stack.at(-1)!.src.push(tempNew);
+        //             let custPath = _.cloneDeep(current_src.location.path);
+        //             custPath.at(-1)!.choice = match.path.at(-1)!.choice;
+        //             src_stack.push({node: tempPointingNode, location: {path: custPath.concat({itemIndex: 0, choice: 0})}})
+        //             fixed_stack.push(tempNew);
+                    
+        //             // Update state
+        //             currentLastPointing.itemIndex++;
+        //         }
+        //     }
+        // }
 
         this.fixed_src = root_fixed;
     }
@@ -618,37 +649,35 @@ export class CraftingData {
     }
 
     // Explore the node to find all places that have multiple variants
-    collectDecisionHashes(start: prePermRecipeChainNode, collectionData: chainCollections, pathHash: craftingPathChoice = new craftingPathChoice()) {
+    collectDecisionHashes(start: prePermRecipeChainNode, collectionData: craftingPathChoices) {
 
         start.src.items.forEach((item, item_pos) => {
-            if (item.variants.length > 1) {  // This item has multiple recipes.
-                let tempPath = _.cloneDeep(pathHash)
-                tempPath.path.push({itemIndex: item_pos, choice: item.variants.length});
 
-                collectionData.decisionNodes.push(tempPath);
+            if (item.variants.length > 1 && !(item.variants[0].goal in collectionData.choices)) {  // If there are choices to make and we haven't already handled this case
+                let variantCollection: craftingPathPart = {goal: item.variants[0].goal, rIdOptions: item.variants.map(r => r.rId)};  // [0].goal is ok because we have at least 2 here
+                collectionData.choices[variantCollection.goal] = variantCollection;
             }
-            item.variants.forEach((recipe, recipe_pos) => {
-                let tempPath = _.cloneDeep(pathHash);
-                tempPath.path.push({itemIndex: item_pos, choice: recipe_pos});
-
-                this.collectDecisionHashes(recipe, collectionData, tempPath);
+            
+            item.variants.forEach(recipe => {
+                this.collectDecisionHashes(recipe, collectionData);
             })
         })
     } 
 
     // Expand a list of available permutations into each possible iteration
-    generateChoicePermutations(choices: Array<craftingPathChoice>): Array<Array<craftingPathChoice>> {
+    generateChoicePermutations(choiceCollection: craftingPathChoices): Array<craftingPathChoices> {
         // Check for no choice case
-        if (choices.length == 0) {
+        if (Object.keys(choiceCollection.choices).length == 0) {
             return []
         }
 
         let maxes: Array<number> = [];
         let indexes: Array<number> = [];
+        let nameOrder: Array<string> = Object.keys(choiceCollection.choices);
 
         // Extract data to set up state arrays
-        for(let choice of choices) {
-            maxes.push(choice.path.at(-1)!.choice);
+        for(let name of nameOrder) {
+            maxes.push(choiceCollection.choices[name].rIdOptions.length);
             indexes.push(0);
         }
 
@@ -656,11 +685,13 @@ export class CraftingData {
         let start_state = _.clone(indexes);
         let first = true;
 
-        let result: Array<Array<craftingPathChoice>> = []
+        let result: Array<craftingPathChoices> = [];
 
         let iteration_count = 0;
         while (!_.isEqual(indexes, start_state) || first) {
-            if (iteration_count > 10000) { // This will stop insanely high numbers of permutations. Not sure if needed.
+            // console.log(indexes)
+            if (iteration_count > 10002) { // This will stop insanely high numbers of permutations. Not sure if needed. At this size, lag spikes are ~5s
+                console.error("Permutation generation iteration count limit (10002) reached.");
                 break;
             }
             iteration_count++;
@@ -668,13 +699,11 @@ export class CraftingData {
                 first = false;
             }
 
-            let temp_perm = [];
+            // Save current permutation state
+            let temp_perm: craftingPathChoices = new craftingPathChoices();
             for (let i = 0; i < indexes.length; i++) {  // For each permutation entry
-                let temp_choice = _.cloneDeep(choices[i]);
-                temp_choice.path.at(-1)!.choice = indexes[i];
-                temp_perm.push(temp_choice);
+                temp_perm.choices[nameOrder[i]] = {goal: nameOrder[i], rIdOptions: [choiceCollection.choices[nameOrder[i]].rIdOptions[indexes[i]]]};
             }
-
             result.push(temp_perm);
 
             // Increment the permutation
@@ -696,7 +725,7 @@ export class CraftingData {
 
         }
 
-
+        // console.log("perm", result)
         return result;
     }
 
@@ -790,7 +819,7 @@ export class CraftingData {
         // console.log(options)
 
         // Find decisions
-        let collectionStore = new chainCollections();
+        let collectionStore = new craftingPathChoices();
         // options.src.items[0].variants.forEach((option, option_index) => {
         //     this.collectDecisionHashes(option, collectionStore, new craftingPathChoice(option_index));  // Set first value to be the option index
         // })
@@ -801,7 +830,7 @@ export class CraftingData {
 
         // Optimize to create the best tree
         // I think we recommend the path that has the highest ratio of base items and if tied, the shortest path.
-        let permutations = this.generateChoicePermutations(collectionStore.decisionNodes)
+        let permutations = this.generateChoicePermutations(collectionStore)
         // console.log(permutations);
 
         // let huristics = new chainHuristicsStats(options, permutations[0], this);
@@ -813,7 +842,7 @@ export class CraftingData {
 
         let huristicOptions: Array<chainHuristicsStats> = [];
         if (permutations.length == 0) {
-            huristicOptions.push(new chainHuristicsStats(options, [], this, startConsolidate))
+            huristicOptions.push(new chainHuristicsStats(options, collectionStore, this, startConsolidate))
         } else {
             let count = 0;
             for (let perm of permutations) {

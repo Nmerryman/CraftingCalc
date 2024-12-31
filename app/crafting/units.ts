@@ -8,6 +8,7 @@ class BaseThing {
     sourceUrl?: string;
     isBase: boolean = false;
     isAvailable: boolean = true;
+    isDisabled: boolean = false;
     durability: number = -1;
     tags: Array<string> = []
 
@@ -432,6 +433,7 @@ export class CraftingData {
     resources: Record<string, Resource>;
     processes: Record<string, Process>;
     recipes: Array<Recipe>;
+    passedHealthCheck: boolean = false;
     private rId: number = 0;  // Used to register recipes and give them unique ids/names
 
 
@@ -507,6 +509,33 @@ export class CraftingData {
         for (let r of this.recipes) {
             r.id = this.rId++;
         }
+    }
+
+    runHealthChecks() {
+
+        this.passedHealthCheck = true;  // Assume working by default. negate on any failed check.
+        this.passedHealthCheck = this.passedHealthCheck && this.healthCheckBaseItems();
+        
+    }
+
+    healthCheckBaseItems() {
+        // Make sure that all items that have no recipes are marked as base
+
+        const craftableItems = new Set(this.recipes.map(r => r.getOutputNames()).flat())
+
+        let failed: Array<string> = [];
+        for (const item of Object.keys(this.resources)) {
+            if (!craftableItems.has(item) && !this.resources[item].isBase) {
+                failed.push(item);
+            }
+        }
+
+        if (failed.length > 0) {
+            console.log("The following resources have no recipe but are also not marked as base items.");
+            console.log(failed);
+            return false;
+        }
+        return true;
     }
 
     shallowClone() {
@@ -686,6 +715,15 @@ export class CraftingData {
     // This does the work
     // Based on a list of requested items, return all huristic analysis
     calcChain(start: Array<string>) {
+        // Make sure we can run
+        if (!this.passedHealthCheck) {
+            this.runHealthChecks();
+            if (!this.passedHealthCheck) {
+                console.error("Failed health checks, not running CraftingData.calcChain");
+                return [];
+            }
+        }
+
         // Merge all identical requests into a single larger one
         let startConsolidate: Record<string, Stack> = {}
         for (let s of start) {

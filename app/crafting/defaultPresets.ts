@@ -94,6 +94,12 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
         }
     }
 
+    function markAsBaseResources(r: Record<string, Resource>, names: Array<string>) {
+        for (const name of names) {
+            r[name].isBase = true;
+        }
+    }
+
     function addProcesses(r: Record<string, Process>, names: Array<string>) {
         for (let name of names) {
             r[name] = new Process(name);
@@ -107,6 +113,9 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
         "Quartz Sand", "Water Bucket", "Bucket", "Impure Pile of Calcite Dust", "Crushed Calcite Ore", "Calcite Ore", "Cactus Juice",
         "Cactus", "Cobblestone", "Mortar", "Sand", "Small Pile of Brick Dust", "Brick", "Hardened Clay", "Unfired Clay Brick", 
         "Mold (Ingot)", "Wooden Form (Brick)", ]);
+
+    markAsBaseResources(resources, ["Wrench", "Iron Ingot", "Hammer", "XP Bucket", "Gypsum Ore", "Calcite Ore", "Cactus", "Cobblestone",
+        "Mortar", "Sand", "Hardened Clay", "Mold (Ingot)", "Wooden Form (Brick)"])
 
     let processes = {}
     addProcesses(processes, ["Crafting", "Forge Hammer", "Smelting", "Compressor", "Cauldron Washing", "Macerator", "Right Clicking Source",

@@ -208,6 +208,13 @@ function HuristicsInfoDisplay({requestState, craftingData}: {requestState: Craft
         }
         
         let huristicList = craftingData.calcChain(goal);
+        if (huristicList.length == 0) {
+            return (
+                <div className="test-center">
+                    No results from calculation. Console likely lists why.
+                </div>
+            )
+        }
         console.log(huristicList)
         let bestHuristic = craftingData.bestHuristic(huristicList, craftingData.defaultHuristic)!;
         if (bestHuristic.longest_depth == 0) {
@@ -305,7 +312,7 @@ export default function Main() {
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
-
+            <button onClick={() => craftingData.healthCheckBaseItems()}>debug button</button>
             <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
         </div>
     );

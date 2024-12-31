@@ -230,7 +230,7 @@ function HuristicsInfoDisplay({requestState, craftingData}: {requestState: Craft
             }
             return (
                 <div>
-                    <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use Best Huristic"}</label>
+                    <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} huristicNum={huristicNum} updateHuristicNum={updateHuristicNum} huristicList={huristicList}/> 
                     <SVGHuristic huristic={bestHuristic}/>
                     <HuristicStats huristic={bestHuristic}/>

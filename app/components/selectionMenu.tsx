@@ -38,9 +38,9 @@ export function requestMenuReducer(currentState: CraftingRequestType, action: Re
 
 
 
-function ResourceListItem({resource, dispatch}: {resource: Resource, dispatch: Dispatch<RequestMenuAction>}) {
+function ResourceListItem({resource, dispatch, debugScore}: {resource: Resource, dispatch: Dispatch<RequestMenuAction>, debugScore: number}) {
     return (
-        <li key={resource.name} className="cursor-pointer" onClick={() => dispatch({type: "toggle", name: resource.name})}>{resource.name}</li>
+        <li key={resource.name} className="cursor-pointer" {...{"score": debugScore}} onClick={() => dispatch({type: "toggle", name: resource.name})}>{resource.name}</li>
     )
 }
 
@@ -77,6 +77,26 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
         setText(selectTextBox.value);
     }
 
+    function simmilarityScore(fromString: string, toString: string): number {
+        let inputVal = fromString.toLowerCase();
+        let testItem = toString.toLowerCase();
+        let inputParts = inputVal.split(" ");
+        let testParts = testItem.split(" ");
+        let currentScore = inputVal.length + testItem.length;
+        let matchedWords = 0;
+        // console.log(inputVal, " vs ", testItem.slice(0, inputVal.length))
+
+        for (let iparts of inputParts) {
+            for (let tpart of testParts) {
+                if (iparts.length <= tpart.length && iparts == tpart.slice(0, iparts.length)) {
+                    currentScore -= 2 * iparts.length;
+                    matchedWords += 1;
+                }
+            }
+        }
+        return currentScore ** (1 / (matchedWords + 1)) + levenshtein(inputVal, testItem) ** 2;
+    }
+
     return (
         <ul>
             <div className="font-bold text-lime-500">Resource List</div>
@@ -85,7 +105,7 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
                 .sort((rValA, rValB) => { 
                     // This works, but I think I'd rather use a filter via the TextMatch function defined above. 
                     // This method does not handle shortened versions of text comparisons well (leather vs tanned leather)
-                    if (levenshtein(textState, rValA.name) < levenshtein(textState, rValB.name)) {
+                    if (simmilarityScore(textState, rValA.name) < simmilarityScore(textState, rValB.name)) {
                         return -1;
                     } else {
                         return 1;
@@ -95,7 +115,7 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
                     if (rIndex == 0) {  // Store the name of the top item in the sort so that we can reference it in an enter toggle later.
                         topName = rval.name;
                     }
-                    return <ResourceListItem key={rval.name} resource={rval} dispatch={requestDispatch}/>
+                    return <ResourceListItem key={rval.name} resource={rval} debugScore={simmilarityScore(textState, rval.name)} dispatch={requestDispatch}/>
                     })}
         </ul>
     )

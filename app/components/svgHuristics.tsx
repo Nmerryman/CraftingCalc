@@ -1,6 +1,7 @@
+import { Dispatch, MouseEvent, useRef } from "react";
 import { postPermRecipeChainNode, chainHuristicsStats, Stack } from "../crafting/units";
+import { svgConfig, svgConfigAction } from "./huristics";
 import { TextCircle, ArrowPath, calcArrows } from "./svg";
-import _ from "lodash";
 
 class recipeCircle {
     constructor(public holds: Stack, public x: number, public y: number, public base: boolean = false) {}
@@ -15,26 +16,30 @@ class nodeState {
 }
 
 
-export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
+export function SVGHuristic({huristic, config, configDispatch}: {huristic: chainHuristicsStats, config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     let boxStartX = 0;
-    // let boxStartY = 0;
+    let boxStartY = 0;
     let boxWidth = window.innerWidth;
     let widthPadding = boxWidth / 10;
     let screenHeight = 0.5;
     let boxHeight = window.innerHeight * screenHeight;
     let heightPadding = boxHeight / 10;
-    let breadthOffset = (boxHeight - 2 * heightPadding) / huristic.fixed_src.hWidth;  // This one will need to get scaled better latter
-    let depthOffset = (boxWidth - 2 * widthPadding) / (Math.max(huristic.longest_depth , 0));  // no -1 on depth because the deepest node still has ingredients
+    let breadthOffset = (boxHeight - 2 * heightPadding) / huristic.fixedSrc.hWidth;  // This one will need to get scaled better latter
+    let depthOffset = (boxWidth - 2 * widthPadding) / (Math.max(huristic.longestDepth , 0));  // no -1 on depth because the deepest node still has ingredients
     boxStartX += 2 * depthOffset;
+    let originalBoxStartX = boxStartX;
+    let originalBoxStartY = boxStartY;
+    let originalBoxWidth = boxWidth;
+    let originalBoxHeight = boxHeight;
     
     let circleCollection: Array<recipeCircle> = [];
     let arrowCollection: Array<recipeArrow> = [];
 
-    let startRecipeCircle = new recipeCircle(new Stack(""), widthPadding, heightPadding + breadthOffset * huristic.fixed_src.hWidth / 2, true) 
+    let startRecipeCircle = new recipeCircle(new Stack(""), widthPadding, heightPadding + breadthOffset * huristic.fixedSrc.hWidth / 2, true);
     
     // This stack holds the current state off all nodes we need to traverse to get to the current one,
     // -1 because we want the first node base node shouldn't be included
-    let nodeStateQueue: Array<nodeState> = [new nodeState(huristic.fixed_src, -1, 0, startRecipeCircle)]; 
+    let nodeStateQueue: Array<nodeState> = [new nodeState(huristic.fixedSrc, -1, 0, startRecipeCircle)]; 
     circleCollection.push(startRecipeCircle);
 
     while (nodeStateQueue.length > 0) {
@@ -80,24 +85,40 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
         }
     }
 
+    if (config.useZoom) {
+        boxStartX = config.tl!.x;
+        boxStartY = config.tl!.y;
+        boxWidth = config.br!.x - boxStartX;
+        boxHeight = config.br!.y - boxStartY;
+    }
+    
+    const svgthing = useRef<SVGSVGElement>(null);
+
+    function svgClickCallback(e: MouseEvent<SVGElement>) {
+        let clickLoc = new DOMPoint(e.clientX, e.clientY).matrixTransform(svgthing.current!.getScreenCTM()!.inverse());
+        if (config._settingZoomFirst) {
+            let clickLoc = new DOMPoint(e.clientX, e.clientY).matrixTransform(svgthing.current!.getScreenCTM()!.inverse());
+            configDispatch({type: "set tl", coordinate: {x: clickLoc.x, y: clickLoc.y}})
+            configDispatch({type: "set first"});
+            
+        } else if (config._settingZoomSecond) {
+            let clickLoc = new DOMPoint(e.clientX, e.clientY).matrixTransform(svgthing.current!.getScreenCTM()!.inverse());
+            configDispatch({type: "set br", coordinate: {x: clickLoc.x, y: clickLoc.y}})
+            configDispatch({type: "set second"}); 
+        }
+    }
+
     return (
-        <svg className={`bg-neutral-100 w-full h-[${Math.round(boxHeight)}px]`} viewBox={`${boxStartX} 0 ${boxWidth} ${boxHeight}`}>
+        <svg className={`bg-neutral-100 w-full h-[${Math.round(originalBoxHeight)}px]`} viewBox={`${boxStartX} ${boxStartY} ${boxWidth} ${boxHeight}`} onClick={svgClickCallback} ref={svgthing}>
             {arrowCollection.map((arrow) => {
                 let lineVals = calcArrows(arrow.from, arrow.to);
-                lineVals.a.x += boxStartX;
-                lineVals.b.x += boxStartX;
+                lineVals.a.x += originalBoxStartX;
+                lineVals.b.x += originalBoxStartX;
                 return <ArrowPath start={lineVals.b} end={lineVals.a} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
             })}
             {circleCollection.map((cir, i) => {
                 if (!cir.base) { // Remove the root holding node that we don't actually need (for now.)
-                    // let total: number;
-                    // if (!cir.base) {
-                    //     let goalStack = huristic.data.getRecipe(cir.node.rId)!.outputResources.find(rec => rec.resourceName == cir.node.goal);
-                    //     total = goalStack!.amount * cir.node.hRatio;
-                    // } else {
-                    //     total = cir.node.hRatio
-                    // }
-                    return <TextCircle center={{x: cir.x + boxStartX, y: cir.y}} text={`${cir.holds.amount}x of ${cir.holds.resourceName}`} key={[cir.holds.resourceName, cir.x, cir.y].join(" ")}/>
+                    return <TextCircle center={{x: cir.x + originalBoxStartX, y: cir.y}} text={`${cir.holds.amount}x of ${cir.holds.resourceName}`} config={config} key={[cir.holds.resourceName, cir.x, cir.y].join(" ")}/>
                 }
             })}
             {/* Debug circles */}

@@ -1,15 +1,15 @@
 'use client'
 
-import { Dispatch, useEffect, useReducer, useState } from "react";
+import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
-import { CraftingData, Stack, chainHuristicsStats } from "./crafting/units";
+import { CraftingData, Stack } from "./crafting/units";
 import { PopupEditor, togglePopupCallback } from "./components/popup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
-import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
-import { SVGHuristic } from "./components/svgHuristics";
+import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
-import { gtBackpackPreset, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { gtBackpackPreset, gtBlastFurnace, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { HuristicsInfoDisplay } from "./components/huristics";
 
 
 
@@ -50,7 +50,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        value = "Backpack";
+        value = "BBF";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -64,7 +64,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
         console.log("Unkown preset set: " + value);
     }
 
-    craftingDispatch({type: "log"});
+    // craftingDispatch({type: "log"});
 
 }
 
@@ -104,6 +104,12 @@ function ensureDefaultPresets() {
         gtBackpackPreset(fakeDispatch);
         localStorage.setItem("Backpack", JSON.stringify(tempData));
         availablePresetNames.push("Backpack");
+
+        // BBF
+        fakeDispatch({type: "reset"});
+        gtBlastFurnace(fakeDispatch);
+        localStorage.setItem("BBF", JSON.stringify(tempData));
+        availablePresetNames.push("BBF");
         
         // Store the currently available items
         localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
@@ -132,7 +138,7 @@ function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurr
                         })
                     }
                 </datalist>
-                <input className="pl-2" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(PullPreset)}></input>
+                <input className="pl-2" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch))}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="checkloadconfig ml-1"></input>
                 <PresetConfig craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
             </div>
@@ -163,91 +169,6 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
     )
 }
 
-function LogCraftinghuristics({huristic}: {huristic: Array<chainHuristicsStats>}) {
-    return (
-        <button onClick={() => {
-            console.log(huristic);
-        }}>Log the crafting huristics</button>
-    )
-}
-
-function CalculateButton({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
-    if (Object.keys(requestState).length > 0) {
-        let goal = [];
-        for (let req of Object.values(requestState)) {
-            for (let i = 0; i < req.amount; i++) {
-                goal.push(req.resourceName);
-            }
-        }
-        let huristic = craftingData.bestHuristic(craftingData.calcChain(goal), craftingData.defaultHuristic)!;
-        if (huristic.longest_depth == 0) {
-            return (
-                <div className="text-center">
-                    {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
-                    No resources in Crafting Request have crafting recipes.
-                </div>
-            )
-        } else {
-            return (
-                <div>
-                    {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
-    
-                    <SVGHuristic huristic={huristic}/>
-                    <HuristicStats huristic={huristic}/>
-                </div>
-            )
-        }
-    } else {
-        return (
-            <></>
-        )
-    }
-}
-
-
-function DisplayStack({stack}: {stack: Stack}) {
-    return (
-        <div>{stack.amount}x {stack.resourceName}</div>
-    )
-}
-
-// Calculation itemized lists
-function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
-    return (
-        <div className="flex justify-around mb-4 pt-2 divide-x-2 divide-dashed divide-slate-600/30">
-            <span className="px-5">
-                <div className="font-bold text-lime-500">
-                    Resulting output
-                </div>
-                <div>
-                {
-                    huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
-                }
-                </div>
-            </span>
-            <span className="px-5">
-                <div className="font-bold text-yellow-300">
-                    Intermediate crafting requirements
-                </div>
-                <div>
-                {
-                    huristic.intermediate.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
-                }
-                </div>
-            </span>
-            <span className="px-5">
-                <div className="font-bold text-red-500">
-                    Required inputs
-                </div>
-                <div>
-                {
-                    huristic.input.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
-                }
-                </div>
-            </span>
-        </div>
-    )
-}
 
 // Homepage Displays and general root
 export default function Main() {
@@ -263,7 +184,7 @@ export default function Main() {
         ensureDefaultPresets(); 
         setCurrentPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
-        dispatchCraftingRequest({type: "toggle", name: "Backpack"})
+        dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
     }, []);  // Run update once after main page load
 
     return (
@@ -272,8 +193,8 @@ export default function Main() {
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
-
-            <CalculateButton requestState={craftingRequestState} craftingData={craftingData}/>
+            <button onClick={() => craftingData.healthCheckBaseItems()}>debug button</button>
+            <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
         </div>
     );
 }

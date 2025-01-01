@@ -4,6 +4,8 @@
 //     return <path d="M 0 0 L 30 30 L 50 80 Z" className="stroke-yellow-300 fill-none" onClick={() => console.log("Clicked line")}/>;
 // }
 
+import { svgConfig } from "./huristics";
+
 // export function TestMaxBox() {
 //     return <path d="M 0 0 H 100 V 100 H -10 Z"/>
 // }
@@ -76,7 +78,7 @@ export function ArrowPath({start, end}: {start: Coordinate, end: Coordinate}) {
 }
 
 
-export function TextCircle({center, text, }: {center: Coordinate, text: string}) {
+export function TextCircle({center, text, config = new svgConfig()}: {center: Coordinate, text: string, config?: svgConfig}) {
     // This is hard coded and not synced up with other radius uses.
     let radius = 10;
     let boxWidth = text.length * 8.6;
@@ -86,9 +88,14 @@ export function TextCircle({center, text, }: {center: Coordinate, text: string})
            {/* //Text and circle calculator visual display */}
             <circle cx={center.x} cy={center.y} r={radius} fill="green"/>
 
-            <rect x={center.x - boxWidth / 2} y={center.y  - radius * 3.2} fill="black" width={boxWidth} height="19"></rect>
-
+            {(config.showText) ?
+            <>
+            <rect x={center.x - boxWidth / 2} y={center.y - radius * 3.2} fill="black" width={boxWidth} height="19"></rect>
             <text x={center.x} y={center.y - 6 - radius} fill="white" textAnchor="middle" fontSize="1em">{text}</text>
+            </>
+            :
+            <></>}
+
         </g>
     )
 }

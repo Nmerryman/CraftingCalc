@@ -2,14 +2,14 @@
 
 import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
-import { CraftingData, Stack, chainHuristicsStats } from "./crafting/units";
+import { CraftingData, Stack } from "./crafting/units";
 import { PopupEditor, togglePopupCallback } from "./components/popup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
-import { CraftingRequestType, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
-import { SVGHuristic } from "./components/svgHuristics";
+import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
 import { gtBackpackPreset, gtBlastFurnace, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { HuristicsInfoDisplay } from "./components/huristics";
 
 
 
@@ -169,125 +169,6 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
     )
 }
 
-
-function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristicList}: {boxState: boolean, huristicNum: number, updateHuristicNum: Dispatch<number>, huristicList: Array<chainHuristicsStats>}) {
-
-    function numCallback(e: ChangeEvent<HTMLInputElement>) {
-        if (e.target.value) {
-            updateHuristicNum(parseInt(e.target.value));
-        }
-    }
-
-    if (boxState) {
-        return (
-            <></>
-        )
-    } else {
-        return (
-            <div>       
-                <label>
-                    Select Huristic:
-                    <input type="number" min={0} max={huristicList.length - 1} value={huristicNum} onChange={numCallback} className="checkloadconfig"></input>
-                </label>
-            </div>
-        )
-    }
-}
-
-function HuristicsInfoDisplay({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
-
-    const [modeCheckbox, updateModeCheckbox] = useState(true);
-    const [huristicNum, updateHuristicNum] = useState(0);
-
-    if (Object.keys(requestState).length > 0) {
-        let goal: Array<string> = [];
-        for (let req of Object.values(requestState)) {
-            for (let i = 0; i < req.amount; i++) {
-                goal.push(req.resourceName);
-            }
-        }
-        
-        let huristicList = craftingData.calcChain(goal);
-        if (huristicList.length == 0) {
-            return (
-                <div className="test-center">
-                    No results from calculation. Console likely lists why.
-                </div>
-            )
-        }
-        console.log(huristicList)
-        let bestHuristic = craftingData.bestHuristic(huristicList, craftingData.defaultHuristic)!;
-        if (bestHuristic.longestDepth == 0) {
-            return (
-                <div className="text-center">
-                    {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
-                    No resources in Crafting Request have crafting recipes.
-                </div>
-            )
-        } else {
-            if (!modeCheckbox) {
-                bestHuristic = huristicList[huristicNum]
-            }
-            return (
-                <div>
-                    <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
-                    <HuristicNumberChoice boxState={modeCheckbox} huristicNum={huristicNum} updateHuristicNum={updateHuristicNum} huristicList={huristicList}/> 
-                    <SVGHuristic huristic={bestHuristic}/>
-                    <HuristicStats huristic={bestHuristic}/>
-                </div>
-            )
-        }
-    } else {
-        return (
-            <></>
-        )
-    }
-}
-
-
-function DisplayStack({stack}: {stack: Stack}) {
-    return (
-        <div>{stack.amount}x {stack.resourceName}</div>
-    )
-}
-
-// Calculation itemized lists
-function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
-    return (
-        <div className="flex justify-around mb-4 pt-2 divide-x-2 divide-dashed divide-slate-600/30">
-            <span className="px-5">
-                <div className="font-bold text-lime-500">
-                    Resulting output
-                </div>
-                <div>
-                {
-                    huristic.output.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)   
-                }
-                </div>
-            </span>
-            <span className="px-5">
-                <div className="font-bold text-yellow-300">
-                    Intermediate crafting requirements
-                </div>
-                <div>
-                {
-                    huristic.intermediate.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
-                }
-                </div>
-            </span>
-            <span className="px-5">
-                <div className="font-bold text-red-500">
-                    Required inputs
-                </div>
-                <div>
-                {
-                    huristic.input.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)
-                }
-                </div>
-            </span>
-        </div>
-    )
-}
 
 // Homepage Displays and general root
 export default function Main() {

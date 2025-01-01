@@ -6,7 +6,7 @@ import { Dispatch } from "react";
 
 // These three functions exist as legacy versions of creating dev test data.
 function devGenResources(): Record<string, Resource> {
-    return {
+    let resources = {
         "Stick": new Resource("Stick"),
         "Iron Ingot": new Resource("Iron Ingot"),
         "Iron Ore": new Resource("Iron Ore", {isBase: true}),
@@ -18,6 +18,9 @@ function devGenResources(): Record<string, Resource> {
         "Plank Dust": new Resource("Plank Dust"),
         "Bucket": new Resource("Bucket"),
     }
+    resources["Oak Logs"].isBase = true;
+    resources["Birch Logs"].isBase = true;
+    return resources;
 }
 
 

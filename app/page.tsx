@@ -217,7 +217,7 @@ function HuristicsInfoDisplay({requestState, craftingData}: {requestState: Craft
         }
         console.log(huristicList)
         let bestHuristic = craftingData.bestHuristic(huristicList, craftingData.defaultHuristic)!;
-        if (bestHuristic.longest_depth == 0) {
+        if (bestHuristic.longestDepth == 0) {
             return (
                 <div className="text-center">
                     {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}

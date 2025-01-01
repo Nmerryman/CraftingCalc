@@ -1,6 +1,5 @@
 import { postPermRecipeChainNode, chainHuristicsStats, Stack } from "../crafting/units";
 import { TextCircle, ArrowPath, calcArrows } from "./svg";
-import _ from "lodash";
 
 class recipeCircle {
     constructor(public holds: Stack, public x: number, public y: number, public base: boolean = false) {}
@@ -23,18 +22,18 @@ export function SVGHuristic({huristic}: {huristic: chainHuristicsStats}) {
     let screenHeight = 0.5;
     let boxHeight = window.innerHeight * screenHeight;
     let heightPadding = boxHeight / 10;
-    let breadthOffset = (boxHeight - 2 * heightPadding) / huristic.fixed_src.hWidth;  // This one will need to get scaled better latter
-    let depthOffset = (boxWidth - 2 * widthPadding) / (Math.max(huristic.longest_depth , 0));  // no -1 on depth because the deepest node still has ingredients
+    let breadthOffset = (boxHeight - 2 * heightPadding) / huristic.fixedSrc.hWidth;  // This one will need to get scaled better latter
+    let depthOffset = (boxWidth - 2 * widthPadding) / (Math.max(huristic.longestDepth , 0));  // no -1 on depth because the deepest node still has ingredients
     boxStartX += 2 * depthOffset;
     
     let circleCollection: Array<recipeCircle> = [];
     let arrowCollection: Array<recipeArrow> = [];
 
-    let startRecipeCircle = new recipeCircle(new Stack(""), widthPadding, heightPadding + breadthOffset * huristic.fixed_src.hWidth / 2, true) 
+    let startRecipeCircle = new recipeCircle(new Stack(""), widthPadding, heightPadding + breadthOffset * huristic.fixedSrc.hWidth / 2, true) 
     
     // This stack holds the current state off all nodes we need to traverse to get to the current one,
     // -1 because we want the first node base node shouldn't be included
-    let nodeStateQueue: Array<nodeState> = [new nodeState(huristic.fixed_src, -1, 0, startRecipeCircle)]; 
+    let nodeStateQueue: Array<nodeState> = [new nodeState(huristic.fixedSrc, -1, 0, startRecipeCircle)]; 
     circleCollection.push(startRecipeCircle);
 
     while (nodeStateQueue.length > 0) {

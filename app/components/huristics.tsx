@@ -78,7 +78,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
 }
 
 
-type svgConfigActionOptions = "disable zoom" | "enable zoom" | "reset zoom" |  "set tl" | "set br" | "ready set first" | "set first" | "set second" | "disable text" | "enable text" | "set font size";
+type svgConfigActionOptions = "disable zoom" | "enable zoom" | "reset zoom" |  "set tl" | "set br" | "ready set first" | "set first" | "set second" | "disable text" | "enable text";
 
 
 export type svgConfigAction = {
@@ -125,9 +125,6 @@ function svgReducer(state: svgConfig, action: svgConfigAction): svgConfig {
             temp._settingZoomSecond = false;
             temp._zoomAvailable = true;
             break
-        case "set font size":
-            temp.fontSize = action.num!;
-            break;
     }
     return temp;
 }
@@ -138,7 +135,6 @@ export class svgConfig {
     tl: Coordinate | undefined;
     br: Coordinate | undefined;
     showText: boolean = true;
-    fontSize: number = 1;
     
     // Hidden state stuff
     _zoomAvailable: boolean = false;
@@ -151,7 +147,6 @@ export class svgConfig {
         temp.tl = this.tl;
         temp.br = this.br;
         temp.showText = this.showText;
-        temp.fontSize = this.fontSize;
 
         temp._zoomAvailable = this._zoomAvailable;
         temp._settingZoomFirst = this._settingZoomFirst;
@@ -231,9 +226,11 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
     const [svgConfigObj, dispatchConfig] = useReducer(svgReducer, new svgConfig());
 
     useEffect(() => {
-        dispatchConfig({type: "disable text"});
+        // dispatchConfig({type: "disable text"});
         // dispatchConfig({type: "ready set first"});
-        // dispatchConfig({type: "set font size", num: 0.5})
+        // dispatchConfig({type: "set tl", coordinate: {x: 540, y: 125}})
+        // dispatchConfig({type: "set br", coordinate: {x: 610, y: 155}})
+        // dispatchConfig({type: "enable zoom"});
     }, [])
 
     if (Object.keys(requestState).length > 0) {

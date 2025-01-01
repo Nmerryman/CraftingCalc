@@ -51,12 +51,12 @@ class Vector {
 
 
 
-export function ArrowPath({start, end}: {start: Coordinate, end: Coordinate}) {
+export function ArrowPath({start, end, scale = 1}: {start: Coordinate, end: Coordinate, scale?: number}) {
 
     // Constants to change the look of the arrows.
-    let lineWidth = 1;
-    let arrowWidth = 10;
-    let arrowLength = 10;
+    let lineWidth = 1 * scale;
+    let arrowWidth = 10 * scale;
+    let arrowLength = 10 * scale;
 
     // Get the slope as a vector and it's normal vector
     let T = new Vector(end.x - start.x, end.y - start.y);
@@ -78,10 +78,11 @@ export function ArrowPath({start, end}: {start: Coordinate, end: Coordinate}) {
 }
 
 
-export function TextCircle({center, text, config = new svgConfig()}: {center: Coordinate, text: string, config?: svgConfig}) {
+export function TextCircle({center, text, scale = 1, config = new svgConfig()}: {center: Coordinate, text: string, scale?: number, config?: svgConfig}) {
     // This is hard coded and not synced up with other radius uses.
-    let radius = 10;
-    let boxWidth = text.length * 8.6;
+    let radius = 10 * scale;
+    let boxWidth = text.length * 8.6 * scale;
+    let boxhight = 19 * scale;
 
     return (
         <g>
@@ -90,8 +91,8 @@ export function TextCircle({center, text, config = new svgConfig()}: {center: Co
 
             {(config.showText) ?
             <>
-            <rect x={center.x - boxWidth / 2} y={center.y - radius * 3.2} fill="black" width={boxWidth} height="19"></rect>
-            <text x={center.x} y={center.y - 6 - radius} fill="white" textAnchor="middle" fontSize="1em">{text}</text>
+            <rect x={center.x - boxWidth / 2} y={center.y - radius * 3.2} fill="black" width={boxWidth} height={boxhight}></rect>
+            <text x={center.x} y={center.y - scale * 6 - radius} fill="white" textAnchor="middle" fontSize={`${scale}em`}>{text}</text>
             </>
             :
             <></>}
@@ -101,8 +102,8 @@ export function TextCircle({center, text, config = new svgConfig()}: {center: Co
 }
 
 
-export function calcArrows(start: Coordinate, end: Coordinate): {a: Coordinate, b: Coordinate} {
-    let radius = 10;
+export function calcArrows(start: Coordinate, end: Coordinate, scale: number = 1): {a: Coordinate, b: Coordinate} {
+    let radius = 10 * scale;
     let startVec = new Vector(start.x, start.y);
     let endVec = new Vector(end.x, end.y);
     let circleDistance = endVec.sub(startVec).unit!.mult(radius);

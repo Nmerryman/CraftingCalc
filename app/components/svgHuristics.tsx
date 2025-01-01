@@ -91,11 +91,13 @@ export function SVGHuristic({huristic, config, configDispatch}: {huristic: chain
         boxWidth = config.br!.x - boxStartX;
         boxHeight = config.br!.y - boxStartY;
     }
+    let scale = Math.min(boxWidth / originalBoxWidth, boxHeight / originalBoxHeight);
     
     const svgthing = useRef<SVGSVGElement>(null);
 
     function svgClickCallback(e: MouseEvent<SVGElement>) {
         let clickLoc = new DOMPoint(e.clientX, e.clientY).matrixTransform(svgthing.current!.getScreenCTM()!.inverse());
+        console.log(clickLoc);
         if (config._settingZoomFirst) {
             let clickLoc = new DOMPoint(e.clientX, e.clientY).matrixTransform(svgthing.current!.getScreenCTM()!.inverse());
             configDispatch({type: "set tl", coordinate: {x: clickLoc.x, y: clickLoc.y}})
@@ -111,14 +113,14 @@ export function SVGHuristic({huristic, config, configDispatch}: {huristic: chain
     return (
         <svg className={`bg-neutral-100 w-full h-[${Math.round(originalBoxHeight)}px]`} viewBox={`${boxStartX} ${boxStartY} ${boxWidth} ${boxHeight}`} onClick={svgClickCallback} ref={svgthing}>
             {arrowCollection.map((arrow) => {
-                let lineVals = calcArrows(arrow.from, arrow.to);
+                let lineVals = calcArrows(arrow.from, arrow.to, scale);
                 lineVals.a.x += originalBoxStartX;
                 lineVals.b.x += originalBoxStartX;
-                return <ArrowPath start={lineVals.b} end={lineVals.a} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
+                return <ArrowPath start={lineVals.b} end={lineVals.a} scale={scale} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
             })}
             {circleCollection.map((cir, i) => {
                 if (!cir.base) { // Remove the root holding node that we don't actually need (for now.)
-                    return <TextCircle center={{x: cir.x + originalBoxStartX, y: cir.y}} text={`${cir.holds.amount}x of ${cir.holds.resourceName}`} config={config} key={[cir.holds.resourceName, cir.x, cir.y].join(" ")}/>
+                    return <TextCircle center={{x: cir.x + originalBoxStartX, y: cir.y}} text={`${cir.holds.amount}x of ${cir.holds.resourceName}`} config={config} scale={scale} key={[cir.holds.resourceName, cir.x, cir.y].join(" ")}/>
                 }
             })}
             {/* Debug circles */}

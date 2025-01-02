@@ -11,7 +11,7 @@ Popup Test/Additive button = page.tsx > function main
 Calculator display = svg.tsx 
     Vectors/Text/Circles
 
-Item Lists from calculation = page.tsx > function HuristicStats
+Item Lists from calculation = huristics.tsx > function HuristicStats
     Resulting/Intermediate/Required items
 
 Custom Classes = globals.css

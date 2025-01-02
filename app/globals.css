@@ -70,3 +70,7 @@ header {
 .navbar_button {
   @apply text-black ml-2 px-2 hover:ring-blue-500 hover:ring-2 bg-gray-200 hover:bg-gray-400 hover:rounded-sm
 }
+
+.error_mess {
+  @apply text-center border-2 border-rose-700 rounded-md mx-[35%]
+}

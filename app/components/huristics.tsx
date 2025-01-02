@@ -29,9 +29,13 @@ function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristi
     }
 }
 
+//List function for Resulting/Intermediate/Required
 function DisplayStack({stack}: {stack: Stack}) {
     return (
-        <div>{stack.amount}x {stack.resourceName}</div>
+        <div>
+            <input type="checkbox" className="mr-1"></input>
+            {stack.amount}x {stack.resourceName}
+        </div>
     )
 }
 
@@ -243,7 +247,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         let huristicList = craftingData.calcChain(goal);
         if (huristicList.length == 0) {
             return (
-                <div className="test-center">
+                <div className="error_mess">
                     No results from calculation. Console likely lists why.
                 </div>
             )
@@ -252,7 +256,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         let bestHuristic = craftingData.bestHuristic(huristicList, craftingData.defaultHuristic)!;
         if (bestHuristic.longestDepth == 0) {
             return (
-                <div className="text-center">
+                <div className="error_mess">
                     {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
                     No resources in Crafting Request have crafting recipes.
                 </div>

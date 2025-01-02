@@ -184,7 +184,7 @@ export default function Main() {
         ensureDefaultPresets(); 
         setCurrentPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
-        dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
+        dispatchCraftingRequest({type: "toggle", name: "Flint"})
     }, []);  // Run update once after main page load
 
     return (

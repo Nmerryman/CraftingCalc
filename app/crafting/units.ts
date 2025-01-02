@@ -152,6 +152,7 @@ export class chainHuristicsStats {
     inputStack: Array<Stack> = [];
     output: Array<Stack> = [];
     intermediate: Array<Stack> = [];
+    recipesUsed: Record<string, Record<number, number>> = {};  // I think it's possible to produce an item with multiple different recipes if they happen to be byproducts [goal][rId]
     longestDepth: number = 0;
     fixedSrc: postPermRecipeChainNode = new postPermRecipeChainNode(0, "");
 
@@ -302,6 +303,11 @@ export class chainHuristicsStats {
                 let recipe = this.data.getRecipe(node.rId)!
                 let count = recipe.outputResources.find(r => r.resourceName == node.goal)!.amount;
                 this.intermediate.push(new Stack(node.goal, count * node.hRatio))
+                if (!(node.goal in this.recipesUsed)){
+                    this.recipesUsed[node.goal] = {};
+                    this.recipesUsed[node.goal][recipe.id!] = 0;
+                }
+                this.recipesUsed[node.goal][recipe.id!] += node.hRatio;
             }
         }
     }

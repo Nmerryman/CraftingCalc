@@ -66,7 +66,7 @@ function RecipeOfItem({rId, data}: {rId: number, data: CraftingData}) {
         <div>
             Process: {recipe.processUsed}
             <p>
-                {recipe.inputResources.map(stack => <DisplayStack stack={stack}/>)}
+                {recipe.inputResources.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)}
             </p>
 
         </div>
@@ -82,7 +82,7 @@ function ProcessesUsedText({goalName, huristic}: {goalName: string, huristic: ch
             {Object.keys(Object.keys(huristic.recipesUsed[goalName])).map((rId) => {
                 let id = parseInt(rId);
                 return (
-                    <div>
+                    <div key={rId}>
                         <RecipeOfItem rId={id} data={huristic.data}/>
                     </div>
                 )

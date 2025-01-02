@@ -120,7 +120,7 @@ function DisplayStack({stack}: {stack: Stack}) {
 }
 
 function DisplayClickableItemStack({stack, huristic, showProcess = true}: {stack: Stack, huristic: chainHuristicsStats, showProcess?: boolean}) {
-    const [popupState, setPopupState] = useState(true);
+    const [popupState, setPopupState] = useState(false);
     const disablePopup = () => {setPopupState(false)};
     const togglePopup = () => {setPopupState(!popupState)};
     return (

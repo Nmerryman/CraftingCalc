@@ -113,7 +113,6 @@ function HuristicPopup({pState, pClose, stack, huristic, showProcess}: {pState: 
 function DisplayStack({stack}: {stack: Stack}) {
     return (
         <div>
-            <input type="checkbox" className="mr-1"></input>
             {stack.amount}x {stack.resourceName}
         </div>
     )
@@ -126,7 +125,10 @@ function DisplayClickableItemStack({stack, huristic, showProcess = true}: {stack
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
             <HuristicPopup pState={popupState} pClose={disablePopup} stack={stack} huristic={huristic} showProcess={showProcess}/>
+            <label>
+            <input type="checkbox" className="mr-1"/>
             {stack.amount}x {stack.resourceName}
+            </label>
         </div>
     )
 

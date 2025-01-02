@@ -43,7 +43,7 @@ export function SVGHuristic({huristic, config, configDispatch}: {huristic: chain
     circleCollection.push(startRecipeCircle);
 
     while (nodeStateQueue.length > 0) {
-        let currentNode = nodeStateQueue.pop()!;
+        let currentNode = nodeStateQueue.splice(0,1)[0];
 
         // Add src nodes to the todo
         let breadthCounter = 0;

@@ -78,7 +78,13 @@ Instead run `npm install` in the same directory as the `package.json` file.
 `npm run dev` started the local server for testing.
 `npm run build` put html files in the output folder for static use.
 
-
+## Page Layout
+From the top to bottom (and maybe left to right)
+- Page info stuff
+- Login and preset stuff
+- Crafting request (CaftingReq) area
+- Svg render
+- Crafting Tree Breakdown (CTB) area
 
 ## Notes/TODO
 Right now there will be no focus on handeling recursive recipes

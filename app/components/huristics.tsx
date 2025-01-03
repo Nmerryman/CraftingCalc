@@ -3,8 +3,7 @@ import { CraftingRequestType } from "./selectionMenu";
 import { chainHuristicsStats, CraftingData, Resource, Stack } from "../crafting/units";
 import { SVGHuristic } from "./svgHuristics";
 import { Coordinate } from "./svg";
-import Popup from "reactjs-popup";
-import { DisplayClickableItemStack } from "./viewInfoDataPopups";
+import { DisplayCTBItemStack } from "./viewInfoDataPopups";
 
 // If the select number box is checked, create an input that allows the user to enter a number
 function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristicList}: {boxState: boolean, huristicNum: number, updateHuristicNum: Dispatch<number>, huristicList: Array<chainHuristicsStats>}) {
@@ -41,7 +40,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 </div>
                 <div>
                 {
-                    huristic.output.map(stack => <DisplayClickableItemStack stack={stack} huristic={huristic} key={stack.resourceName}/>)   
+                    huristic.output.map(stack => <DisplayCTBItemStack stack={stack} huristic={huristic} key={stack.resourceName}/>)   
                 }
                 </div>
             </span>
@@ -51,7 +50,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 </div>
                 <div>
                 {
-                    huristic.intermediate.map(stack => <DisplayClickableItemStack stack={stack} huristic={huristic} key={stack.resourceName}/>)
+                    huristic.intermediate.map(stack => <DisplayCTBItemStack stack={stack} huristic={huristic} key={stack.resourceName}/>)
                 }
                 </div>
             </span>
@@ -61,7 +60,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 </div>
                 <div>
                 {
-                    huristic.input.map(stack => <DisplayClickableItemStack stack={stack} huristic={huristic} showProcess={false} key={stack.resourceName}/>)
+                    huristic.input.map(stack => <DisplayCTBItemStack stack={stack} huristic={huristic} showProcess={false} key={stack.resourceName}/>)
                 }
                 </div>
             </span>

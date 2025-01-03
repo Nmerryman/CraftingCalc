@@ -1,10 +1,30 @@
 import { useState } from "react";
-import { chainHuristicsStats, CraftingData, Resource, Stack } from "../crafting/units"
+import { chainHuristicsStats, CraftingData, Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
+import { cloneDeep } from "lodash";
 
 
-function ItemPopupText({resource}: {resource: Resource}) {
-    const [dummy, setDummy] = useState(false);  // This exists to reload the component
+function DisplayStackInline({stack}: {stack: Stack}) {
+    return (
+        <span>
+            {stack.amount}x {stack.resourceName}
+        </span>
+    )
+}
+
+// Litterally just display the stack info
+// Not sure if the div is good?
+export function DisplayStack({stack}: {stack: Stack}) {
+    return (
+        <div>
+            <DisplayStackInline stack={stack}/>
+        </div>
+    )
+}
+
+
+export function ItemPopupText({resource}: {resource: Resource}) {
+    const [dummy, setDummy] = useState(false);  // This exists to reload the component on checkbox change to show it did something
     const toggleDummy = () => setDummy(!dummy);
     return (
         <div>
@@ -24,30 +44,38 @@ function ItemPopupText({resource}: {resource: Resource}) {
 }
 
 
-function RecipeOfItem({rId, data}: {rId: number, data: CraftingData}) {
-    let recipe = data.getRecipe(rId)!;
+export function DisplayRecipe({recipe, ratio}: {recipe: Recipe, ratio: number}) {
     return (
         <div>
-            Process: {recipe.processUsed}
-            <p>
+            Process: {recipe.processUsed}({ratio}) = {recipe.outputResources.map(stack => <DisplayStackInline stack={stack} key={stack.resourceName}/>)}
+            <div>
                 {recipe.inputResources.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)}
-            </p>
-
+            </div>
         </div>
     )
 }
 
+
 function ProcessesUsedText({goalName, huristic}: {goalName: string, huristic: chainHuristicsStats}) {
-    console.log(goalName)
-    console.log(huristic.recipesUsed[goalName])
+    // console.log(goalName)
+    // console.log(huristic.recipesUsed[goalName])
     return (
         <div>
-            <h1>{`Craft ${goalName} by`}</h1>
-            {Object.keys(Object.keys(huristic.recipesUsed[goalName])).map((rId) => {
+            <h1>{`Craft ${goalName} via`}</h1>
+            {Object.keys(huristic.recipesUsed[goalName]).map((rId) => {
                 let id = parseInt(rId);
+                let recipe = cloneDeep(huristic.data.getRecipe(id)!);
+                let ratio = huristic.recipesUsed[goalName][id];
+                // console.log(id, recipe, ratio)
+                for (let r of recipe.inputResources) {
+                    r.amount *= ratio;
+                }
+                for (let r of recipe.outputResources) {
+                    r.amount *= ratio;
+                }
                 return (
                     <div key={rId}>
-                        <RecipeOfItem rId={id} data={huristic.data}/>
+                        <DisplayRecipe recipe={recipe} ratio={ratio}/>
                     </div>
                 )
             })}
@@ -55,9 +83,8 @@ function ProcessesUsedText({goalName, huristic}: {goalName: string, huristic: ch
     )
 }
 
-function HuristicPopup({pState, pClose, stack, huristic, showProcess}: {pState: boolean, pClose: () => void, stack: Stack, huristic: chainHuristicsStats, showProcess: boolean}) {
-    // console.log(stack);
-    // console.log(huristic.data.resources[stack.resourceName]);
+
+export function CTBStackPopup({pState, pClose, stack, huristic, showProcess}: {pState: boolean, pClose: () => void, stack: Stack, huristic: chainHuristicsStats, showProcess: boolean}) {
     let resourceVal = huristic.data.resources[stack.resourceName];
     return (
         <Popup open={pState} onClose={pClose}>
@@ -74,29 +101,18 @@ function HuristicPopup({pState, pClose, stack, huristic, showProcess}: {pState: 
 }
 
 
-
-export function DisplayClickableItemStack({stack, huristic, showProcess = true}: {stack: Stack, huristic: chainHuristicsStats, showProcess?: boolean}) {
+// An individual item in the CTB
+export function DisplayCTBItemStack({stack, huristic, showProcess = true}: {stack: Stack, huristic: chainHuristicsStats, showProcess?: boolean}) {
     const [popupState, setPopupState] = useState(false);
     const disablePopup = () => {setPopupState(false)};
     const togglePopup = () => {setPopupState(!popupState)};
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
-            <HuristicPopup pState={popupState} pClose={disablePopup} stack={stack} huristic={huristic} showProcess={showProcess}/>
+            <CTBStackPopup pState={popupState} pClose={disablePopup} stack={stack} huristic={huristic} showProcess={showProcess}/>
             <label>
             <input type="checkbox" className="mr-1"/>
             {stack.amount}x {stack.resourceName}
             </label>
-        </div>
-    )
-
-}
-
-// Litterally just display the stack info
-// Not sure if the div is good?
-function DisplayStack({stack}: {stack: Stack}) {
-    return (
-        <div>
-            {stack.amount}x {stack.resourceName}
         </div>
     )
 }

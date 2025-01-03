@@ -1,9 +1,11 @@
 import { Dispatch, SyntheticEvent, useState } from "react"
-import { CraftingData, Resource, Stack } from "../crafting/units"
+import { CraftingData, Process, Resource, Stack } from "../crafting/units"
 import xIcon from "./xIcon.png"
 // import * as levenshtein from "js-levenshtein"
 import { OnEnterCall } from "../utils/onEnter"
 import levenshtein from "js-levenshtein"
+import Popup from "reactjs-popup"
+import { DisplayRecipe, DisplayStack, ItemPopupText } from "./viewInfoDataPopups"
 
 
 type RequestMenuAction = {
@@ -36,35 +38,30 @@ export function requestMenuReducer(currentState: CraftingRequestType, action: Re
     }
 }
 
-
-
-function ResourceListItem({resource, dispatch, debugScore}: {resource: Resource, dispatch: Dispatch<RequestMenuAction>, debugScore: number}) {
+function ItemPopup({pState, pClose, stack, resource}: {pState: boolean, pClose: () => void, stack: Stack, resource: Resource}) {
     return (
-        <li key={resource.name} className="cursor-pointer" {...{"score": debugScore}} onClick={() => dispatch({type: "toggle", name: resource.name})}>{resource.name}</li>
+        <Popup open={pState} onClose={pClose}>
+            <div className="popup-content text-black">
+                <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
+                <ItemPopupText resource={resource}/>
+            </div>
+            <div className="flex">
+                <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+            </div>
+        </Popup>
     )
 }
 
-
-function textMatch(pattern: string, onTo: string): boolean {
-    // Semi fuzzy match for putting the pattern on the target string.
-    // The entire pattern must match, but it can skip characters on the onTo string.
-    pattern = pattern.toLowerCase();
-    onTo = onTo.toLowerCase();
-    let pIndex = 0;
-    let oIndex = 0;
-
-    while (pIndex < pattern.length && oIndex < onTo.length) {
-        if (pattern[pIndex] == onTo[oIndex]) {
-            oIndex++;
-        }
-        pIndex++;
-    }
-
-    if (pIndex == pattern.length) {
-        return true;
-    }
-    
-    return false;
+function ResourceListItem({resource, dispatch, debugScore}: {resource: Resource, dispatch: Dispatch<RequestMenuAction>, debugScore: number}) {
+    const [popupState, setPopupState] = useState(false);
+    const disablePopup = () => {setPopupState(false)};
+    const togglePopup = () => {setPopupState(!popupState)};
+    return (
+        <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
+            <ItemPopup pState={popupState} pClose={disablePopup} stack={new Stack(resource.name)} resource={resource}/>
+            <li key={resource.name} className="cursor-pointer" {...{"score": debugScore}} onClick={() => dispatch({type: "toggle", name: resource.name})}>{resource.name}</li>
+        </div>
+    )
 }
 
 
@@ -122,11 +119,40 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
 }
 
 
+function ProcessPopup({pState, pClose, processName}: {pState: boolean, pClose: () => void, processName: string}) {
+    return (
+        <Popup open={pState} onClose={pClose}>
+            <div className="popup-content text-black">
+                {/* <DisplayStack stack={stack}/>  Not sure if this recursion is bad or not */}
+                <ItemPopupText resource={new Resource(processName)}/>
+                
+                {/* <DisplayRecipe recipe={recipe} ratio={1}/> */}
+            </div>
+            <div className="flex">
+                <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+            </div>
+        </Popup>
+    )
+}
+
+
+function ProcessListItem({name}: {name: string}) {
+    const [popupState, setPopupState] = useState(false);
+    const disablePopup = () => {setPopupState(false)};
+    const togglePopup = () => {setPopupState(!popupState)};
+    return (
+        <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
+            <ProcessPopup pState={popupState} pClose={disablePopup} processName={name}/>
+            <li key={name}>{name}</li>
+        </div>
+    )
+}
+
 function ListProcesses({craftingData}: {craftingData: CraftingData}) {
     return (
         <ul className="px-5">
             <span className="font-bold text-yellow-300">Process List</span>
-            {Object.values(craftingData.processes).map((pval) => {return <li key={pval.name}>{pval.name}</li>})}
+            {Object.values(craftingData.processes).map((pval) => {return <ProcessListItem name={pval.name} key={pval.name}/>})}
         </ul>
     )
 }

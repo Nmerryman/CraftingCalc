@@ -2,7 +2,7 @@ import { useState, Dispatch, SetStateAction } from "react";
 import Popup from 'reactjs-popup'
 import 'reactjs-popup/dist/index.css'
 import {CraftingData, Resource, Process, Recipe} from '../crafting/units'
-import { CraftingAction, craftingReducer } from "../components/crafting"
+import { CraftingAction, craftingReducer } from "./crafting"
 
 
 export function togglePopupCallback(state: boolean, setter: Dispatch<SetStateAction<boolean>>) {
@@ -28,24 +28,6 @@ function AddRequiredDetails() {
     </div>
     )
 }
-
-
-// I'm still a fan of hand rolling it :<
-// export function PopupEditor({popupState, popupToggle}: {popupState: boolean, popupToggle: () => void}) {
-//     if (popupState) {
-//         return (
-//             <div id="popupBox" className="absolute top-30 left-32 h-1/3 w-1/3 bg-white">
-//                 <img src="https://static.vecteezy.com/system/resources/thumbnails/007/861/190/small_2x/x-symbol-for-website-icon-presentation-free-vector.jpg" onClick={popupToggle}/>
-//                 <AddItem />
-//             </div>
-//         )
-//     }
-//     else {
-//         return (
-//             <></>
-//         )
-//     }
-// }
 
 
 function submit(tab: string, craft_act: Dispatch<CraftingAction>, CraftingData: CraftingData) {

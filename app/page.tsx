@@ -3,7 +3,7 @@
 import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
 import { CraftingData, Stack } from "./crafting/units";
-import { PopupEditor, togglePopupCallback } from "./components/popup";
+import { PopupEditor, togglePopupCallback } from "./components/modifyDataPopup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
 import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";

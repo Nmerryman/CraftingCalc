@@ -4,6 +4,7 @@ import { chainHuristicsStats, CraftingData, Resource, Stack } from "../crafting/
 import { SVGHuristic } from "./svgHuristics";
 import { Coordinate } from "./svg";
 import Popup from "reactjs-popup";
+import { DisplayClickableItemStack } from "./viewInfoDataPopups";
 
 // If the select number box is checked, create an input that allows the user to enter a number
 function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristicList}: {boxState: boolean, huristicNum: number, updateHuristicNum: Dispatch<number>, huristicList: Array<chainHuristicsStats>}) {
@@ -28,110 +29,6 @@ function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristi
             </div>
         )
     }
-}
-
-function ItemPopupText({resource}: {resource: Resource}) {
-    const [dummy, setDummy] = useState(false);
-    const toggleDummy = () => setDummy(!dummy);
-    return (
-        <div>
-                <label>
-                    <input type="checkbox" checked={resource.isDisabled} onChange={() => {resource.isDisabled= !resource.isDisabled; toggleDummy()}}/>Disable the resource
-                </label>
-                <br/>
-                <label>
-                    <input type="checkbox" checked={resource.isAvailable} onChange={() => {resource.isAvailable= !resource.isAvailable, toggleDummy()}}/>Is the resource available?
-                </label>
-                <br/>
-                <label>
-                    <input type="checkbox" checked={resource.isBase} onChange={() => {resource.isBase= !resource.isBase, toggleDummy()}}/>Treat resource as base
-                </label>
-        </div>
-    )
-}
-
-// function ProcessUsedTextItem({thing}: {thing: Record<string, Record<number, number>>}) {
-//     return (
-//         <div>
-//             {Object.keys(thing).map(name => <div></div>)}
-//         </div>
-//     )
-
-// }
-
-
-function RecipeOfItem({rId, data}: {rId: number, data: CraftingData}) {
-    let recipe = data.getRecipe(rId)!;
-    return (
-        <div>
-            Process: {recipe.processUsed}
-            <p>
-                {recipe.inputResources.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)}
-            </p>
-
-        </div>
-    )
-}
-
-function ProcessesUsedText({goalName, huristic}: {goalName: string, huristic: chainHuristicsStats}) {
-    console.log(goalName)
-    console.log(huristic.recipesUsed[goalName])
-    return (
-        <div>
-            <h1>{`Craft ${goalName} by`}</h1>
-            {Object.keys(Object.keys(huristic.recipesUsed[goalName])).map((rId) => {
-                let id = parseInt(rId);
-                return (
-                    <div key={rId}>
-                        <RecipeOfItem rId={id} data={huristic.data}/>
-                    </div>
-                )
-            })}
-        </div>
-    )
-}
-
-function HuristicPopup({pState, pClose, stack, huristic, showProcess}: {pState: boolean, pClose: () => void, stack: Stack, huristic: chainHuristicsStats, showProcess: boolean}) {
-    // console.log(stack);
-    // console.log(huristic.data.resources[stack.resourceName]);
-    let resourceVal = huristic.data.resources[stack.resourceName];
-    return (
-        <Popup open={pState} onClose={pClose}>
-            <div className="popup-content text-black">
-                <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
-                <ItemPopupText resource={resourceVal}/>
-                {(showProcess) ? <ProcessesUsedText goalName={stack.resourceName} huristic={huristic}/> : <></>}
-            </div>
-            <div className="flex">
-                <button className="popup_button ml-auto" onClick={pClose}>Done</button>
-            </div>
-        </Popup>
-    )
-}
-
-//List function for Resulting/Intermediate/Required
-function DisplayStack({stack}: {stack: Stack}) {
-    return (
-        <div>
-            {stack.amount}x {stack.resourceName}
-        </div>
-    )
-}
-
-function DisplayClickableItemStack({stack, huristic, showProcess = true}: {stack: Stack, huristic: chainHuristicsStats, showProcess?: boolean}) {
-    const [popupState, setPopupState] = useState(false);
-    const disablePopup = () => {setPopupState(false)};
-    const togglePopup = () => {setPopupState(!popupState)};
-    return (
-        <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
-            <HuristicPopup pState={popupState} pClose={disablePopup} stack={stack} huristic={huristic} showProcess={showProcess}/>
-            <label>
-            <input type="checkbox" className="mr-1"/>
-            {stack.amount}x {stack.resourceName}
-            </label>
-        </div>
-    )
-
 }
 
 // Calculation itemized lists

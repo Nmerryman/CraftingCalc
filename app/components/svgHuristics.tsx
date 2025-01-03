@@ -45,7 +45,7 @@ export function SVGHuristic({huristic, config, configDispatch}: {huristic: chain
     while (nodeStateQueue.length > 0) {
         let currentNode = nodeStateQueue.splice(0,1)[0];
 
-        // Add src nodes to the todo
+        // Add src nodes to the queue
         let breadthCounter = 0;
         for (let srcItem of currentNode.recipeNode.src) {
             let tempDepth = currentNode.nodeDepthOffset + 1;  // Logical depth

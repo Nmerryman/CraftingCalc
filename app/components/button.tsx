@@ -39,7 +39,7 @@ function RemoveHoverEffect(event: SyntheticEvent) {
 
 export const LinkBtn: React.FC<BtnParam> = ({text, kind, url, debugText, callback}) => {
 
-    return (
+    return ( // Maybe change this to an <a> link so that we can actually see where it goes ahead of time and open in new tab
         <input className="cursor-pointer w-full"  type="button" value={text} onClick={() => BtnAction({kind, url, debugText, callback})} onMouseEnter={(ele) => {HoverEffect(ele)}} onMouseLeave={(ele) => {RemoveHoverEffect(ele)}}></input>
     )
 }

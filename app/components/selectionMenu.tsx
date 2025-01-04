@@ -59,9 +59,61 @@ function ResourceListItem({resource, dispatch, debugScore}: {resource: Resource,
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
             <ItemPopup pState={popupState} pClose={disablePopup} stack={new Stack(resource.name)} resource={resource}/>
-            <li key={resource.name} className="cursor-pointer" {...{"score": debugScore}} onClick={() => dispatch({type: "toggle", name: resource.name})}>{resource.name}</li>
+            <li key={resource.name} className="cursor-pointer" {...{"score": debugScore}} onClick={() => dispatch({type: "toggle", name: resource.name})}>({debugScore}){resource.name}</li>
         </div>
     )
+}
+
+
+function matchDist(fromString: string, toString: string): number {
+    let i = 0;
+    let limit = Math.min(fromString.length, toString.length);
+    while (i < limit) {
+        if (fromString[i] != toString[i]) {
+            return i;
+        }
+        i++;
+    }
+    return limit;
+}
+
+function removeFuzzyMatching(fromString: string, toString: string): {remaining: string, unused: string} {
+    let output = "";
+    while (fromString.length > 0 && toString.length > 0) {
+        let dist = matchDist(fromString, toString);
+        fromString = fromString.slice(dist);
+        toString = toString.slice(dist);
+        if (toString.length > 0) {
+            output += toString.slice(0, 1)[0];
+            toString = toString.slice(1);
+        }
+    }
+    output += toString;
+    return {remaining: output, unused: fromString};
+}
+
+function simmilarityScoreFunc(fromString: string, toString: string): number {
+    let inputVal = fromString.toLowerCase();
+    let testItem = toString.toLowerCase();
+    let inputParts = inputVal.split(" ");
+    let testParts = testItem.split(" ");
+    let compParts: Array<{remaining: string, unused: string}> = [];
+
+    for (let iPart of inputParts) {
+        let bestTPart = removeFuzzyMatching(iPart, testParts[0]);
+        let bestTPartSaved = 0;
+        let bestTPartI = 0;
+        for (let tPartsIndex = 0; tPartsIndex < testParts.length; tPartsIndex++) {
+            let partResult = removeFuzzyMatching(iPart, testParts[tPartsIndex]);
+            if (testParts[tPartsIndex].length - partResult.remaining.length > bestTPartSaved) {
+                bestTPart = partResult;
+                bestTPartSaved = testParts[tPartsIndex].length - partResult.remaining.length;
+                bestTPartI = tPartsIndex;
+            }
+        }
+        compParts.push(bestTPart);
+    }
+    return levenshtein(compParts.map(p => p.unused).join(" "), compParts.map(p => p.remaining).join(" "))
 }
 
 
@@ -74,26 +126,6 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
         setText(selectTextBox.value);
     }
 
-    function simmilarityScore(fromString: string, toString: string): number {
-        let inputVal = fromString.toLowerCase();
-        let testItem = toString.toLowerCase();
-        let inputParts = inputVal.split(" ");
-        let testParts = testItem.split(" ");
-        let currentScore = inputVal.length + testItem.length;
-        let matchedWords = 0;
-        // console.log(inputVal, " vs ", testItem.slice(0, inputVal.length))
-
-        for (let iparts of inputParts) {
-            for (let tpart of testParts) {
-                if (iparts.length <= tpart.length && iparts == tpart.slice(0, iparts.length)) {
-                    currentScore -= 2 * iparts.length;
-                    matchedWords += 1;
-                }
-            }
-        }
-        return currentScore ** (1 / (matchedWords + 1)) + levenshtein(inputVal, testItem) ** 2;
-    }
-
     return (
         <ul>
             <div className="font-bold text-lime-500">Resource List</div>
@@ -102,7 +134,7 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
                 .sort((rValA, rValB) => { 
                     // This works, but I think I'd rather use a filter via the TextMatch function defined above. 
                     // This method does not handle shortened versions of text comparisons well (leather vs tanned leather)
-                    if (simmilarityScore(textState, rValA.name) < simmilarityScore(textState, rValB.name)) {
+                    if (simmilarityScoreFunc(textState, rValA.name) < simmilarityScoreFunc(textState, rValB.name)) {
                         return -1;
                     } else {
                         return 1;
@@ -112,7 +144,7 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
                     if (rIndex == 0) {  // Store the name of the top item in the sort so that we can reference it in an enter toggle later.
                         topName = rval.name;
                     }
-                    return <ResourceListItem key={rval.name} resource={rval} debugScore={simmilarityScore(textState, rval.name)} dispatch={requestDispatch}/>
+                    return <ResourceListItem key={rval.name} resource={rval} debugScore={simmilarityScoreFunc(textState, rval.name)} dispatch={requestDispatch}/>
                     })}
         </ul>
     )

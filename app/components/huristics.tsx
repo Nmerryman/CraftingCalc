@@ -257,6 +257,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
                 <div>
                     <div className="flex">
                         <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
+                        <label><button onClick={() => console.log(huristicList)}/>(Log best huristic)</label>
                         <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                         <HuristicNumberChoice boxState={modeCheckbox} huristicNum={huristicNum} updateHuristicNum={updateHuristicNum} huristicList={huristicList}/>
                         <ConfigButtons config={svgConfigObj} configDispatch={dispatchConfig}/>

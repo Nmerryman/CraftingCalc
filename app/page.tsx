@@ -193,7 +193,7 @@ export default function Main() {
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
-            <button onClick={() => craftingData.healthCheckBaseItems()}>debug button</button>
+            <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button>
             <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
         </div>
     );

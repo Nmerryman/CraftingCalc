@@ -53,7 +53,7 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
 
         if (url.length >= 4 && url.slice(0, 4) != "http") {
             // Assume it's a hosted preset request
-            url = "/preset/" + url;
+            url = "presets/" + url;
             if (url.length >= 5 && url.slice(-5, 5) == ".json") {
                 url = url + ".json";
             }
@@ -61,7 +61,7 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
 
         // debug default
         if (url.length == 0) {
-            url = "/presets/Compressed.json"
+            url = "presets/Compressed.json"
         }
 
         fetch(url).then(req => req.json().then((val) => {

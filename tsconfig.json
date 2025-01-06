@@ -13,6 +13,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "emitDecoratorMetadata": true, // this will be required to use decorator metadata
+    "experimentalDecorators": true, // use the decorators
     "plugins": [
       {
         "name": "next"

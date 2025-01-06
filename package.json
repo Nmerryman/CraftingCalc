@@ -9,12 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "class-transformer": "^0.5.1",
     "js-levenshtein": "^1.1.6",
     "lodash": "^4.17.21",
-    "next": "14.2.4",
+    "next": "^14.2.22",
     "react": "^18",
     "react-dom": "^18",
-    "reactjs-popup": "^2.0.6"
+    "reactjs-popup": "^2.0.6",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/js-levenshtein": "^1.1.3",

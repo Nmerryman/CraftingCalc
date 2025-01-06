@@ -2,7 +2,7 @@ import { ChangeEvent, Dispatch, useEffect, useState } from "react";
 import { Popup } from "reactjs-popup"
 import xIcon from "./xIcon.png"
 import { CraftingData } from "../crafting/units";
-import { instanceToPlain, plainToInstance } from "class-transformer";
+import { instanceToPlain, plainToInstance } from "class-transformer";  // It seems that I don't need this because I already have unserialization logic in place.
 import { CraftingAction } from "./crafting";
 
 
@@ -11,12 +11,11 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
     const [popupState, setPopupState] = useState(false);
     const closePopup = () => {setPopupState(false)};
     const [statusText, setStatusText] = useState("");
-
     const [localInput, setLocalInput] = useState("");
     const [downloadInput, setDownloadInput] = useState("");
 
 
-    // This indirection/wrapping is needed for input validation
+    // This indirection/wrapping is needed for input validation. That way meta variables aren't overwritten
     function saveInputChange(event: ChangeEvent<HTMLInputElement>) {
         let val = event.currentTarget.value;
         if (val != "_available_local"  && val != "_available_backend") {
@@ -37,12 +36,12 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
     }
 
     function removeFromLocal() {
-        let current: Array<string> = JSON.parse(localAvailPresetNames);
+        let currentNames: Array<string> = JSON.parse(localAvailPresetNames);
 
         localStorage.removeItem(localInput);
-        current = current.filter(val => val != localInput);
+        currentNames = currentNames.filter(val => val != localInput);
 
-        let tempText = JSON.stringify(current)  // We have to do this because setLocalAvailPresetNames is async and won't update in time for reuse.
+        let tempText = JSON.stringify(currentNames)  // We have to do this because setLocalAvailPresetNames is async and won't update in time for reuse.
         setLocalAvailPresetNames(tempText);
         localStorage.setItem("_available_local", tempText)
         
@@ -60,35 +59,31 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
             }
         }
 
-        // debug
+        // debug default
         if (url.length == 0) {
             url = "/presets/Compressed.json"
         }
 
-        let tempData: CraftingData;
         fetch(url).then(req => req.json().then((val) => {
-            tempData = plainToInstance(CraftingData, val) as unknown as CraftingData;  // Why does plainToInstance try to always return an array for me
+            let tempData = val as CraftingData;
             console.log(tempData);
 
-            if (tempData._meta.dataVersion != 2) {
-                throw Error("Expected metadata version 2, got " + tempData._meta.dataVersion);
+            if (tempData._meta.dataVersion != 1) {
+                throw Error("Expected metadata version 1, got " + tempData._meta.dataVersion);
             }
+            tempData._meta.downloaded = true;
+            tempData._meta.source = url;
             
+            localStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
+            craftingDispatch({type: "replace all", anyValue: tempData})
+            let currentAvailable: Array<string> = JSON.parse(localAvailPresetNames);
+            if (!currentAvailable.includes(tempData._meta.name)) {
+                currentAvailable.push(tempData._meta.name);
+                setLocalAvailPresetNames(JSON.stringify(currentAvailable));
+            }
 
+            setStatusText(`Added and loaded "${tempData._meta.name}" preset.`);
         }))
-
-        // let current = JSON.parse(localAvailPresetNames) as Array<string>;
-
-        // if (!current.includes(saveInput)) {
-        //     current.push(saveInput);
-        // }
-        // localStorage.setItem(saveInput, JSON.stringify(craftingData));
-
-        // let tempText = JSON.stringify(current)  // We have to do this because setLocalAvailPresetNames is async and won't update in time for reuse.
-        // setLocalAvailPresetNames(tempText);
-        // localStorage.setItem("_available_local", tempText)
-
-        // setStatusText(`Stored "${saveInput}" preset into locolStorage.`)
     }
 
     return (
@@ -103,9 +98,8 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
                     Local Presets
                     </span>
                     <input type="text" className="input_field" placeholder="Preset Name" list="preset_names" value={localInput} onChange={saveInputChange}></input>
-                    <input type="button" className="input_button" value="serialize" onClick={() => {
-                        let plain = instanceToPlain(craftingData);
-                        let text = JSON.stringify(plain);
+                    <input type="button" className="input_button" value="Serialize Loaded" onClick={() => {
+                        let text = JSON.stringify(craftingData);
                         console.log(text)
                     }}/>
                     <input type="button" className="input_button" value="Delete Local" onClick={removeFromLocal}/>
@@ -114,10 +108,9 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
                     </span>
                     <input type="text" className="input_field" placeholder="Preset Link" value={downloadInput} onChange={downloadInputChange}/>
                     <input type="button" className="input_button" value="Download" onClick={downloadToLocal}/>
-                    {/* <input type="button" className="input_button" value="Sync Backend" onClick={tempStatus("Sync Backend Options")}/> */}
                 </div>
                 {
-                    statusText.length > 0 ? 
+                    (statusText.length > 0) ? 
                     <div className="bow_text">
                         {statusText}
                     </div> :

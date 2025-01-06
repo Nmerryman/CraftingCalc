@@ -3,6 +3,33 @@ import { CraftingAction } from "../components/crafting";
 import { Dispatch } from "react";
 
 
+function addResources(r: Record<string, Resource>, names: Array<string>) {
+    for (let name of names) {
+        r[name] = new Resource(name);
+    }
+}
+
+function markAsBaseResources(r: Record<string, Resource>, names: Array<string>) {
+    for (const name of names) {
+        r[name].isBase = true;
+    }
+}
+
+function disableResources(r: Record<string, Resource>, names: Array<string>) {
+    for (const name of names) {
+        r[name].isDisabled = true;
+    }
+}
+
+function addProcesses(r: Record<string, Process>, names: Array<string>) {
+    for (let name of names) {
+        r[name] = new Process(name);
+    }
+}
+
+function defaultRecipeFactory(process: string) {
+    return (output: string, input: Array<Stack>) => {return new Recipe(process, input, [new Stack(output)])};
+}
 
 // These three functions exist as legacy versions of creating dev test data.
 function devGenResources(): Record<string, Resource> {
@@ -47,26 +74,44 @@ function devGenRecipes(): Array<Recipe> {
 }
 
 
+function remoteTest(dispatch: Dispatch<CraftingAction>) {
+    let resources: Record<string, Resource> = {};
+    addResources(resources, ["Cobblestone", "Compressed Cobblestone", "Compressed Cobblestone (2x)", "Compressed Cobblestone (3x)", "Compressed Cobblestone (4x)", "Compressed Cobblestone (5x)", "Compressed Cobblestone (6x)", "Compressed Cobblestone (7x)", "Compressed Cobblestone (8x)", ])
+    resources["Cobblestone"].isBase = true;
+
+    let processes: Record<string, Process> = {};
+    addProcesses(processes, ["Crafting"]);
+
+    let craftingRecipe = defaultRecipeFactory("Crafting");
+    let r = (input: string, output: string) => craftingRecipe(output, [new Stack(input, 9)]);  // Specialized default case for this test
+
+
+    let recipes = [
+        r("Cobblestone", "Compressed Cobblestone"),
+        r("Compressed Cobblestone", "Compressed Cobblestone (2x)"),
+        r("Compressed Cobblestone (2x)", "Compressed Cobblestone (3x)"),
+        r("Compressed Cobblestone (3x)", "Compressed Cobblestone (4x)"),
+        r("Compressed Cobblestone (4x)", "Compressed Cobblestone (5x)"),
+        r("Compressed Cobblestone (5x)", "Compressed Cobblestone (6x)"),
+        r("Compressed Cobblestone (6x)", "Compressed Cobblestone (7x)"),
+        r("Compressed Cobblestone (7x)", "Compressed Cobblestone (8x)"),
+    ]
+
+    dispatch({type: "set resources", recordValue: resources});
+    dispatch({type: "set processes", recordValue: processes});
+    dispatch({type: "set recipes", arrayValue: recipes});
+}
+
+
 export function vanillaPickaxePreset(dispatch: Dispatch<CraftingAction>) {
-    dispatch({type: "set resources", recordValue: devGenResources()});
-    dispatch({type: "set processes", recordValue: devGenProcesses()});
-    dispatch({type: "set recipes", arrayValue: devGenRecipes()});
+    // dispatch({type: "set resources", recordValue: devGenResources()});
+    // dispatch({type: "set processes", recordValue: devGenProcesses()});
+    // dispatch({type: "set recipes", arrayValue: devGenRecipes()});
+    remoteTest(dispatch)
 }
 
 
 export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
-
-    function addResources(r: Record<string, Resource>, names: Array<string>) {
-        for (let name of names) {
-            r[name] = new Resource(name);
-        }
-    }
-
-    function addProcesses(r: Record<string, Process>, names: Array<string>) {
-        for (let name of names) {
-            r[name] = new Process(name);
-        }
-    }
 
     let resources = {}
     addResources(resources, ["Leather", "Stone", "Tanned Leather", "Woven Cotton", "Bound Leather", "String", "Cotton", "Cobble Stone", "Backpack"]);
@@ -91,29 +136,6 @@ export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
 
 export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
 
-    function addResources(r: Record<string, Resource>, names: Array<string>) {
-        for (let name of names) {
-            r[name] = new Resource(name);
-        }
-    }
-
-    function markAsBaseResources(r: Record<string, Resource>, names: Array<string>) {
-        for (const name of names) {
-            r[name].isBase = true;
-        }
-    }
-
-    function disableResources(r: Record<string, Resource>, names: Array<string>) {
-        for (const name of names) {
-            r[name].isDisabled = true;
-        }
-    }
-
-    function addProcesses(r: Record<string, Process>, names: Array<string>) {
-        for (let name of names) {
-            r[name] = new Process(name);
-        }
-    }
 
     let resources = {}
     addResources(resources, ["Bricked Blast Furnace", "Iron Furnace", "Firebricks", "Iron Plate", "Furnace", "Wrench", "Firebrick", 
@@ -171,12 +193,6 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
         new Recipe("Alloy Smelter", [new Stack("Clay"), new Stack("Mold (Ingot)")], [new Stack("Brick")]),
         // new Recipe("Crafting", [new Stack("Clay"), new Stack("Wooden Form (Brick)")], [new Stack("Unfired Clay Brick")]),
         new Recipe("Crafting", [new Stack("Clay", 8), new Stack("Wooden Form (Brick)")], [new Stack("Unfired Clay Brick", 8)]),
-
-
-
-
-
-
     ]
 
     dispatch({type: "set resources", recordValue: resources});

@@ -1,3 +1,4 @@
+import { plainToInstance, Transform, Type } from "class-transformer";
 import _ from "lodash";
 
 class BaseThing {
@@ -8,7 +9,7 @@ class BaseThing {
     isAvailable: boolean = true;
     isDisabled: boolean = false;
     durability: number = -1;
-    tags: Array<string> = []
+    tags: Array<string> = [];
 
     constructor(name: string, config = {}) {
         // I'm ok doing it like this because my defaults are pretty good
@@ -38,6 +39,10 @@ export class Process extends BaseThing {
     // I'm not sure if there is anything unique about this
     constructor(name: string, config = {}) {
         super(name, config);
+    }
+
+    classTesting() {  // This only exists for manual exploration of how a package works. Can be deleted at any time
+
     }
 }
 
@@ -352,11 +357,34 @@ export class chainHuristicsStats {
 interface HuristicEval {(huristic: chainHuristicsStats): number}
 
 
+type metaData = {  // This data is useful for when downloading presets.
+    dataVersion: number,  // This is a form of sanity check and data validation
+    name: string,
+    downloaded: boolean,  // To distinguish if it's loaded by default
+    source?: string,
+}
+
 export class CraftingData {
+    @Transform(({ value }) => {
+        return Object.entries(value).reduce((acc, [key, val]) => {
+            acc[key] = plainToInstance(Resource, val);
+            return acc;
+        }, {} as Record<string, Resource>);
+    })
     resources: Record<string, Resource>;
+
+    @Transform(({ value }) => {
+        return Object.entries(value).reduce((acc, [key, val]) => {
+            acc[key] = plainToInstance(Process, val);
+            return acc;
+        }, {} as Record<string, Process>);
+    })
     processes: Record<string, Process>;
+
+    @Type(() => Recipe)
     recipes: Array<Recipe>;
     passedHealthCheck: boolean = false;
+    _meta: metaData = {dataVersion: 1, downloaded: false, name: ""};
     private rId: number = 0;  // Used to register recipes and give them unique ids/names
 
     constructor(resources: Record<string, Resource> = {}, processes: Record<string, Process> = {}, recipes: Array<Recipe> = []) {

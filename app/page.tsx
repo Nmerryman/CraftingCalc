@@ -1,5 +1,6 @@
 'use client'
 
+import 'reflect-metadata'
 import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
 import { LinkBtn } from "./components/button";
 import { CraftingData, Stack } from "./crafting/units";
@@ -16,28 +17,28 @@ import { HuristicsInfoDisplay } from "./components/huristics";
 let resetRequestStateFunc: Function;  // Ugly hack to set a function, but in avoids passing a function through a bunch of innocent props/components.
 
 
-function CheckBackendStatus() {
-    // Actually tries to fetch and update the status text
-    const [backendStatus, setBackendStatus] = useState("Unchecked");
+// function CheckBackendStatus() {
+//     // Actually tries to fetch and update the status text
+//     const [backendStatus, setBackendStatus] = useState("Unchecked");
 
-    function netCheck() {
-        fetch("http://p8000.hydris.dev/test", {cache: "no-store"})  // no-store to make sure that we don't cache any status (Probably doesn't matter though)
-            .then(resp => {
-                setBackendStatus("Server is alive!")
-            })
-            .catch(err => {
-                console.log(err);
-                setBackendStatus("Backend target is unreachable.")
-            })
-    }
+//     function netCheck() {
+//         fetch("http://p8000.hydris.dev/test", {cache: "no-store"})  // no-store to make sure that we don't cache any status (Probably doesn't matter though)
+//             .then(resp => {
+//                 setBackendStatus("Server is alive!")
+//             })
+//             .catch(err => {
+//                 console.log(err);
+//                 setBackendStatus("Backend target is unreachable.")
+//             })
+//     }
 
-    return (
-        <div className="my-1">
-            <input type="button" className="checkloadconfig" value="Check" onClick={netCheck}/>
-            {backendStatus}
-        </div>
-    )
-}
+//     return (
+//         <div className="my-1">
+//             <input type="button" className="checkloadconfig" value="Check" onClick={netCheck}/>
+//             {backendStatus}
+//         </div>
+//     )
+// }
 
 
 function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
@@ -55,7 +56,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
 
-    let presetNames = JSON.parse(localStorage.getItem("_available_local")!) as Array<string>
+    let presetNames: Array<string> = JSON.parse(localStorage.getItem("_available_local")!);
     console.log(presetNames)
 
     if (presetNames.includes(value)) {  // We check this because it's my "best practices", but we can bypass this and just check the value for undifined directly.
@@ -119,35 +120,23 @@ function ensureDefaultPresets() {
 
 
 // Preset Menu of Nav Bar
-function PresetMenu({craftingDispatch, craftingData, currentPresetNames, setCurrentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
+function PresetMenu({craftingDispatch, craftingData, localAvailPresetNames, setLocalAvailPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, localAvailPresetNames: string, setLocalAvailPresetNames: Dispatch<string>}) {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
-
-    let availablePresetNames: Array<string> = []
-    if (currentPresetNames) {
-        availablePresetNames = JSON.parse(currentPresetNames);
-    }
-
     return (
         <div className="w-full">
-            <CheckBackendStatus/>
+            {/* <CheckBackendStatus/> */}
             <div className="text-black">
-                <datalist id="preset_names">
-                    {
-                        availablePresetNames.map(name => {
-                            return <option value={name} key={name}/>
-                        })
-                    }
-                </datalist>
                 <input className="pl-2" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch))}></input>
                 <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="checkloadconfig ml-1"></input>
-                <PresetConfig craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
+                <PresetConfig craftingData={craftingData} craftingDispatch={craftingDispatch} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             </div>
         </div>
     )
 }
 
+
 // Header and Nav Bar
-function Header({craftingDispatch, craftingData, currentPresetNames, setCurrentPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, currentPresetNames: string, setCurrentPresetNames: Dispatch<string>}) {
+function Header({craftingDispatch, craftingData, localAvailPresetNames, setLocalAvailPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, localAvailPresetNames: string, setLocalAvailPresetNames: Dispatch<string>}) {
     return (
         <div>
             <div className="text-3xl font-bold underline w-screen bg-slate-700 flex justify-center pb-2">
@@ -156,7 +145,7 @@ function Header({craftingDispatch, craftingData, currentPresetNames, setCurrentP
             <div className="flex justify-around ">
                 <LinkBtn kind="link" text="Help" url="wiki" debugText="Clicked Help"/>
                 <LinkBtn kind="link" text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
-                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
+                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             </div>
         </div>
     )
@@ -178,20 +167,35 @@ export default function Main() {
     var initialcraftingRequests: Record<string, Stack> = {}
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
     resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})  // load the global shortcut
-    const [currentPresetNames, setCurrentPresetNames] = useState("");  // By storing the value as a json string, we don't need to use a reducer given that we alway deserialize it.
+    const [localAvailPresetNames, setLocalAvailPresetNames] = useState("");  // By storing the value as a json string, we don't need to use a reducer given that we alway deserialize it.
+    let pVals: Array<string> = [];
+    if (localAvailPresetNames) {
+        pVals = JSON.parse(localAvailPresetNames);
+    }
 
     useEffect(() => {
         ensureDefaultPresets(); 
-        setCurrentPresetNames(localStorage.getItem("_available_local")!)
+        setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
         dispatchCraftingRequest({type: "toggle", name: "Flint"})
     }, []);  // Run update once after main page load
 
-    return (
+    return (  // we can define the datalist early so that it can be used everywhere.
         <div className="">
-            <Header craftingDispatch={dispatchData} craftingData={craftingData} currentPresetNames={currentPresetNames} setCurrentPresetNames={setCurrentPresetNames}/>
+            {(localAvailPresetNames) ?
+                <datalist id="preset_names">
+                    {
+                        pVals.map(name => {
+                            return <option value={name} key={name}/>
+                        })
+                    }
+                </datalist>
+                :
+                <></>
+            }
+            <Header craftingDispatch={dispatchData} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
-            <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor>
+            {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
             <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button>
             <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>

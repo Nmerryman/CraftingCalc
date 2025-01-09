@@ -73,7 +73,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
 function ensureDefaultPresets() {
     
     // DEBUG clear
-    localStorage.clear();
+    // localStorage.clear();
     
     let availablePresetNamesStr = localStorage.getItem("_available_local");  // We assume there is no preset called _available. TODO hard code a check when setting?
     let availablePresetNames = [];

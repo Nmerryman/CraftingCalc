@@ -2,7 +2,6 @@ import { ChangeEvent, Dispatch, useEffect, useState } from "react";
 import { Popup } from "reactjs-popup"
 import xIcon from "./xIcon.png"
 import { CraftingData } from "../crafting/units";
-import { instanceToPlain, plainToInstance } from "class-transformer";  // It seems that I don't need this because I already have unserialization logic in place.
 import { CraftingAction } from "./crafting";
 
 
@@ -30,11 +29,7 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
         }
     }
 
-    // Dev callback to change text when buttons are clicked
-    function tempStatus(name: string) {
-        return () => {setStatusText("Clicked " + name + " button.")}
-    }
-
+    // I feel like a bunch of this stuff is duplicate and ugly
     function removeFromLocal() {
         let currentNames: Array<string> = JSON.parse(localAvailPresetNames);
 
@@ -86,6 +81,29 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
         }))
     }
 
+    function loadJsonPreset() {
+        let tempData: CraftingData
+        try {
+            tempData = JSON.parse(localInput) as CraftingData;
+        } catch {
+            setStatusText(`Invalid data in input field.`);
+            return;
+        }
+
+        if (tempData._meta.dataVersion != 1) {
+            throw Error("Expected metadata version 1, got " + tempData._meta.dataVersion);
+        }
+        localStorage.setItem(tempData._meta.name, localInput);
+        craftingDispatch({type: "replace all", anyValue: tempData});
+        let currentAvailable: Array<string> = JSON.parse(localAvailPresetNames);
+        if (!currentAvailable.includes(tempData._meta.name)) {
+            currentAvailable.push(tempData._meta.name);
+            setLocalAvailPresetNames(JSON.stringify(currentAvailable));
+        }
+        
+        setStatusText(`Added and loaded "${tempData._meta.name}" preset.`);
+    }
+
     return (
         <>
             <input type="button" value="Config" className="input_button" onClick={() => setPopupState(true)}/>
@@ -97,12 +115,13 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
                     <span>
                     Local Presets
                     </span>
-                    <input type="text" className="input_field" placeholder="Preset Name" list="preset_names" value={localInput} onChange={saveInputChange}></input>
-                    <input type="button" className="input_button" value="Serialize Loaded" onClick={() => {
+                    <input type="text" className="input_field" placeholder="Preset Name/Data" list="preset_names" value={localInput} onChange={saveInputChange}></input>
+                    {/* <input type="button" className="input_button" value="Serialize Loaded" onClick={() => {
                         let text = JSON.stringify(craftingData);
                         console.log(text)
-                    }}/>
+                    }}/> */}
                     <input type="button" className="input_button" value="Delete Local" onClick={removeFromLocal}/>
+                    <input type="button" className="input_button" value="Load JSON Preset" onClick={loadJsonPreset}/>
                     <span>
                     Remote Presets
                     </span>

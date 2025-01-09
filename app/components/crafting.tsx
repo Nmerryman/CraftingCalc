@@ -1,7 +1,7 @@
-import { CraftingData, Process, Recipe, Resource } from "../crafting/units";
+import { CraftingData, craftingMetaData, Process, Recipe, Resource } from "../crafting/units";
 
 
-type CraftingTypeOptions = "log"|"reset"|"set resources"|"set processes"|"set recipes"|"set resource"|"set process"|"set recipe"|"replace all"
+type CraftingTypeOptions = "log"|"reset"|"set resources"|"set processes"|"set recipes"|"set resource"|"set process"|"set recipe"|"replace all"|"set metadata";
 
 export type CraftingAction = {
     type: CraftingTypeOptions,
@@ -50,7 +50,12 @@ export function craftingReducer(state: CraftingData, action: CraftingAction): Cr
             temp.setRecipe(new Recipe(recipe.processUsed, recipe.inputResources, recipe.outputResources, recipe.outputBonusChances, recipe.timeSpent));
         }
 
+        temp._meta = src._meta;
+
         return temp;
+    case "set metadata":
+        state._meta = action.anyValue as craftingMetaData;
+        return state.shallowClone();
     default:
         console.log("Unkown action: " + action.type);
         return state

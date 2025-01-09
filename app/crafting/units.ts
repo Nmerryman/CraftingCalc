@@ -357,7 +357,7 @@ export class chainHuristicsStats {
 interface HuristicEval {(huristic: chainHuristicsStats): number}
 
 
-type metaData = {  // This data is useful for when downloading presets.
+export type craftingMetaData = {  // This data is useful for when downloading presets.
     dataVersion: number,  // This is a form of sanity check and data validation
     name: string,
     downloaded: boolean,  // To distinguish if it's loaded by default
@@ -384,7 +384,7 @@ export class CraftingData {
     @Type(() => Recipe)
     recipes: Array<Recipe>;
     passedHealthCheck: boolean = false;
-    _meta: metaData = {dataVersion: 1, downloaded: false, name: ""};
+    _meta: craftingMetaData = {dataVersion: 1, downloaded: false, name: ""};
     private rId: number = 0;  // Used to register recipes and give them unique ids/names
 
     constructor(resources: Record<string, Resource> = {}, processes: Record<string, Process> = {}, recipes: Array<Recipe> = []) {
@@ -454,7 +454,28 @@ export class CraftingData {
     }
 
     runHealthChecks() {
-        this.passedHealthCheck = this.healthCheckNoMissingThings() && this.healthCheckBaseItems();
+        // TODO Make sure that the meta information is good.
+        this.passedHealthCheck = this.healthCheckValidMetadata() && this.healthCheckNoMissingThings() && this.healthCheckBaseItems();
+    }
+
+    healthCheckValidMetadata() {
+        // Make sure that the meta data seems reasonable
+        if (this._meta.dataVersion != 1) {
+            console.log(`Metadata version is an unexpected value. (Expected 1 but got ${this._meta.dataVersion})`);
+            return false;
+        }
+
+        if (!this._meta.name) {
+            console.log("Metadata name has not been set");
+            return false;
+        }
+
+        if (this._meta.downloaded && !this._meta.source) {
+            console.log("Downloaded file has no source listed in metadata");
+            return false;
+        }
+
+        return true;
     }
 
     healthCheckNoMissingThings() {
@@ -499,7 +520,9 @@ export class CraftingData {
     }
 
     shallowClone() {
-        return new CraftingData(this.resources, this.processes, this.recipes)
+        let data = new CraftingData(this.resources, this.processes, this.recipes)
+        data._meta = this._meta;
+        return data;
     }
 
     // Build the initial recipeChainNode tree based on a single starting node

@@ -1,4 +1,4 @@
-import { Process, Recipe, Resource, Stack } from "./units";
+import { craftingMetaData, Process, Recipe, Resource, Stack } from "./units";
 import { CraftingAction } from "../components/crafting";
 import { Dispatch } from "react";
 
@@ -100,6 +100,8 @@ function remoteTest(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set resources", recordValue: resources});
     dispatch({type: "set processes", recordValue: processes});
     dispatch({type: "set recipes", arrayValue: recipes});
+    const meta: craftingMetaData = {name: "Compressed", dataVersion: 1, downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});
 }
 
 
@@ -113,8 +115,12 @@ export function vanillaPickaxePreset(dispatch: Dispatch<CraftingAction>) {
 
 export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
 
-    let resources = {}
+    let resources: Record<string, Resource> = {}
     addResources(resources, ["Leather", "Stone", "Tanned Leather", "Woven Cotton", "Bound Leather", "String", "Cotton", "Cobble Stone", "Backpack"]);
+
+    for (let name of ["Leather", "Cotton", "Cobble Stone"]) {
+        resources[name].isBase = true;
+    }
 
     let processes = {}
     addProcesses(processes, ["Crafting", "Drying", "Smelting"]);
@@ -132,6 +138,8 @@ export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set resources", recordValue: resources});
     dispatch({type: "set processes", recordValue: processes});
     dispatch({type: "set recipes", arrayValue: recipes});
+    const meta: craftingMetaData = {name: "Backpack", dataVersion: 1, downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});
 }
 
 export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
@@ -198,5 +206,7 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set resources", recordValue: resources});
     dispatch({type: "set processes", recordValue: processes});
     dispatch({type: "set recipes", arrayValue: recipes});
+    let meta: craftingMetaData = {dataVersion: 1, name: "Blast Furnace", downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});   
 }
 

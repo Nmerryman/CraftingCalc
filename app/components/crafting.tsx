@@ -36,7 +36,7 @@ export function craftingReducer(state: CraftingData, action: CraftingAction): Cr
         state.setRecipe(action.anyValue as Recipe);
         return state.shallowClone();
     case "replace all":  // Used to load a new piece of data
-        // I think this is ok for now as I don't think anything needs to be initialized with the correct class.
+        // I think this i now as I don't think anything needs to be initialized with the correct class.
         let src = action.anyValue as CraftingData;
         let temp = new CraftingData()
         // We have to individually create every object because json doesn't store any methods.

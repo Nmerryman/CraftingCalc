@@ -74,3 +74,7 @@ header {
 .error_mess {
   @apply text-center border-2 border-rose-700 rounded-md mx-[35%]
 }
+
+.readable_text {
+  @apply text-black
+}

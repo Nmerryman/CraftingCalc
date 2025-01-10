@@ -210,3 +210,28 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set metadata", anyValue: meta});   
 }
 
+
+export function mmHDPEPellet(dispatch: Dispatch<CraftingAction>) {
+
+    let resources: Record<string, Resource> = {};
+    addResources(resources, ["HDPE Pellet", "Substrate", "Oxygen", "Liquid Ethylene", "Bio Fuel", "Hydrogen", "Water", "Kelp"]);
+    resources["Water"].isBase = true;
+    resources["Kelp"].isBase = true;
+
+    let processes = {};
+    addProcesses(processes, ["Pressurized Reaction Chamber", "Crusher", "Electrolytic Separator"])
+
+    let recipes = [
+        new Recipe("Pressurized Reaction Chamber", [new Stack("Liquid Ethylene", 50), new Stack("Oxygen", 10), new Stack("Substrate")], [new Stack("HDPE Pellet")]),
+        new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 10), new Stack("Hydrogen", 100), new Stack("Bio Fuel", 2)], [new Stack("Substrate"), new Stack("Liquid Ethylene", 100)]),
+        new Recipe("Crusher", [new Stack("Kelp")], [new Stack("Bio Fuel", 2)]),
+        new Recipe("Electrolytic Separator", [new Stack("Water", 2)], [new Stack("Hydrogen", 2), new Stack("Oxygen")]),
+        // new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 200), new Stack("Liquid Ethylene", 100), new Stack("Substrate")], [new Stack("Substrate", 8)])
+    ]
+
+    dispatch({type: "set resources", recordValue: resources});
+    dispatch({type: "set processes", recordValue: processes});
+    dispatch({type: "set recipes", arrayValue: recipes});
+    let meta: craftingMetaData = {dataVersion: 1, name: "HDPE Pellet", downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});   
+}

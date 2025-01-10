@@ -9,7 +9,7 @@ import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
 import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
-import { gtBackpackPreset, gtBlastFurnace, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
 import { HuristicsInfoDisplay } from "./components/huristics";
 
 
@@ -51,7 +51,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        value = "BBF";
+        value = "HDPE Pellet";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -73,7 +73,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
 function ensureDefaultPresets() {
     
     // DEBUG clear
-    // localStorage.clear();
+    localStorage.clear();
     
     let availablePresetNamesStr = localStorage.getItem("_available_local");  // We assume there is no preset called _available. TODO hard code a check when setting?
     let availablePresetNames = [];
@@ -97,8 +97,6 @@ function ensureDefaultPresets() {
         fakeDispatch({type: "reset"});
         localStorage.setItem("Empty", JSON.stringify(tempData));
         availablePresetNames.push("Empty");
-        localStorage.setItem("Default", JSON.stringify(tempData));
-        availablePresetNames.push("Default")
 
         // Backpack
         fakeDispatch({type: "reset"});
@@ -111,6 +109,13 @@ function ensureDefaultPresets() {
         gtBlastFurnace(fakeDispatch);
         localStorage.setItem("BBF", JSON.stringify(tempData));
         availablePresetNames.push("BBF");
+
+        // MM HDPE Pellet 
+        fakeDispatch({type: "reset"});
+        mmHDPEPellet(fakeDispatch);
+        localStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
+        availablePresetNames.push(tempData._meta.name);
+
         
         // Store the currently available items
         localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
@@ -177,7 +182,7 @@ export default function Main() {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
-        dispatchCraftingRequest({type: "toggle", name: "Flint"})
+        dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
     }, []);  // Run update once after main page load
 
     return (  // we can define the datalist early so that it can be used everywhere.

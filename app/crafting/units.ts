@@ -535,7 +535,7 @@ export class CraftingData {
         } 
 
         if (dupeCheck.size > 20) {
-            console.log("dupeCheck is going deeper than expected. Killing.")
+            console.log("dupeCheck is going deeper than expected. (20 recipes deep) Killing.")
             return false; 
         }
 

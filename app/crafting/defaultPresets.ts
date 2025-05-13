@@ -226,7 +226,7 @@ export function mmHDPEPellet(dispatch: Dispatch<CraftingAction>) {
         new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 10), new Stack("Hydrogen", 100), new Stack("Bio Fuel", 2)], [new Stack("Substrate"), new Stack("Liquid Ethylene", 100)]),
         new Recipe("Crusher", [new Stack("Kelp")], [new Stack("Bio Fuel", 2)]),
         new Recipe("Electrolytic Separator", [new Stack("Water", 2)], [new Stack("Hydrogen", 2), new Stack("Oxygen")]),
-        // new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 200), new Stack("Liquid Ethylene", 100), new Stack("Substrate")], [new Stack("Substrate", 8)])
+        new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 200), new Stack("Liquid Ethylene", 100), new Stack("Substrate")], [new Stack("Substrate", 8)])
     ]
 
     dispatch({type: "set resources", recordValue: resources});

@@ -1,9 +1,11 @@
 import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
 import { CraftingRequestType } from "./selectionMenu";
-import { chainHuristicsStats, CraftingData, Resource, Stack } from "../crafting/units";
 import { SVGHuristic } from "./svgHuristics";
 import { Coordinate } from "./svg";
 import { DisplayCTBItemStack } from "./viewInfoDataPopups";
+import { chainHuristicsStats } from "../crafting/craftingChain";
+import { CraftingData } from "../crafting/units";
+import { Solver } from "../crafting/solver";
 
 // If the select number box is checked, create an input that allows the user to enter a number
 function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristicList}: {boxState: boolean, huristicNum: number, updateHuristicNum: Dispatch<number>, huristicList: Array<chainHuristicsStats>}) {
@@ -232,7 +234,8 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
             }
         }
         
-        let huristicList = craftingData.calcChain(goal);
+        let solver = new Solver(craftingData);
+        let huristicList = solver.calcChain(goal);
         if (huristicList.length == 0) {
             return (
                 <div className="error_mess">
@@ -241,7 +244,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
             )
         }
         // console.log(huristicList)
-        let bestHuristic = craftingData.bestHuristic(huristicList, craftingData.defaultHuristic)!;
+        let bestHuristic = solver.bestHuristic(huristicList, solver.defaultHuristic)!;
         if (bestHuristic.longestDepth == 0) {
             return (
                 <div className="error_mess">

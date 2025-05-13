@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { chainHuristicsStats, CraftingData, Recipe, Resource, Stack } from "../crafting/units"
+import { Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
 import { cloneDeep } from "lodash";
+import { chainHuristicsStats } from "../crafting/craftingChain";
 
 
 function DisplayStackInline({stack}: {stack: Stack}) {

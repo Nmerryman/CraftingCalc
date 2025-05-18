@@ -9,8 +9,9 @@ import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
 import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
-import { gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { compressedCobblePreset, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
 import { HuristicsInfoDisplay } from "./components/huristics";
+import { TempSolver } from './crafting/solver';
 
 
 
@@ -51,7 +52,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        value = "HDPE Pellet";
+        value = "Dev";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -116,6 +117,12 @@ function ensureDefaultPresets() {
         localStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
         availablePresetNames.push(tempData._meta.name);
 
+        // Compressed Cobblestone
+        fakeDispatch({type: "reset"});
+        compressedCobblePreset(fakeDispatch);
+        localStorage.setItem("Comp Cobble", JSON.stringify(tempData));
+        availablePresetNames.push("Comp Cobble");
+
         
         // Store the currently available items
         localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
@@ -178,11 +185,13 @@ export default function Main() {
         pVals = JSON.parse(localAvailPresetNames);
     }
 
+    const testResourceName = "Iron Pickaxe";
     useEffect(() => {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
-        dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
+        // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
+        dispatchCraftingRequest({type: "toggle", name: testResourceName})
     }, []);  // Run update once after main page load
 
     return (  // we can define the datalist early so that it can be used everywhere.
@@ -198,6 +207,12 @@ export default function Main() {
                 :
                 <></>
             }
+            <button onClick={() => {
+                craftingData.runHealthChecks();
+                let tempSolver = new TempSolver(craftingData);
+                console.log("Solver: ", tempSolver);
+                console.log("Solved: ", tempSolver.solve([new Stack(testResourceName, 1)]));
+            }}>test temp solver</button>
             <Header craftingDispatch={dispatchData} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}

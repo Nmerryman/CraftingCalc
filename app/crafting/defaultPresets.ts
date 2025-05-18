@@ -61,15 +61,15 @@ function devGenProcesses(): Record<string, Process> {
 
 function devGenRecipes(): Array<Recipe> {
     return [
-        new Recipe("Furnace", [new Stack("Iron Ore")], [new Stack("Iron Ingot")]),
-        new Recipe("Crafting Table", [new Stack("Iron Nuggets", 9)], [new Stack("Iron Ingot")]),
-        new Recipe("Crafting Table", [new Stack("Stick", 3), new Stack("Iron Ingot", 3)], [new Stack("Iron Pickaxe")]),
-        new Recipe("Crafting Table", [new Stack("Iron Ingot")], [new Stack("Iron Nuggets", 9)]),
-        new Recipe("Crafting Table", [new Stack("Planks")], [new Stack("Stick", 2)]), 
-        new Recipe("Crafting Table", [new Stack("Oak Logs")], [new Stack("Planks", 2), new Stack("Plank Dust")]),
-        new Recipe("Crafting Table", [new Stack("Birch Logs")], [new Stack("Planks")]),
-        new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),
-        // new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")])
+        new Recipe("Furnace", [new Stack("Iron Ore")], [new Stack("Iron Ingot")]),                                      // 0
+        new Recipe("Crafting Table", [new Stack("Iron Nuggets", 9)], [new Stack("Iron Ingot")]),                        // 1
+        new Recipe("Crafting Table", [new Stack("Stick", 3), new Stack("Iron Ingot", 3)], [new Stack("Iron Pickaxe")]), // 2
+        new Recipe("Crafting Table", [new Stack("Iron Ingot")], [new Stack("Iron Nuggets", 9)]),                        // 3
+        new Recipe("Crafting Table", [new Stack("Planks")], [new Stack("Stick", 2)]),                                   // 4
+        new Recipe("Crafting Table", [new Stack("Oak Logs")], [new Stack("Planks", 2), new Stack("Plank Dust")]),       // 5
+        new Recipe("Crafting Table", [new Stack("Birch Logs")], [new Stack("Planks")]),                                 // 6
+        new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),                              // 7
+        new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")]) // 8
     ]
 }
 
@@ -106,10 +106,15 @@ function remoteTest(dispatch: Dispatch<CraftingAction>) {
 
 
 export function vanillaPickaxePreset(dispatch: Dispatch<CraftingAction>) {
-    // dispatch({type: "set resources", recordValue: devGenResources()});
-    // dispatch({type: "set processes", recordValue: devGenProcesses()});
-    // dispatch({type: "set recipes", arrayValue: devGenRecipes()});
-    remoteTest(dispatch)
+    dispatch({type: "set resources", recordValue: devGenResources()});
+    dispatch({type: "set processes", recordValue: devGenProcesses()});
+    dispatch({type: "set recipes", arrayValue: devGenRecipes()});
+    const meta: craftingMetaData = {name: "Pickaxe", dataVersion: 1, downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});
+}
+
+export function compressedCobblePreset(dispatch: Dispatch<CraftingAction>) {
+    remoteTest(dispatch);
 }
 
 

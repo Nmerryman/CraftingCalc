@@ -65,7 +65,8 @@ export class Recipe {
         public outputResources: Array<Stack>, 
         public outputBonusChances: Array<[string, ProbabilityStyle]> = [], 
         public timeSpent: number = 0,
-        public id?: number  // This is optional because we can set it as it gets inserted into the collection
+        public id?: number,  // This is optional because we can set it as it gets inserted into the collection
+        public isDisabled: boolean = false,
     ) {}
 
     // We could absolutly cache these methods.
@@ -130,7 +131,6 @@ export class CraftingData {
     recipes: Array<Recipe>;
     passedHealthCheck: boolean = false;
     _meta: craftingMetaData = {dataVersion: 1, downloaded: false, name: ""};
-    private rId: number = 0;  // Used to register recipes and give them unique ids/names
 
     constructor(resources: Record<string, Resource> = {}, processes: Record<string, Process> = {}, recipes: Array<Recipe> = []) {
         this.resources = resources;
@@ -150,17 +150,24 @@ export class CraftingData {
     }
 
     setRecipe(r: Recipe) {
-        if (this.recipes.length > 0) {  // Hack to set a safe current id
-            this.rId = this.recipes[this.recipes.length - 1].id! + 1
-        }
-        if (!r.id) {
-            r.id = this.rId++;
-        }
+        r.id = this.recipes.length;
         this.recipes.push(r);
     }
 
     getRecipe(id: number): Recipe | undefined {
-        return this.recipes.find((element) => {return element.id == id})
+        return this.recipes[id];
+    }
+
+    get(val: number | string): Resource | Process | Recipe | undefined {
+        // This is possible because of a uniqueness health check
+        if (typeof val === "number") {
+            return this.getRecipe(val);
+        } else if (val in this.resources) {
+            return this.resources[val];
+        } else if (val in this.processes) {
+            return this.processes[val];
+        }
+        return undefined;
     }
 
     getRecipeInputAmount(id: number, target: string) {
@@ -171,17 +178,17 @@ export class CraftingData {
         return this.getRecipe(id)!.outputResources.find((element: Stack) => {return element.resourceName == target})
     }
 
-    removeResource(name: string) {
-        delete this.resources[name];
-    }
+    // removeResource(name: string) {
+    //     delete this.resources[name];
+    // }
 
-    removeProcess(name: string) {
-        delete this.processes[name];
-    }
+    // removeProcess(name: string) {
+    //     delete this.processes[name];
+    // }
 
-    removeRecipe(id: number) {
-        this.recipes = this.recipes.filter((r) => {return r.id != id});
-    }
+    // removeRecipe(id: number) {
+    //     this.recipes = this.recipes.filter((r) => {return r.id != id});
+    // }
 
     findRecipesFor(name: string): Array<number> {
         // Takes the name of a Resource as input.
@@ -191,16 +198,19 @@ export class CraftingData {
 
     validateRecipeIds() {
         // Just set them all. That way there will never be an issue with gaps
-        this.rId = 0;
+        let rId = 0;
 
         for (let r of this.recipes) {
-            r.id = this.rId++;
+            r.id = rId++;
         }
     }
 
     runHealthChecks() {
-        // TODO Make sure that the meta information is good.
-        this.passedHealthCheck = this.healthCheckValidMetadata() && this.healthCheckNoMissingThings() && this.healthCheckBaseItems();
+        // TODO Make sure that the data is in a valid state
+        this.passedHealthCheck = this.healthCheckValidMetadata() 
+            && this.healthCheckNoMissingThings() 
+            && this.healthCheckBaseItems()
+            && this.healthCheckGoodKeys();
     }
 
     healthCheckValidMetadata() {
@@ -259,6 +269,31 @@ export class CraftingData {
         if (failed.length > 0) {
             console.log("The following resources have no recipe but are also not marked as base items.");
             console.log(failed);
+            return false;
+        }
+        return true;
+    }
+
+    healthCheckGoodKeys() {
+        // Make sure that all items have valid keys
+        let failedRIds: Array<string> = [];
+        for (const [i, r] of this.recipes.entries()) {
+            if (r.id != i) {
+                failedRIds.push(`RId missmatch: ${r.id} != ${i}`);
+            }
+        }
+        if (failedRIds.length > 0) {
+            console.log("The following recipes have invalid keys:");
+            console.log(failedRIds);
+            return false;
+        }
+
+        const resourceKeys = new Set(Object.keys(this.resources));
+        const processKeys = new Set(Object.keys(this.processes));
+        const intersection = resourceKeys.intersection(processKeys);
+        if (intersection.size > 0) {
+            console.log("The following names are both resources and processes:");
+            console.log(intersection);
             return false;
         }
         return true;

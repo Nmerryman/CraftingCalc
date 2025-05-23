@@ -288,6 +288,23 @@ export class CraftingData {
             return false;
         }
 
+        let failedNameKeys: boolean = false;
+        for (const [i, r] of Object.entries(this.resources)) {
+            if (!isNaN(Number(r.name as unknown as number))) {
+                failedNameKeys = true;
+                console.log(`Resource: ${r.name} cannot be a number`)
+            }
+        }
+        for (const [i, r] of Object.entries(this.processes)) {
+            if (!isNaN(Number(r.name as unknown as number))) {
+                failedNameKeys = true;
+                console.log(`Process: ${r.name} cannot be a number`)
+            }
+        }
+        if (failedNameKeys) {
+            return false;
+        }
+
         const resourceKeys = new Set(Object.keys(this.resources));
         const processKeys = new Set(Object.keys(this.processes));
         const intersection = resourceKeys.intersection(processKeys);

@@ -14,8 +14,12 @@ export class Permutation {
     }
 
     get() {
-        console.log("get", this)
+        // console.log("get", this)
         return this.permutationState;
+    }
+
+    hash() {
+        return JSON.stringify(this.permutationState);
     }
 
     incrementPermutation() {

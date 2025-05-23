@@ -69,7 +69,8 @@ function devGenRecipes(): Array<Recipe> {
         new Recipe("Crafting Table", [new Stack("Oak Logs")], [new Stack("Planks", 2), new Stack("Plank Dust")]),       // 5
         new Recipe("Crafting Table", [new Stack("Birch Logs")], [new Stack("Planks")]),                                 // 6
         new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),                              // 7
-        new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")]) // 8
+        new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")]), // 8
+        new Recipe("Furnace", [new Stack("Birch Logs", 3)], [new Stack("Iron Nuggets")]),                                  // 9
     ]
 }
 

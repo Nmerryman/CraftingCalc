@@ -52,8 +52,8 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        // value = "Dev";
-        value = "HDPE Pellet"
+        value = "Dev";
+        // value = "HDPE Pellet"
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -186,7 +186,7 @@ export default function Main() {
         pVals = JSON.parse(localAvailPresetNames);
     }
 
-    const testResourceName = "HDPE Pellet";
+    const testResourceName = "Iron Pickaxe";
     useEffect(() => {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)

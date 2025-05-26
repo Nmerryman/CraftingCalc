@@ -102,7 +102,7 @@ export function TextCircle({center, text, scale = 1, config = new svgConfig()}: 
 }
 
 
-export function calcArrows(start: Coordinate, end: Coordinate, scale: number = 1): {a: Coordinate, b: Coordinate} {
+export function calcArrows(end: Coordinate, start: Coordinate, scale: number = 1): {a: Coordinate, b: Coordinate} {
     let radius = 10 * scale;
     let startVec = new Vector(start.x, start.y);
     let endVec = new Vector(end.x, end.y);

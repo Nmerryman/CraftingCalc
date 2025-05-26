@@ -3,16 +3,15 @@ import { CraftingRequestType } from "./selectionMenu";
 import { SVGHuristic } from "./svgHuristics";
 import { Coordinate } from "./svg";
 import { DisplayCTBItemStack } from "./viewInfoDataPopups";
-import { chainHuristicsStats } from "../crafting/craftingChain";
 import { CraftingData } from "../crafting/units";
-import { Solver } from "../crafting/solver";
+import { PermMeta, SolveMeta, TempSolver } from "../crafting/solver";
 
 // If the select number box is checked, create an input that allows the user to enter a number
-function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristicList}: {boxState: boolean, huristicNum: number, updateHuristicNum: Dispatch<number>, huristicList: Array<chainHuristicsStats>}) {
+function HuristicNumberChoice({boxState, permMetaNum, updateMetaNum, metaOptSize}: {boxState: boolean, permMetaNum: number, updateMetaNum: Dispatch<number>, metaOptSize: number}) {
 
     function numCallback(e: ChangeEvent<HTMLInputElement>) {
         if (e.target.value) {
-            updateHuristicNum(parseInt(e.target.value));
+            updateMetaNum(parseInt(e.target.value));
         }
     }
     
@@ -25,7 +24,7 @@ function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristi
             <div>       
                 <label>
                     Select Huristic:
-                    <input type="number" min={0} max={huristicList.length - 1} value={huristicNum} onChange={numCallback} className="checkloadconfig"></input>
+                    <input type="number" min={0} max={metaOptSize - 1} value={permMetaNum} onChange={numCallback} className="checkloadconfig"></input>
                 </label>
             </div>
         )
@@ -33,7 +32,7 @@ function HuristicNumberChoice({boxState, huristicNum, updateHuristicNum, huristi
 }
 
 // Calculation itemized lists
-function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
+function HuristicStats({permMeta}: {permMeta: PermMeta}) {
     return (
         <div className="flex justify-around mb-4 pt-2 divide-x-2 divide-dashed divide-slate-600/30">
             <span className="px-5">
@@ -42,7 +41,8 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 </div>
                 <div>
                 {
-                    huristic.output.map(stack => <DisplayCTBItemStack stack={stack} huristic={huristic} key={stack.resourceName}/>)   
+                    permMeta.outputStacks.map(stack => <DisplayCTBItemStack stack={stack} permMeta={permMeta} key={stack.resourceName}/>)   
+                    
                 }
                 </div>
             </span>
@@ -52,7 +52,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 </div>
                 <div>
                 {
-                    huristic.intermediate.map(stack => <DisplayCTBItemStack stack={stack} huristic={huristic} key={stack.resourceName}/>)
+                    permMeta.intermediateStacks.map(stack => <DisplayCTBItemStack stack={stack} permMeta={permMeta} key={stack.resourceName}/>)
                 }
                 </div>
             </span>
@@ -62,7 +62,7 @@ function HuristicStats({huristic}: {huristic: chainHuristicsStats}) {
                 </div>
                 <div>
                 {
-                    huristic.input.map(stack => <DisplayCTBItemStack stack={stack} huristic={huristic} showProcess={false} key={stack.resourceName}/>)
+                    permMeta.inputStacks.map(stack => <DisplayCTBItemStack stack={stack} permMeta={permMeta} showProcess={false} key={stack.resourceName}/>)
                 }
                 </div>
             </span>
@@ -227,16 +227,11 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
     }, [])
 
     if (Object.keys(requestState).length > 0) {
-        let goal: Array<string> = [];
-        for (let req of Object.values(requestState)) {
-            for (let i = 0; i < req.amount; i++) {
-                goal.push(req.resourceName);
-            }
-        }
         
-        let solver = new Solver(craftingData);
-        let huristicList = solver.calcChain(goal);
-        if (huristicList.length == 0) {
+        const solver = new TempSolver(craftingData);
+        const rootSolve = solver.solve(Object.values(requestState));
+        const metaSolves = rootSolve.solveMeta;
+        if (Object.keys(metaSolves.permMetaCollection).length == 0) {
             return (
                 <div className="error_mess">
                     No results from calculation. Console likely lists why.
@@ -244,32 +239,29 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
             )
         }
         // console.log(huristicList)
-        let bestHuristic = solver.bestHuristic(huristicList, solver.defaultHuristic)!;
-        if (bestHuristic.longestDepth == 0) {
-            return (
-                <div className="error_mess">
-                    {/* <LogCraftinghuristics huristic={craftingData.calcChain(goal)}/> */}
-                    No resources in Crafting Request have crafting recipes.
-                </div>
-            )
-        } else {
-            if (!modeCheckbox) {
-                bestHuristic = huristicList[huristicNum]
-            }
-            return (
-                <div>
-                    <div className="flex">
-                        <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
-                        <label><button onClick={() => console.log(huristicList)}/>(Log best huristic)</label>
-                        <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
-                        <HuristicNumberChoice boxState={modeCheckbox} huristicNum={huristicNum} updateHuristicNum={updateHuristicNum} huristicList={huristicList}/>
-                        <ConfigButtons config={svgConfigObj} configDispatch={dispatchConfig}/>
-                    </div>
-                    <SVGHuristic huristic={bestHuristic} config={svgConfigObj} configDispatch={dispatchConfig}/>
-                    <HuristicStats huristic={bestHuristic}/>
-                </div>
-            )
+        // let bestHuristic = solver.bestHuristic(huristicList, solver.defaultHuristic)!;
+        let bestMeta = metaSolves.getBest(SolveMeta.minCostFunc);
+        let chosenMetaText = "";
+        if (!modeCheckbox) {
+            chosenMetaText = Object.keys(metaSolves.permMetaCollection)[huristicNum];
+            bestMeta = metaSolves.permMetaCollection[chosenMetaText];
         }
+        return (
+            <div>
+                <div className="flex">
+                    <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
+                    <label><button onClick={() => console.log(bestMeta)}/>(Log best huristic)</label>
+                    <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
+                    <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
+                    <ConfigButtons config={svgConfigObj} configDispatch={dispatchConfig}/>
+                </div>
+                <div>
+                    {chosenMetaText}
+                </div>
+                <SVGHuristic permMeta={bestMeta} config={svgConfigObj} configDispatch={dispatchConfig}/>
+                <HuristicStats permMeta={bestMeta}/>
+            </div>
+        )
     } else {
         return (
             <></>

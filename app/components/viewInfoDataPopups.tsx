@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
-import { cloneDeep } from "lodash";
-import { chainHuristicsStats } from "../crafting/craftingChain";
+import { PermMeta } from "../crafting/solver";
 
 
 function DisplayStackInline({stack}: {stack: Stack}) {
@@ -45,54 +44,44 @@ export function ItemPopupText({resource}: {resource: Resource}) {
 }
 
 
-export function DisplayRecipe({recipe, ratio}: {recipe: Recipe, ratio: number}) {
+export function DisplayRecipe({recipe, ratio = 1}: {recipe: Recipe, ratio: number}) {
+    // Now calculates and inserts the ratio.
     return (
         <div>
-            Process: {recipe.processUsed}({ratio}) = {recipe.outputResources.map(stack => <DisplayStackInline stack={stack} key={stack.resourceName}/>)}
+            Process: {recipe.processUsed}({ratio}) = {recipe.outputResources.map(stack => <DisplayStackInline stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/>)}
             <div>
-                {recipe.inputResources.map(stack => <DisplayStack stack={stack} key={stack.resourceName}/>)}
+                {recipe.inputResources.map(stack => <DisplayStack stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/>)}
             </div>
         </div>
     )
 }
 
 
-function ProcessesUsedText({goalName, huristic}: {goalName: string, huristic: chainHuristicsStats}) {
+function ProcessesUsedText({goalName, permMeta}: {goalName: string, permMeta: PermMeta}) {
     // console.log(goalName)
     // console.log(huristic.recipesUsed[goalName])
+    if (permMeta.nodeCache[goalName].children.length > 1) {
+        console.error(`${goalName} resource node has too many recipe children.`);
+    }
+    const goalRecipeNode = permMeta.nodeCache[goalName].children[0];
+    const recipe = permMeta.craftingData.get(goalRecipeNode.name) as Recipe;
     return (
         <div>
             <h1>{`Craft ${goalName} via`}</h1>
-            {Object.keys(huristic.recipesUsed[goalName]).map((rId) => {
-                let id = parseInt(rId);
-                let recipe = cloneDeep(huristic.data.getRecipe(id)!);
-                let ratio = huristic.recipesUsed[goalName][id];
-                // console.log(id, recipe, ratio)
-                for (let r of recipe.inputResources) {
-                    r.amount *= ratio;
-                }
-                for (let r of recipe.outputResources) {
-                    r.amount *= ratio;
-                }
-                return (
-                    <div key={rId}>
-                        <DisplayRecipe recipe={recipe} ratio={ratio}/>
-                    </div>
-                )
-            })}
+            <DisplayRecipe recipe={recipe} ratio={goalRecipeNode.countRatio}/>
         </div>
     )
 }
 
 
-export function CTBStackPopup({pState, pClose, stack, huristic, showProcess}: {pState: boolean, pClose: () => void, stack: Stack, huristic: chainHuristicsStats, showProcess: boolean}) {
-    let resourceVal = huristic.data.resources[stack.resourceName];
+export function CTBStackPopup({pState, pClose, stack, permMeta, showProcess}: {pState: boolean, pClose: () => void, stack: Stack, permMeta: PermMeta, showProcess: boolean}) {
+    let resourceVal = permMeta.craftingData.resources[stack.resourceName];
     return (
         <Popup open={pState} onClose={pClose}>
             <div className="popup-content text-black">
                 <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
                 <ItemPopupText resource={resourceVal}/>
-                {(showProcess) ? <ProcessesUsedText goalName={stack.resourceName} huristic={huristic}/> : <></>}
+                {(showProcess) ? <ProcessesUsedText goalName={stack.resourceName} permMeta={permMeta}/> : <></>}
             </div>
             <div className="flex">
                 <button className="popup_button ml-auto" onClick={pClose}>Done</button>
@@ -103,13 +92,13 @@ export function CTBStackPopup({pState, pClose, stack, huristic, showProcess}: {p
 
 
 // An individual item in the CTB
-export function DisplayCTBItemStack({stack, huristic, showProcess = true}: {stack: Stack, huristic: chainHuristicsStats, showProcess?: boolean}) {
+export function DisplayCTBItemStack({stack, permMeta, showProcess = true}: {stack: Stack, permMeta: PermMeta, showProcess?: boolean}) {
     const [popupState, setPopupState] = useState(false);
     const disablePopup = () => {setPopupState(false)};
     const togglePopup = () => {setPopupState(!popupState)};
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
-            <CTBStackPopup pState={popupState} pClose={disablePopup} stack={stack} huristic={huristic} showProcess={showProcess}/>
+            <CTBStackPopup pState={popupState} pClose={disablePopup} stack={stack} permMeta={permMeta} showProcess={showProcess}/>
             <label>
             <input type="checkbox" className="mr-1"/>
             {stack.amount}x {stack.resourceName}

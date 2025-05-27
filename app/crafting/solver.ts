@@ -1,8 +1,5 @@
-
-import { chainHuristicsStats, craftingPathChoices, craftingPathPart, prePermRecipeChainNode, recipeVariants } from "./craftingChain";
 import { Permutation } from "./permutations";
 import { CraftingData, Stack } from "./units";
-import _ from "lodash";
 
 
 export type RRKey = string | number;   // Recipe or Resource name/key
@@ -159,7 +156,6 @@ export class PermMeta {
             if (!recipeNode.root) {
                 for (const parentNode of recipeNode.parents) {
                     const producedCount = this.craftingData.getRecipeOutputAmount(recipeName as number, parentNode.name as string)!.amount * recipeNode.countRatio;
-                    console.log("intermediate", parentNode.name, rootResources.includes(parentNode.name), producedCount, parentNode.startingRequestRatio)
                     if (!(rootResources.includes(parentNode.name) && producedCount == parentNode.startingRequestRatio)) {     // Don't want final outputs to be included in the intermediate list
                         this.intermediateStacks.push(new Stack(parentNode.name as string, producedCount));
                     }
@@ -306,8 +302,7 @@ export class StepNode {
                     }
                 }
             }
-            if (this.children.length > 0 && this.children[0].type == StepNodeType.RECIPE) {
-                // console.log("adding", this.name)
+            if (this.children.length > 1 && this.children[0].type == StepNodeType.RECIPE) {
                 this.solveMeta.recipeOptions[this.name] = this.children.length;
                 console.log("adding permutation", this.name, this.solveMeta.recipeOptions)
             }
@@ -334,14 +329,13 @@ export class StepNode {
         }
         // Skip recipes already traversed. This is the recursion check as well
         let newNode = null;
+        let alreadyVisited = false;
 
-        const debugLen = 9990
         if (this.type == StepNodeType.RECIPE) {
             if (this.solveMeta.currentPermMeta.visitedSet.has(this.name)) {
-                if (Object.keys(this.solveMeta.permMetaCollection).length == debugLen) console.log(`recipe ${this.name} visited`)
-                return;
+                newNode = this.solveMeta.currentPermMeta.nodeCache[this.name];
+                alreadyVisited = true;
             } else {
-                if (Object.keys(this.solveMeta.permMetaCollection).length == debugLen) console.log(`recipe ${this.name} added`)
                 this.solveMeta.currentPermMeta.visitedSet.add(this.name);
                 newNode = new StepNode(this.type, this.name, this.craftingData, this.solveMeta);
                 newNode.startingRequestRatio = this.startingRequestRatio;
@@ -349,10 +343,8 @@ export class StepNode {
             }
         } else if (this.type == StepNodeType.RESOURCE) {
             if (this.solveMeta.currentPermMeta.visitedSet.has(this.name)) {
-                if (Object.keys(this.solveMeta.permMetaCollection).length == debugLen) console.log(`resource ${this.name} fetched`, this.solveMeta.stepNodeCache[this.name])
                 newNode = this.solveMeta.currentPermMeta.nodeCache[this.name];
             } else {
-                if (Object.keys(this.solveMeta.permMetaCollection).length == debugLen) console.log(`resource ${this.name} added`)
                 newNode = new StepNode(this.type, this.name, this.craftingData, this.solveMeta);
                 newNode.startingRequestRatio = this.startingRequestRatio;
                 this.solveMeta.currentPermMeta.nodeCache[this.name] = newNode;
@@ -376,8 +368,10 @@ export class StepNode {
             const parent = this.solveMeta.currentPermMeta.treeStack[this.solveMeta.currentPermMeta.treeStack.length - 1];
             parent.addChild(newNode);
             this.solveMeta.currentPermMeta.treeStack.push(newNode);
-            for (const child of this.children) {
-                child.buildPermTree();
+            if (!alreadyVisited) {
+                for (const child of this.children) {
+                    child.buildPermTree();
+                }
             }
             this.solveMeta.currentPermMeta.treeStack.pop();
         } else if (this.type == StepNodeType.RESOURCE) {    // Registers resource node and only recurses into permutation recipe
@@ -400,11 +394,9 @@ export class StepNode {
         if (this.root) {
             rootChildren = this.children.length;
         }
-        console.log("in", this.name);
         for (const child of this.children) {
             child.pruneBadNodes();
         }
-        console.log("checking", this.name)
 
         let removeSelf = false;
         if (this.root && this.children.length != rootChildren) {
@@ -413,20 +405,17 @@ export class StepNode {
         } else if (this.root) {     // I don't like this, but we don't have anything to do after this.
             return;
         } else if (this.type == StepNodeType.RECIPE && this.children.length != this.craftingData.getRecipe(this.name as number)!.inputResources.length) {    // This also handles the root
-            console.log("rr name", this.name)
-            console.log("rr length", this.children)
-            console.log("rr recipe", this.craftingData.getRecipe(this.name as number))
+            console.log("pruning recipe", this.craftingData.getRecipe(this.name as number));
             removeSelf = true;
         } else if (this.type == StepNodeType.RESOURCE && this.children.length == 0 && !this.craftingData.resources[this.name]!.isBase) {
+            console.log("pruning resource", this.craftingData.get(this.name));
             removeSelf = true;
         }
         if (removeSelf) {
-            console.log("removing", this.name)
             for (const parent of this.parents) {
                 parent.children = parent.children.filter(child => child.name != this.name);
             }
         }
-        console.log("out", this.name)
     }
 
     setDepths() {
@@ -475,32 +464,21 @@ export class TempSolver {
 
     solve(request: Array<Stack>) {
         let meta = new SolveMeta(this.data);
-        // request = [
-        //     new Stack("Iron Pickaxe"),
-        //     new Stack("Iron Nuggets")
-        // ]
         let rootNode = this.createGraph(request, meta);
         console.log("root node", rootNode);
         let permutation = new Permutation(meta.recipeOptions);
         for (meta.recipePermutation = permutation.get(); 
             !permutation.done; 
             permutation.incrementPermutation(), meta.recipePermutation = permutation.get()) {
-            // meta.recipePermutation = {"Planks":0,"Stick":0,"Iron Ingot":0,"Iron Pickaxe":1,"Iron Nuggets":0};
 
             const permMeta = new PermMeta(meta.recipePermutation, this.data);
             meta.currentPermMeta = permMeta;
 
-            console.log("depths set", meta.recipePermutation)
             rootNode.buildPermTree();       // Based on rootNode, build the perm tree using perm info
             
             permMeta.build();
-            console.log("perm", permMeta)
 
-            console.log("meta", rootNode.solveMeta)
-            console.log("-------")
-            // return
             meta.reset();
-            // break
         }
 
 
@@ -526,233 +504,3 @@ export class TempSolver {
 
 }
 
-interface HuristicEval {(huristic: chainHuristicsStats): number}
-
-
-export class OldSolver {
-
-
-    constructor(public data: CraftingData) {
-        this.data = data;
-    }
-
-    // Build the initial recipeChainNode tree based on a single starting node
-    // Returns if this node is considered "valid". Not sure if this ruins the function structure
-    createChainGraph(start: prePermRecipeChainNode, dupePathCheck: Set<string> = new Set(), prePermCache: Record<number, prePermRecipeChainNode> = {}): boolean {
-        // We assume that the start has the recipe id and we are trying to fill in all of the src children
-        if (!this.data.getRecipe(start.rId)) {
-            console.log("Something went very wrong. This starting recipe doesn't exist");
-            console.log(start, this.data.recipes);
-        } 
-
-        if (dupePathCheck.size > 20) {
-            console.log("dupeCheck is going deeper than expected. (20 recipes deep) Killing.")
-            return false; 
-        }
-
-        for (let resourceName of this.data.getRecipe(start.rId)!.getInputNames()) {  // for every resource needed to complete the recipe
-            if (this.data.resources[resourceName].isDisabled) {  // Check if this recipe tries to use a disabled resource
-                return false;
-            }
-
-            let tempItemRecipes = this.data.findRecipesFor(resourceName);  // Collect all recipes that could be used for this resource
-            let variantArray: recipeVariants = {variants: []};
-
-            for (let recipeId of tempItemRecipes) {
-                let dupeVal = `[${recipeId}, ${resourceName}]`;  // Check value for which recipe and for which item it's used for
-
-                if (!dupePathCheck.has(dupeVal)) {  // Check if this part of the recipe has already been used in the chain
-                    let tempDupeCheck = new Set(dupePathCheck);
-                    tempDupeCheck.add(dupeVal);  // Add current use to the dupe check
-                    let tempNode = new prePermRecipeChainNode(recipeId, resourceName);
-                    prePermCache[recipeId] = tempNode;  // Add to the cache for this recipe id
-
-                    if (this.createChainGraph(tempNode, tempDupeCheck)) {
-                        variantArray.variants.push(tempNode);
-                    }
-                }
-            }
-            if (variantArray.variants.length == 0 && tempItemRecipes.length > 0) {
-                return false;
-            }
-            if (variantArray.variants.length > 0) {
-                start.src.items.push(variantArray);
-            }
-        }
-        return true;
-    }
-
-    // Explore the node to find all places that have multiple variants
-    collectDecisionHashes(start: prePermRecipeChainNode, collectionData: craftingPathChoices) {
-        for (let item of start.src.items) {
-            if (item.variants.length > 1 && !(item.variants[0].goal in collectionData.choices)) {  // If there are choices to make and we haven't already handled this case
-                let variantCollection: craftingPathPart = {goal: item.variants[0].goal, rIdOptions: item.variants.map(r => r.rId)};  // [0].goal is ok because we have at least 2 here
-                collectionData.choices[variantCollection.goal] = variantCollection;
-            }
-            for (let recipe of item.variants) {
-                this.collectDecisionHashes(recipe, collectionData);
-            }
-        }
-    } 
-
-    // Expand a list of available permutations into each possible iteration
-    generateChoicePermutations(choiceCollection: craftingPathChoices): Array<craftingPathChoices> {
-        // Check for no choice case
-        if (Object.keys(choiceCollection.choices).length == 0) {
-            return []
-        }
-
-        let maxes: Array<number> = [];
-        let indexes: Array<number> = [];
-        let nameOrder: Array<string> = Object.keys(choiceCollection.choices);
-
-        // Extract data to set up state arrays
-        for(let name of nameOrder) {
-            maxes.push(choiceCollection.choices[name].rIdOptions.length);
-            indexes.push(0);
-        }
-        
-        // Loop stoping info
-        let start_state = _.clone(indexes);
-        let result: Array<craftingPathChoices> = [];
-        let iteration_count = 0;
-
-        while (!_.isEqual(indexes, start_state) || iteration_count == 0) {
-            if (iteration_count > 10002) { // This will stop insanely high numbers of permutations. Not sure if needed. At this size, lag spikes are ~5s
-                console.error("Permutation generation iteration count limit (10002) reached.");
-                break;
-            }
-            iteration_count++;
-
-            // Save current permutation state
-            let temp_perm: craftingPathChoices = new craftingPathChoices();
-            for (let i = 0; i < indexes.length; i++) {  // For each permutation entry
-                temp_perm.choices[nameOrder[i]] = {goal: nameOrder[i], rIdOptions: [choiceCollection.choices[nameOrder[i]].rIdOptions[indexes[i]]]};
-            }
-            result.push(temp_perm);
-
-            // Increment the permutation
-            let mutIndex = 0;
-            while (true) {
-                indexes[mutIndex]++;
-
-                if (indexes[mutIndex] == maxes[mutIndex]) {
-                    indexes[mutIndex] = 0;
-                    mutIndex++;
-
-                } else {
-                    break;
-                }
-
-                // We reach the end of the "number"
-                if (mutIndex == indexes.length) {
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-
-    // A basic wrapper function to apply the eval function to each huristic and return the best one. Lower is better
-    bestHuristic(options: Array<chainHuristicsStats>, evalFunc: HuristicEval) {
-        // We want lowest cost rn
-        let bestScore = null;
-        let bestOption: chainHuristicsStats|null = null;
-
-        for (let option of options) {
-            if (!bestOption) {
-                bestOption = option;
-                bestScore = evalFunc(option);
-
-            } else {
-                let tempScore = evalFunc(option);
-
-                if (tempScore < bestScore!) {
-                    bestScore = tempScore;
-                    bestOption = option;
-                }
-            }
-        }
-
-        if (!bestOption) {
-            console.log("FAILED TO FIND ANY WORKING OPTION.")
-        }
-        return bestOption!;
-    }
-
-    // A default implementation of a huristic eval function. It seems good enough for now. In order of impact: total number of input items > total number of resulting items > depth of longest chain > total nodes
-    defaultHuristic(huristic: chainHuristicsStats): number {
-        let inputCount = 0;
-        
-        for (let h of huristic.input) {
-            inputCount += Math.ceil(h.amount);
-        }
-        let outputCount = 0;
-
-        for (let h of huristic.output) {
-            outputCount += Math.ceil(h.amount)
-        }
-        return inputCount * 1000 + outputCount * 100 + huristic.longestDepth * 10 + huristic.steps;
-    }
-
-    // This does the work
-    // Based on a list of requested items, return all huristic analysis
-    calcChain(start: Array<string>) {
-        // Make sure we can run
-        if (!this.data.passedHealthCheck) {
-            this.data.runHealthChecks();
-
-            if (!this.data.passedHealthCheck) {
-                console.error("Failed health checks, not running CraftingData.calcChain");
-                return [];
-            }
-        }
-
-        // Merge all identical requests into a single larger one
-        let startConsolidate: Record<string, Stack> = {}
-        for (let s of start) {
-            if (s in startConsolidate) {
-                startConsolidate[s].amount++;
-
-            } else {
-                startConsolidate[s] = new Stack(s, 1)
-            }
-        }
-
-        // Options hold all found paths to get to the item.
-        let options = new prePermRecipeChainNode(0, "", true)  // Name is unique enough to not hit anything
-        for (let startingRecipes of Object.values(startConsolidate)) {
-            let variantsArray: recipeVariants = {variants: []};
-
-            for (let possibleRecipes of this.data.findRecipesFor(startingRecipes.resourceName)) {
-                let tempNode = new prePermRecipeChainNode(possibleRecipes, startingRecipes.resourceName);
-                this.createChainGraph(tempNode);
-                variantsArray.variants.push(tempNode);
-            }
-            if (variantsArray.variants.length > 0) {
-                options.src.items.push(variantsArray);
-            }
-        }
-
-        // Find decisions
-        let collectionStore = new craftingPathChoices();
-
-        this.collectDecisionHashes(options, collectionStore)
-
-        // Optimize to create the best tree
-        // I think we recommend the path that has the highest ratio of base items and if tied, the shortest path.
-        let permutations = this.generateChoicePermutations(collectionStore)
-
-        let huristicOptions: Array<chainHuristicsStats> = [];
-        if (permutations.length == 0) {
-            huristicOptions.push(new chainHuristicsStats(options, collectionStore, this.data, startConsolidate))
-
-        } else {
-            for (let perm of permutations) {
-                let huristics = new chainHuristicsStats(options, perm, this.data, startConsolidate);
-                huristicOptions.push(huristics);
-            }
-        }
-        return huristicOptions;
-    }
-}

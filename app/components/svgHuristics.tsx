@@ -33,12 +33,9 @@ class StepCircle {
     constructor(public stepNode: StepNode, public x: number, public y: number, public mRef: PermMeta) {}
 }
 
+
 class StepArrow {
     constructor(public from: StepCircle, public to: StepCircle) {}
-}
-
-class NodeState {
-    constructor(public recipeNode: StepNode, public nodeDepthOffset: number, public aboveNodeBreadthOffset: number, public circle: StepCircle) {}
 }
 
 
@@ -72,7 +69,6 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
 
     let count = 0;
     for (const stepNode of permMeta.leveledNodes) {
-        if (count == 9) console.log("creating circle", stepNode)
         const xOffset = widthPadding + depthOffset * (stepNode.depth - 0.5);    // -0.5 provides centering
         const yOffset = heightPadding + breadthOffset * stepNode.scaledWidthOffset + breadthOffset * stepNode.scaledWidth / 2;
         const stepCircle = new StepCircle(stepNode, xOffset, yOffset, permMeta);
@@ -114,8 +110,6 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
             configDispatch({type: "set second"}); 
         }
     }
-    console.log("svg circles", circleCollection)
-    console.log("svg arrows", arrowCollection)
 
     return (
         <svg className={`bg-neutral-100 w-full h-[${Math.round(originalBoxHeight)}px]`} viewBox={`${boxStartX} ${boxStartY} ${boxWidth} ${boxHeight}`} onClick={svgClickCallback} ref={svgthing}>

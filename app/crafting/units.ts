@@ -1,4 +1,3 @@
-// import _ from "lodash";
 import { plainToInstance, Transform, Type } from "class-transformer";
 
 class BaseThing {

@@ -14,7 +14,6 @@ export class Permutation {
     }
 
     get() {
-        // console.log("get", this)
         return this.permutationState;
     }
 
@@ -23,7 +22,6 @@ export class Permutation {
     }
 
     incrementPermutation() {
-        console.log("permute")
         let names = Object.keys(this.permutationLimits);
         let pointer = names.length - 1;
 

@@ -78,3 +78,7 @@ header {
 .readable_text {
   @apply text-black
 }
+
+.highlight_background {
+  @apply bg-slate-300
+}

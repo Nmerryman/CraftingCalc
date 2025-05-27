@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
-import { PermMeta } from "../crafting/solver";
+import { PermMeta, StepNodeType } from "../crafting/solver";
 
 
 function DisplayStackInline({stack}: {stack: Stack}) {
@@ -48,27 +48,36 @@ export function DisplayRecipe({recipe, ratio = 1}: {recipe: Recipe, ratio: numbe
     // Now calculates and inserts the ratio.
     return (
         <div>
-            Process: {recipe.processUsed}({ratio}) = {recipe.outputResources.map(stack => <DisplayStackInline stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/>)}
-            <div>
-                {recipe.inputResources.map(stack => <DisplayStack stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/>)}
+            <div className="highlight_background">
+                {recipe.inputResources.map(stack => <div key={stack.resourceName}><DisplayStackInline stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/> ({stack.amount}x per)</div>)}
+            </div>
+            &darr;
+            <div className="highlight_background">
+            Into: {recipe.processUsed}({ratio}x) 
+            </div>
+            &darr;
+            <div className="highlight_background">
+                {recipe.outputResources.map(stack => <div key={stack.resourceName}><DisplayStackInline stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/> ({stack.amount}x per)</div>)}
             </div>
         </div>
     )
 }
 
 
-function ProcessesUsedText({goalName, permMeta}: {goalName: string, permMeta: PermMeta}) {
-    // console.log(goalName)
-    // console.log(huristic.recipesUsed[goalName])
-    if (permMeta.nodeCache[goalName].children.length > 1) {
-        console.error(`${goalName} resource node has too many recipe children.`);
+function ProcessesUsedText({nodeKey, permMeta}: {nodeKey: string, permMeta: PermMeta}) {
+    // RecipeUsedText may be more accurate
+    const stepNode = permMeta.nodeCache[nodeKey];
+    let recipe = null;
+    if (stepNode.type == StepNodeType.RECIPE) {
+        recipe = permMeta.craftingData.get(nodeKey) as Recipe;
+    } else {
+        recipe = permMeta.craftingData.get(stepNode.children[0].name) as Recipe;
     }
-    const goalRecipeNode = permMeta.nodeCache[goalName].children[0];
-    const recipe = permMeta.craftingData.get(goalRecipeNode.name) as Recipe;
+
     return (
         <div>
-            <h1>{`Craft ${goalName} via`}</h1>
-            <DisplayRecipe recipe={recipe} ratio={goalRecipeNode.countRatio}/>
+            <h1>{`Craft recipe ${nodeKey} via`}</h1>
+            <DisplayRecipe recipe={recipe} ratio={stepNode.countRatio}/>
         </div>
     )
 }
@@ -76,18 +85,32 @@ function ProcessesUsedText({goalName, permMeta}: {goalName: string, permMeta: Pe
 
 export function CTBStackPopup({pState, pClose, stack, permMeta, showProcess}: {pState: boolean, pClose: () => void, stack: Stack, permMeta: PermMeta, showProcess: boolean}) {
     let resourceVal = permMeta.craftingData.resources[stack.resourceName];
-    return (
-        <Popup open={pState} onClose={pClose}>
-            <div className="popup-content text-black">
-                <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
-                <ItemPopupText resource={resourceVal}/>
-                {(showProcess) ? <ProcessesUsedText goalName={stack.resourceName} permMeta={permMeta}/> : <></>}
-            </div>
-            <div className="flex">
-                <button className="popup_button ml-auto" onClick={pClose}>Done</button>
-            </div>
-        </Popup>
-    )
+    if (resourceVal != undefined) {
+        return (
+            <Popup open={pState} onClose={pClose}>
+                <div className="text-black">
+                    <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
+                    <ItemPopupText resource={resourceVal}/>
+                    {(showProcess) ? <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/> : <></>}
+                </div>
+                <div className="flex">
+                    <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+                </div>
+            </Popup>
+        )
+    } else {
+        return (
+            <Popup open={pState} onClose={pClose}>
+                <div className="text-black">
+                    <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
+                    <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/>
+                </div>
+                <div className="flex">
+                    <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+                </div>
+            </Popup>
+        )
+    }
 }
 
 

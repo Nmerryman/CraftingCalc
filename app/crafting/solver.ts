@@ -44,37 +44,10 @@ export class PermMeta {
             return;
         }
         this.root.setDepths();
-        this.leveledNodes.sort((a, b) => a.depth - b.depth);  // Sort leveled nodes by depth
+        this.leveledNodes.sort((a, b) => a.depth - b.depth);  // Sort leveled nodes by depth; 0 comes first
         this.propagateRatios();
         this.calculateSizes();
-
-        // Maybe turn into method?
-        for (const resourceName of this.resourceOrder) {
-            const resourceNode = this.nodeCache[resourceName];
-            if (resourceNode.children.length == 0) {
-                this.inputStacks.push(new Stack(resourceName as string, resourceNode.countRatio));
-            }  
-        }
-        const rootResources: Array<RRKey> = this.nodeCache[-1].children.map(node => node.name);
-        for (const recipeName of this.recipeOrder) {
-            const recipeNode = this.nodeCache[recipeName];
-            if (!recipeNode.root) {
-                for (const parentNode of recipeNode.parents) {
-                    const producedCount = this.craftingData.getRecipeOutputAmount(recipeName as number, parentNode.name as string)!.amount * recipeNode.countRatio;
-                    if (!rootResources.includes(parentNode.name)) {     // Don't want final outputs to be included in the intermediate list
-                        this.intermediateStacks.push(new Stack(parentNode.name as string, producedCount));
-                    }
-                    if (producedCount > parentNode.countRatio) {
-                        this.outputStacks.push(new Stack(parentNode.name as string, producedCount - parentNode.countRatio));
-                    }
-                }
-            } else {    // Special case where children have been manually set
-                for (const childNode of recipeNode.children) {
-                    this.outputStacks.push(new Stack(childNode.name as string, childNode.countRatio));
-                }
-            }
-        }
-        this.outputStacks.reverse();
+        this.buildSteps();
     }
 
     loadPermutation(perm: Record<string, number>) {
@@ -88,13 +61,20 @@ export class PermMeta {
             console.error("Permutation root has not been set.", this);
             return;
         }
-        for (const node of this.leveledNodes.slice(1 + this.root.children.length)) {    // These have already been set
-            if (node.type == StepNodeType.RESOURCE) {
+        for (const node of this.leveledNodes.slice(1)) {    // These have already been set
+            if (node.root) {
+                continue;
+            } else if (node.type == StepNodeType.RESOURCE) {
                 // When a resource has multiple parents, that means that it's needed for multiple recipes
+                const startingRatio = node.countRatio;
                 node.countRatio = 0;
                 for (const parentNode of node.parents) {
-                    const recipeInput = this.craftingData.getRecipeInputAmount(parentNode.name as number, node.name as string);
-                    node.countRatio += parentNode.countRatio * recipeInput!.amount;
+                    if (!parentNode.root){
+                        const recipeInput = this.craftingData.getRecipeInputAmount(parentNode.name as number, node.name as string);
+                        node.countRatio += parentNode.countRatio * recipeInput!.amount;
+                    } else {
+                        node.countRatio += startingRatio;
+                    }
                 }
             } else if (node.type == StepNodeType.RECIPE) {
                 // When a recipe has multiple parents, that means the recipe produces multiple outputs, each of which are used
@@ -127,7 +107,6 @@ export class PermMeta {
                 // We know that childless nodes will be resources
                 this.resourceCounts[node.name] = node.countRatio;
                 this.resourceOrder.push(node.name);
-                console.log("CS name", node.name)
                 this.cost += node.countRatio * this.craftingData.resources[node.name as string].value;
             } else {
                 if (node.type == StepNodeType.RECIPE) {
@@ -156,6 +135,7 @@ export class PermMeta {
             const nodesInLevel = this.leveledNodes.filter(node => node.depth == depthIndex);
             const minWidth = nodesInLevel.map(node => node.width).reduce((prev, curr) => prev + curr, 0);
             let accruedOffset = 0;
+            
             for (const node of nodesInLevel) {
                 node.scaledWidthOffset = accruedOffset;
                 const scaledWidth = node.width / minWidth * maxWidth
@@ -165,6 +145,36 @@ export class PermMeta {
         }
     }
 
+    buildSteps() {
+        // Maybe turn into method?
+        for (const resourceName of this.resourceOrder) {
+            const resourceNode = this.nodeCache[resourceName];
+            if (resourceNode.children.length == 0) {
+                this.inputStacks.push(new Stack(resourceName as string, resourceNode.countRatio));
+            }  
+        }
+        const rootResources: Array<RRKey> = this.nodeCache[-1].children.map(node => node.name);
+        for (const recipeName of this.recipeOrder) {
+            const recipeNode = this.nodeCache[recipeName];
+            if (!recipeNode.root) {
+                for (const parentNode of recipeNode.parents) {
+                    const producedCount = this.craftingData.getRecipeOutputAmount(recipeName as number, parentNode.name as string)!.amount * recipeNode.countRatio;
+                    console.log("intermediate", parentNode.name, rootResources.includes(parentNode.name), producedCount, parentNode.startingRequestRatio)
+                    if (!(rootResources.includes(parentNode.name) && producedCount == parentNode.startingRequestRatio)) {     // Don't want final outputs to be included in the intermediate list
+                        this.intermediateStacks.push(new Stack(parentNode.name as string, producedCount));
+                    }
+                    if (producedCount > parentNode.countRatio) {    // Extra produced by rounding error
+                        this.outputStacks.push(new Stack(parentNode.name as string, producedCount - parentNode.countRatio));
+                    }
+                }
+            } else {    // Special case where children have been manually set
+                for (const childNode of recipeNode.children.toReversed()) {
+                    this.outputStacks.push(new Stack(childNode.name as string, childNode.startingRequestRatio));
+                }
+            }
+        }
+        this.outputStacks.reverse();
+    }
 
 }
 
@@ -228,6 +238,7 @@ export class StepNode {
     
     // Stage 3: Analysis and Propagation
     countRatio: number = -1;    // Number of times this node is used in the recipe
+    startingRequestRatio = -1;
     width: number = -1;      // How much width is needed
     widthsAccountedFor: Set<RRKey> = new Set();
     scaledWidth: number = -1;   // Basically rendering coordinates
@@ -324,7 +335,7 @@ export class StepNode {
         // Skip recipes already traversed. This is the recursion check as well
         let newNode = null;
 
-        const debugLen = 0
+        const debugLen = 9990
         if (this.type == StepNodeType.RECIPE) {
             if (this.solveMeta.currentPermMeta.visitedSet.has(this.name)) {
                 if (Object.keys(this.solveMeta.permMetaCollection).length == debugLen) console.log(`recipe ${this.name} visited`)
@@ -333,6 +344,7 @@ export class StepNode {
                 if (Object.keys(this.solveMeta.permMetaCollection).length == debugLen) console.log(`recipe ${this.name} added`)
                 this.solveMeta.currentPermMeta.visitedSet.add(this.name);
                 newNode = new StepNode(this.type, this.name, this.craftingData, this.solveMeta);
+                newNode.startingRequestRatio = this.startingRequestRatio;
                 this.solveMeta.currentPermMeta.nodeCache[this.name] = newNode;
             }
         } else if (this.type == StepNodeType.RESOURCE) {
@@ -342,6 +354,7 @@ export class StepNode {
             } else {
                 if (Object.keys(this.solveMeta.permMetaCollection).length == debugLen) console.log(`resource ${this.name} added`)
                 newNode = new StepNode(this.type, this.name, this.craftingData, this.solveMeta);
+                newNode.startingRequestRatio = this.startingRequestRatio;
                 this.solveMeta.currentPermMeta.nodeCache[this.name] = newNode;
             }
             this.solveMeta.currentPermMeta.visitedSet.add(this.name);
@@ -421,32 +434,26 @@ export class StepNode {
             console.error("SolveMeta.currentPermMeta is not set in setDepths");
             return;
         }
-        // console.log(this._testingId, this.solveMeta.recipePermutation)
-        if (this.root) {
-            this.depth = 0;
-        }
-        // Log the longest depth
-        if (this.children.length == 0) {
-            this.solveMeta.currentPermMeta.depth = Math.max(this.solveMeta.currentPermMeta.depth, this.depth);
-        }
-        // Also use this function to store flattened nodes
+
+        // Also use this function to store flattened nodes. Order does not matter yet as long as unique
         if (!this.solveMeta.currentPermMeta.savedLeveledNodes.has(this.name)) {            
             this.solveMeta.currentPermMeta.savedLeveledNodes.add(this.name);
             this.solveMeta.currentPermMeta.leveledNodes.push(this);
+        }
+        if (!(this.name in this.solveMeta.currentPermMeta.nodeCache)) {
             this.solveMeta.currentPermMeta.nodeCache[this.name] = this;
         }
-        // Split up so that it gets updated in level order
-        for (let child of this.children) {
-            child.depth = this.depth + 1;
+
+        if (this.root) {
+            this.depth = 0;
+        } else {
+            this.depth = Math.max(...this.parents.map(p => p.depth)) + 1;
+        }
+        // Log the longest depth if new max
+        if (this.children.length == 0) {
+            this.solveMeta.currentPermMeta.depth = Math.max(this.solveMeta.currentPermMeta.depth, this.depth);
         }
 
-        // if (this.children.length > 0 && this.type == StepNodeType.RESOURCE) {
-        //     console.log("name", this.name)
-        //     console.log("perm", this.solveMeta.recipePermutation)
-        //     console.log("children", this.children)
-        //     this.children[this.solveMeta.recipePermutation[this.name]].setDepths()
-        // } else {
-        // }
         for (const child of this.children) {
             child.setDepths()
         }
@@ -468,12 +475,17 @@ export class TempSolver {
 
     solve(request: Array<Stack>) {
         let meta = new SolveMeta(this.data);
+        // request = [
+        //     new Stack("Iron Pickaxe"),
+        //     new Stack("Iron Nuggets")
+        // ]
         let rootNode = this.createGraph(request, meta);
         console.log("root node", rootNode);
         let permutation = new Permutation(meta.recipeOptions);
         for (meta.recipePermutation = permutation.get(); 
             !permutation.done; 
             permutation.incrementPermutation(), meta.recipePermutation = permutation.get()) {
+            // meta.recipePermutation = {"Planks":0,"Stick":0,"Iron Ingot":0,"Iron Pickaxe":1,"Iron Nuggets":0};
 
             const permMeta = new PermMeta(meta.recipePermutation, this.data);
             meta.currentPermMeta = permMeta;
@@ -488,6 +500,7 @@ export class TempSolver {
             console.log("-------")
             // return
             meta.reset();
+            // break
         }
 
 
@@ -501,7 +514,9 @@ export class TempSolver {
         for (let stack of request) {
             let resourceNode = new StepNode(StepNodeType.RESOURCE, stack.resourceName, this.data, meta);
             resourceNode.countRatio = stack.amount;
+            resourceNode.startingRequestRatio = stack.amount;
             rootNode.addChild(resourceNode);
+            meta.stepNodeCache[stack.resourceName] = resourceNode;
         }
         rootNode.populateChildren();
         rootNode.pruneBadNodes();

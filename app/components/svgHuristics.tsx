@@ -4,7 +4,6 @@ import { svgConfig, svgConfigAction } from "./huristics";
 import { TextCircle, ArrowPath, calcArrows, Coordinate } from "./svg";
 import { CTBStackPopup } from "./viewInfoDataPopups";
 import { PermMeta, RRKey, StepNode, StepNodeType } from "../crafting/solver";
-import { metadata } from "../layout";
 
 
 type InfoTextCircleProc = {
@@ -60,7 +59,7 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
     let boxHeight = window.innerHeight * screenHeight;
     let heightPadding = boxHeight / 10;
     let breadthOffset = (boxHeight - 2 * heightPadding) / permMeta.root.width;  // This one will need to get scaled better latter
-    let depthOffset = (boxWidth - 2 * widthPadding) / (permMeta.depth - 1);  
+    let depthOffset = (boxWidth - 2 * widthPadding) / (permMeta.depth);  
     boxStartX += 2 * depthOffset;
     let originalBoxStartX = boxStartX;
     let originalBoxStartY = boxStartY;
@@ -71,12 +70,15 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
     const circleCache: Record<RRKey, StepCircle> = {};
     const arrowCollection: Array<StepArrow> = [];
 
+    let count = 0;
     for (const stepNode of permMeta.leveledNodes) {
-        const xOffset = widthPadding + depthOffset * (stepNode.depth - 1);
+        if (count == 9) console.log("creating circle", stepNode)
+        const xOffset = widthPadding + depthOffset * (stepNode.depth - 0.5);    // -0.5 provides centering
         const yOffset = heightPadding + breadthOffset * stepNode.scaledWidthOffset + breadthOffset * stepNode.scaledWidth / 2;
         const stepCircle = new StepCircle(stepNode, xOffset, yOffset, permMeta);
         circleCollection.push(stepCircle);
         circleCache[stepNode.name] = stepCircle;
+        count++;
     }
     for (const stepNode of permMeta.leveledNodes) {
         for (const parent of stepNode.parents) {
@@ -87,56 +89,6 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
             arrowCollection.push(newArrow);
         }
     }
-
-    // let startRecipeCircle = new recipeCircle(new Stack(""), widthPadding, heightPadding + breadthOffset * permMeta.root.width / 2, permMeta, undefined, true);
-    
-    // This stack holds the current state off all nodes we need to traverse to get to the current one,
-    // -1 because we want the first node base node shouldn't be included
-    // let nodeStateQueue: Array<nodeState> = [new nodeState(permMeta.root, -1, 0, startRecipeCircle)]; 
-    // circleCollection.push(startRecipeCircle);
-
-    // while (nodeStateQueue.length > 0) {
-    //     let currentNode = nodeStateQueue.splice(0,1)[0];
-
-    //     // Add src nodes to the queue
-    //     let breadthCounter = 0;
-    //     for (let srcItem of currentNode.recipeNode.children) {
-    //         let tempDepth = currentNode.nodeDepthOffset + 1;  // Logical depth
-    //         let tempAboveBreath = breadthCounter + currentNode.aboveNodeBreadthOffset;  // logical breadth space count above the new item
-    //         let tempX = widthPadding + tempDepth * depthOffset;  // Depth to x
-    //         let tempY = heightPadding + breadthOffset * (tempAboveBreath + srcItem.width / 2);  // Breadth to y
-
-    //         let circle = new recipeCircle(new Stack(srcItem.name as string, srcItem.countRatio * permMeta.craftingData.getRecipeOutputAmount(srcItem.rId, srcItem.goal)!.amount), tempX, tempY, metadata)
-    //         let newNode = new nodeState(srcItem, tempDepth, tempAboveBreath, circle);
-    //         nodeStateQueue.push(newNode);
-            
-    //         circleCollection.push(circle);
-    //         if (!currentNode.recipeNode.root) {
-    //             let newArrow = new recipeArrow(currentNode.circle, circle);
-    //             arrowCollection.push(newArrow);
-    //         }
-
-    //         breadthCounter += srcItem.hWidth;  // Add the size of the current item to be put above the next one
-    //     }
-
-    //     // Add nodes that don't have any recipes
-    //     if (!currentNode.recipeNode.root) {
-    //         for (let item of huristic.srcItemsWithoutRecipe(currentNode.recipeNode)) {
-    //             let tempDepth = currentNode.nodeDepthOffset + 1;  // Logical depth
-    //             let tempAboveBreath = breadthCounter + currentNode.aboveNodeBreadthOffset;  // logical breadth space count above the new item
-    //             let tempX = widthPadding + tempDepth * depthOffset;  // Depth to x
-    //             let tempY = heightPadding + breadthOffset * (tempAboveBreath + 1 / 2);  // Breadth to y
-    
-    //             let circle = new recipeCircle(new Stack(item.resourceName, currentNode.recipeNode.hRatio * item.amount), tempX, tempY, huristic, true)
-                
-    //             circleCollection.push(circle);
-    //             let newArrow = new recipeArrow(currentNode.circle, circle);
-    //             arrowCollection.push(newArrow);
-    
-    //             breadthCounter += 1;  // Add the size of the current item to be put above the next one
-    //         }
-    //     }
-    // }
 
     if (config.useZoom) {
         boxStartX = config.tl!.x;
@@ -162,6 +114,8 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
             configDispatch({type: "set second"}); 
         }
     }
+    console.log("svg circles", circleCollection)
+    console.log("svg arrows", arrowCollection)
 
     return (
         <svg className={`bg-neutral-100 w-full h-[${Math.round(originalBoxHeight)}px]`} viewBox={`${boxStartX} ${boxStartY} ${boxWidth} ${boxHeight}`} onClick={svgClickCallback} ref={svgthing}>

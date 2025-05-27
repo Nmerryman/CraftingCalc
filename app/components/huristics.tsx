@@ -41,7 +41,7 @@ function HuristicStats({permMeta}: {permMeta: PermMeta}) {
                 </div>
                 <div>
                 {
-                    permMeta.outputStacks.map(stack => <DisplayCTBItemStack stack={stack} permMeta={permMeta} key={stack.resourceName}/>)   
+                    permMeta.outputStacks.map((stack, i) => <DisplayCTBItemStack stack={stack} permMeta={permMeta} key={`${stack.resourceName}_${i}`}/>)   
                     
                 }
                 </div>
@@ -52,7 +52,7 @@ function HuristicStats({permMeta}: {permMeta: PermMeta}) {
                 </div>
                 <div>
                 {
-                    permMeta.intermediateStacks.map(stack => <DisplayCTBItemStack stack={stack} permMeta={permMeta} key={stack.resourceName}/>)
+                    permMeta.intermediateStacks.map((stack, i) => <DisplayCTBItemStack stack={stack} permMeta={permMeta} key={`${stack.resourceName}_${i}`}/>)
                 }
                 </div>
             </span>
@@ -62,7 +62,7 @@ function HuristicStats({permMeta}: {permMeta: PermMeta}) {
                 </div>
                 <div>
                 {
-                    permMeta.inputStacks.map(stack => <DisplayCTBItemStack stack={stack} permMeta={permMeta} showProcess={false} key={stack.resourceName}/>)
+                    permMeta.inputStacks.map((stack, i) => <DisplayCTBItemStack stack={stack} permMeta={permMeta} showProcess={false} key={`${stack.resourceName}_${i}`}/>)
                 }
                 </div>
             </span>

@@ -53,7 +53,8 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     var value = element?.value;
     if (!value) {
         // value = "Dev";
-        value = "HDPE Pellet"
+        // value = "HDPE Pellet"
+        value = "BBF"
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -187,7 +188,8 @@ export default function Main() {
     }
 
     // const testResourceName = "Iron Pickaxe";
-    const testResourceName = "HDPE Pellet"
+    // const testResourceName = "HDPE Pellet"
+    const testResourceName = "Bricked Blast Furnace"
     useEffect(() => {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
@@ -209,12 +211,12 @@ export default function Main() {
                 :
                 <></>
             }
-            <button onClick={() => {
+            {/* <button onClick={() => {
                 craftingData.runHealthChecks();
                 let tempSolver = new TempSolver(craftingData);
                 console.log("Solver: ", tempSolver);
                 console.log("Solved: ", tempSolver.solve([new Stack(testResourceName, 1)]));
-            }}>test temp solver</button>
+            }}>test temp solver</button> */}
             <Header craftingDispatch={dispatchData} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}

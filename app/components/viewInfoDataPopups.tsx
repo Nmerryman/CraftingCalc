@@ -33,10 +33,6 @@ export function ItemPopupText({resource}: {resource: Resource}) {
             </label>
             <br/>
             <label>
-                <input type="checkbox" checked={resource.isAvailable} onChange={() => {resource.isAvailable = !resource.isAvailable, toggleDummy()}}/>Is the resource available?
-            </label>
-            <br/>
-            <label>
                 <input type="checkbox" checked={resource.isBase} onChange={() => {resource.isBase = !resource.isBase, toggleDummy()}}/>Treat resource as base
             </label>
         </div>

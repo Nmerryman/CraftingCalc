@@ -1,5 +1,5 @@
 import { Permutation } from "./permutations";
-import { CraftingData, Stack } from "./units";
+import { CraftingData, Resource, Stack } from "./units";
 
 
 export type RRKey = string | number;   // Recipe or Resource name/key
@@ -290,7 +290,8 @@ export class StepNode {
         } else {
             let parents = this.parentNames();
             for (let srcName of this.getSrcs()) {
-                if (!parents.has(srcName) && !this.craftingData.get(srcName)!.isDisabled) {
+                const srcThing = this.craftingData.get(srcName)!;
+                if (!parents.has(srcName) && !srcThing.isDisabled) {
                     if (srcName in this.solveMeta.stepNodeCache) {
                         let childNode = this.solveMeta.stepNodeCache[srcName];
                         this.addChild(childNode);
@@ -298,7 +299,9 @@ export class StepNode {
                         let childNode = new StepNode(this.swapType(), srcName, this.craftingData, this.solveMeta);
                         this.addChild(childNode);
                         this.solveMeta.stepNodeCache[srcName] = childNode;
-                        childNode.populateChildren();
+                        if (!(this.type == StepNodeType.RECIPE && (srcThing as Resource).isBase)) {
+                            childNode.populateChildren();
+                        }
                     }
                 }
             }

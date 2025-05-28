@@ -113,11 +113,11 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
 
     return (
         <svg className={`bg-neutral-100 w-full h-[${Math.round(originalBoxHeight)}px]`} viewBox={`${boxStartX} ${boxStartY} ${boxWidth} ${boxHeight}`} onClick={svgClickCallback} ref={svgthing}>
-            {arrowCollection.map((arrow) => {
+            {arrowCollection.map((arrow, i) => {
                 let lineVals = calcArrows(arrow.from, arrow.to, scale);
                 lineVals.a.x += originalBoxStartX;
                 lineVals.b.x += originalBoxStartX;
-                return <ArrowPath start={lineVals.b} end={lineVals.a} scale={scale} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y].join(" ")}/>
+                return <ArrowPath start={lineVals.b} end={lineVals.a} scale={scale} key={[lineVals.a.x, lineVals.a.y, lineVals.b.x, lineVals.b.y, i].join(" ")}/>
             })}
             {circleCollection.map((cir, i) => {
                 if (!cir.stepNode.root) { // Remove the root holding node that we don't actually need (for now.)

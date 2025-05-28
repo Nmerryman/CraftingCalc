@@ -5,7 +5,6 @@ class BaseThing {
     imgUrl?: string;
     sourceUrl?: string;
     isBase: boolean = false;
-    isAvailable: boolean = true;
     isDisabled: boolean = false;
     durability: number = -1;
     value: number = 1;

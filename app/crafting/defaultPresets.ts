@@ -162,7 +162,7 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
     markAsBaseResources(resources, ["Wrench", "Iron Ingot", "Hammer", "XP Bucket", "Gypsum Ore", "Calcite Ore", "Cactus", "Cobblestone",
         "Mortar", "Sand", "Hardened Clay", "Mold (Ingot)", "Wooden Form (Brick)", "Gravel", "Clay"])
 
-    disableResources(resources, ["XP Bucket"]);
+    // disableResources(resources, ["XP Bucket"]);
 
     let processes = {}
     addProcesses(processes, ["Crafting", "Forge Hammer", "Smelting", "Compressor", "Cauldron Washing", "Macerator", "Right Clicking Source",
@@ -223,6 +223,7 @@ export function mmHDPEPellet(dispatch: Dispatch<CraftingAction>) {
     addResources(resources, ["HDPE Pellet", "Substrate", "Oxygen", "Liquid Ethylene", "Bio Fuel", "Hydrogen", "Water", "Kelp"]);
     resources["Water"].isBase = true;
     resources["Kelp"].isBase = true;
+    resources["Liquid Ethylene"].isBase = true;
 
     let processes = {};
     addProcesses(processes, ["Pressurized Reaction Chamber", "Crusher", "Electrolytic Separator"])

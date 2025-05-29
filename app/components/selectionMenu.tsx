@@ -5,6 +5,7 @@ import { OnEnterCall } from "../utils/onEnter"
 import Popup from "reactjs-popup"
 import { DisplayRecipe, DisplayStack, ItemPopupText } from "./viewInfoDataPopups"
 import { simmilarityScoreFunc } from "./searchBarFunctionality"
+import Image from "next/image"
 
 
 type RequestMenuAction = {
@@ -159,8 +160,8 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
                 <input className="bg-slate-900 px-2" type="number" defaultValue={item.amount} onChange={(e) => {updateRequestMenu(e, item.resourceName, requestDispatch)}}/>
                 x {item.resourceName}
             </label>
-            <img src={xIcon.src} 
-                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer"/>
+            <Image src={xIcon.src} 
+                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer" alt="X Icon"/>
         </li>
     )
 

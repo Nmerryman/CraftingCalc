@@ -1,4 +1,4 @@
-import { Process, Recipe, Resource, Stack } from "./units";
+import { craftingMetaData, Process, Recipe, Resource, Stack } from "./units";
 import { CraftingAction } from "../components/crafting";
 import { Dispatch } from "react";
 
@@ -61,15 +61,16 @@ function devGenProcesses(): Record<string, Process> {
 
 function devGenRecipes(): Array<Recipe> {
     return [
-        new Recipe("Furnace", [new Stack("Iron Ore")], [new Stack("Iron Ingot")]),
-        new Recipe("Crafting Table", [new Stack("Iron Nuggets", 9)], [new Stack("Iron Ingot")]),
-        new Recipe("Crafting Table", [new Stack("Stick", 3), new Stack("Iron Ingot", 3)], [new Stack("Iron Pickaxe")]),
-        new Recipe("Crafting Table", [new Stack("Iron Ingot")], [new Stack("Iron Nuggets", 9)]),
-        new Recipe("Crafting Table", [new Stack("Planks")], [new Stack("Stick", 2)]), 
-        new Recipe("Crafting Table", [new Stack("Oak Logs")], [new Stack("Planks", 2), new Stack("Plank Dust")]),
-        new Recipe("Crafting Table", [new Stack("Birch Logs")], [new Stack("Planks")]),
-        new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),
-        // new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")])
+        new Recipe("Furnace", [new Stack("Iron Ore")], [new Stack("Iron Ingot")]),                                      // 0
+        new Recipe("Crafting Table", [new Stack("Iron Nuggets", 9)], [new Stack("Iron Ingot")]),                        // 1
+        new Recipe("Crafting Table", [new Stack("Stick", 3), new Stack("Iron Ingot", 3)], [new Stack("Iron Pickaxe")]), // 2
+        new Recipe("Crafting Table", [new Stack("Iron Ingot")], [new Stack("Iron Nuggets", 9)]),                        // 3
+        new Recipe("Crafting Table", [new Stack("Planks")], [new Stack("Stick", 2)]),                                   // 4
+        new Recipe("Crafting Table", [new Stack("Oak Logs")], [new Stack("Planks", 2), new Stack("Plank Dust")]),       // 5
+        new Recipe("Crafting Table", [new Stack("Birch Logs")], [new Stack("Planks")]),                                 // 6
+        new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),                              // 7
+        new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")]), // 8
+        new Recipe("Furnace", [new Stack("Birch Logs", 3)], [new Stack("Iron Nuggets")]),                                  // 9
     ]
 }
 
@@ -100,21 +101,32 @@ function remoteTest(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set resources", recordValue: resources});
     dispatch({type: "set processes", recordValue: processes});
     dispatch({type: "set recipes", arrayValue: recipes});
+    const meta: craftingMetaData = {name: "Compressed", dataVersion: 1, downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});
 }
 
 
 export function vanillaPickaxePreset(dispatch: Dispatch<CraftingAction>) {
-    // dispatch({type: "set resources", recordValue: devGenResources()});
-    // dispatch({type: "set processes", recordValue: devGenProcesses()});
-    // dispatch({type: "set recipes", arrayValue: devGenRecipes()});
-    remoteTest(dispatch)
+    dispatch({type: "set resources", recordValue: devGenResources()});
+    dispatch({type: "set processes", recordValue: devGenProcesses()});
+    dispatch({type: "set recipes", arrayValue: devGenRecipes()});
+    const meta: craftingMetaData = {name: "Pickaxe", dataVersion: 1, downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});
+}
+
+export function compressedCobblePreset(dispatch: Dispatch<CraftingAction>) {
+    remoteTest(dispatch);
 }
 
 
 export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
 
-    let resources = {}
+    let resources: Record<string, Resource> = {}
     addResources(resources, ["Leather", "Stone", "Tanned Leather", "Woven Cotton", "Bound Leather", "String", "Cotton", "Cobble Stone", "Backpack"]);
+
+    for (let name of ["Leather", "Cotton", "Cobble Stone"]) {
+        resources[name].isBase = true;
+    }
 
     let processes = {}
     addProcesses(processes, ["Crafting", "Drying", "Smelting"]);
@@ -132,6 +144,8 @@ export function gtBackpackPreset(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set resources", recordValue: resources});
     dispatch({type: "set processes", recordValue: processes});
     dispatch({type: "set recipes", arrayValue: recipes});
+    const meta: craftingMetaData = {name: "Backpack", dataVersion: 1, downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});
 }
 
 export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
@@ -148,7 +162,7 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
     markAsBaseResources(resources, ["Wrench", "Iron Ingot", "Hammer", "XP Bucket", "Gypsum Ore", "Calcite Ore", "Cactus", "Cobblestone",
         "Mortar", "Sand", "Hardened Clay", "Mold (Ingot)", "Wooden Form (Brick)", "Gravel", "Clay"])
 
-    disableResources(resources, ["XP Bucket"]);
+    // disableResources(resources, ["XP Bucket"]);
 
     let processes = {}
     addProcesses(processes, ["Crafting", "Forge Hammer", "Smelting", "Compressor", "Cauldron Washing", "Macerator", "Right Clicking Source",
@@ -198,5 +212,33 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set resources", recordValue: resources});
     dispatch({type: "set processes", recordValue: processes});
     dispatch({type: "set recipes", arrayValue: recipes});
+    let meta: craftingMetaData = {dataVersion: 1, name: "Blast Furnace", downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});   
 }
 
+
+export function mmHDPEPellet(dispatch: Dispatch<CraftingAction>) {
+
+    let resources: Record<string, Resource> = {};
+    addResources(resources, ["HDPE Pellet", "Substrate", "Oxygen", "Liquid Ethylene", "Bio Fuel", "Hydrogen", "Water", "Kelp"]);
+    resources["Water"].isBase = true;
+    resources["Kelp"].isBase = true;
+    resources["Liquid Ethylene"].isBase = true;
+
+    let processes = {};
+    addProcesses(processes, ["Pressurized Reaction Chamber", "Crusher", "Electrolytic Separator"])
+
+    let recipes = [
+        new Recipe("Pressurized Reaction Chamber", [new Stack("Liquid Ethylene", 50), new Stack("Oxygen", 10), new Stack("Substrate")], [new Stack("HDPE Pellet")]),
+        new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 10), new Stack("Hydrogen", 100), new Stack("Bio Fuel", 2)], [new Stack("Substrate"), new Stack("Liquid Ethylene", 100)]),
+        new Recipe("Crusher", [new Stack("Kelp")], [new Stack("Bio Fuel", 2)]),
+        new Recipe("Electrolytic Separator", [new Stack("Water", 2)], [new Stack("Hydrogen", 2), new Stack("Oxygen")]),
+        new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 200), new Stack("Liquid Ethylene", 100), new Stack("Substrate")], [new Stack("Substrate", 8)])
+    ]
+
+    dispatch({type: "set resources", recordValue: resources});
+    dispatch({type: "set processes", recordValue: processes});
+    dispatch({type: "set recipes", arrayValue: recipes});
+    let meta: craftingMetaData = {dataVersion: 1, name: "HDPE Pellet", downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});   
+}

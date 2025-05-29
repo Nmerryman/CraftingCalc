@@ -9,8 +9,10 @@ import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/onEnter";
 import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
-import { gtBackpackPreset, gtBlastFurnace, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { compressedCobblePreset, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
 import { HuristicsInfoDisplay } from "./components/huristics";
+import { TempSolver } from './crafting/solver';
+import { vanilla } from './crafting/vanillaPreset';
 
 
 
@@ -51,7 +53,9 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        value = "BBF";
+        // value = "Dev";
+        // value = "HDPE Pellet"
+        value = "Vanilla"
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -97,8 +101,6 @@ function ensureDefaultPresets() {
         fakeDispatch({type: "reset"});
         localStorage.setItem("Empty", JSON.stringify(tempData));
         availablePresetNames.push("Empty");
-        localStorage.setItem("Default", JSON.stringify(tempData));
-        availablePresetNames.push("Default")
 
         // Backpack
         fakeDispatch({type: "reset"});
@@ -111,6 +113,25 @@ function ensureDefaultPresets() {
         gtBlastFurnace(fakeDispatch);
         localStorage.setItem("BBF", JSON.stringify(tempData));
         availablePresetNames.push("BBF");
+
+        // MM HDPE Pellet 
+        fakeDispatch({type: "reset"});
+        mmHDPEPellet(fakeDispatch);
+        localStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
+        availablePresetNames.push(tempData._meta.name);
+
+        // Compressed Cobblestone
+        fakeDispatch({type: "reset"});
+        compressedCobblePreset(fakeDispatch);
+        localStorage.setItem("Comp Cobble", JSON.stringify(tempData));
+        availablePresetNames.push("Comp Cobble");
+
+        // Vanilla generated
+        fakeDispatch({type: "reset"});
+        vanilla(fakeDispatch);
+        localStorage.setItem("Vanilla", JSON.stringify(tempData));
+        availablePresetNames.push("Vanilla");
+
         
         // Store the currently available items
         localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
@@ -173,11 +194,19 @@ export default function Main() {
         pVals = JSON.parse(localAvailPresetNames);
     }
 
+    // const testResourceName = "Iron Pickaxe";
+    // const testResourceName = "HDPE Pellet"
+    const testResourceName = "iron ingot"
+    // const testResourceName = "mud"
     useEffect(() => {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
-        dispatchCraftingRequest({type: "toggle", name: "Flint"})
+        // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
+        // dispatchCraftingRequest({type: "toggle", name: testResourceName})
+        dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
+        dispatchCraftingRequest({type: "toggle", name: "iron axe"})
+        dispatchCraftingRequest({type: "toggle", name: "rail"})
     }, []);  // Run update once after main page load
 
     return (  // we can define the datalist early so that it can be used everywhere.
@@ -193,6 +222,12 @@ export default function Main() {
                 :
                 <></>
             }
+            {/* <button onClick={() => {
+                craftingData.runHealthChecks();
+                let tempSolver = new TempSolver(craftingData);
+                console.log("Solver: ", tempSolver);
+                console.log("Solved: ", tempSolver.solve([new Stack(testResourceName, 1)]));
+            }}>test temp solver</button> */}
             <Header craftingDispatch={dispatchData} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}
@@ -207,3 +242,8 @@ export default function Main() {
 
 var initialCraftingData = new CraftingData();
 
+// Todo:
+// when a requested item is needed in a later requested chain, an arrow is missing leaving the first item req
+// scrollable requests page maybe?
+// Remove process list?
+// 

@@ -40,6 +40,8 @@ class StepArrow {
 
 
 export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermMeta, config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
+    const svgthing = useRef<SVGSVGElement>(null);
+
     // A lot of this is just matching the interfaces up. There is a high chance that the logic is still broken.
     if (permMeta.root == null || !permMeta.root.possible) {
         console.error("Attempting to draw a meta that isn't possible", permMeta)
@@ -94,8 +96,6 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
     }
     let scale = Math.min(boxWidth / originalBoxWidth, boxHeight / originalBoxHeight);
     
-    const svgthing = useRef<SVGSVGElement>(null);
-
     function svgClickCallback(e: MouseEvent<SVGElement>) {
         let clickLoc = new DOMPoint(e.clientX, e.clientY).matrixTransform(svgthing.current!.getScreenCTM()!.inverse());
         console.log(clickLoc);

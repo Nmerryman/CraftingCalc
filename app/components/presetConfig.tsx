@@ -3,6 +3,7 @@ import { Popup } from "reactjs-popup"
 import xIcon from "./xIcon.png"
 import { CraftingData } from "../crafting/units";
 import { CraftingAction } from "./crafting";
+import Image from "next/image";
 
 
 export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNames, setLocalAvailPresetNames}: {craftingData: CraftingData, craftingDispatch: Dispatch<CraftingAction>, localAvailPresetNames: string, setLocalAvailPresetNames: Dispatch<string>}) {
@@ -109,7 +110,7 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
             <input type="button" value="Config" className="input_button" onClick={() => setPopupState(true)}/>
             <Popup open={popupState} onClose={closePopup}>
                 <div className="text-black items-center justify-center flex"><strong>Preset Config</strong>
-                    <img src={xIcon.src} className="h-7 absolute right-0" onClick={closePopup}/>
+                    <Image src={xIcon.src} className="h-7 absolute right-0" onClick={closePopup} alt="X"/>
                 </div>
                 <div className="text-black grid grid-cols-4 gap-3 m-3">
                     <span>

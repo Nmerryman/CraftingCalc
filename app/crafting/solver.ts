@@ -143,7 +143,6 @@ export class PermMeta {
     }
 
     buildSteps() {
-        // Maybe turn into method?
         for (const resourceName of this.resourceOrder) {
             const resourceNode = this.nodeCache[resourceName];
             if (resourceNode.children.length == 0) {
@@ -151,16 +150,20 @@ export class PermMeta {
             }  
         }
         const rootResources: Array<RRKey> = this.nodeCache[-1].children.map(node => node.name);
+        const handledParents: Set<RRKey> = new Set();
         for (const recipeName of this.recipeOrder) {
             const recipeNode = this.nodeCache[recipeName];
             if (!recipeNode.root) {
                 for (const parentNode of recipeNode.parents) {
-                    const producedCount = this.craftingData.getRecipeOutputAmount(recipeName as number, parentNode.name as string)!.amount * recipeNode.countRatio;
-                    if (!(rootResources.includes(parentNode.name) && producedCount == parentNode.startingRequestRatio)) {     // Don't want final outputs to be included in the intermediate list
-                        this.intermediateStacks.push(new Stack(parentNode.name as string, producedCount));
-                    }
-                    if (producedCount > parentNode.countRatio) {    // Extra produced by rounding error
-                        this.outputStacks.push(new Stack(parentNode.name as string, producedCount - parentNode.countRatio));
+                    if (!handledParents.has(parentNode.name)) {
+                        handledParents.add(parentNode.name)
+                        const producedCount = this.craftingData.getRecipeOutputAmount(recipeName as number, parentNode.name as string)!.amount * recipeNode.countRatio;
+                        if (!(rootResources.includes(parentNode.name) && producedCount == parentNode.startingRequestRatio)) {     // Don't want final outputs to be included in the intermediate list
+                            this.intermediateStacks.push(new Stack(parentNode.name as string, producedCount));
+                        }
+                        if (producedCount > parentNode.countRatio) {    // Extra produced by rounding error
+                            this.outputStacks.push(new Stack(parentNode.name as string, producedCount - parentNode.countRatio));
+                        }
                     }
                 }
             } else {    // Special case where children have been manually set
@@ -305,10 +308,6 @@ export class StepNode {
                     }
                 }
             }
-            if (this.children.length > 1 && this.children[0].type == StepNodeType.RECIPE) {
-                this.solveMeta.recipeOptions[this.name] = this.children.length;
-                console.log("adding permutation", this.name, this.solveMeta.recipeOptions)
-            }
         }
     }
 
@@ -384,6 +383,10 @@ export class StepNode {
             if (this.children.length == 1) {        // This avoids an extra perm lookup
                 this.children[0].buildPermTree();                
             } else if (this.children.length > 1) {
+                if (this.solveMeta.recipePermutation[this.name] == undefined) {
+                    console.log(this.name, "doesn't exist in", this.solveMeta.recipePermutation)
+                    console.log(this);
+                }
                 this.children[this.solveMeta.recipePermutation[this.name]].buildPermTree();
             }
             this.solveMeta.currentPermMeta.treeStack.pop();
@@ -408,7 +411,8 @@ export class StepNode {
         } else if (this.root) {     // I don't like this, but we don't have anything to do after this.
             return;
         } else if (this.type == StepNodeType.RECIPE && this.children.length != this.craftingData.getRecipe(this.name as number)!.inputResources.length) {    // This also handles the root
-            console.log("pruning recipe", this.craftingData.getRecipe(this.name as number));
+            const tempRecipe = this.craftingData.getRecipe(this.name as number);
+            console.log("pruning recipe, in:", tempRecipe?.inputResources, "out", tempRecipe?.outputResources);
             removeSelf = true;
         } else if (this.type == StepNodeType.RESOURCE && this.children.length == 0 && !this.craftingData.resources[this.name]!.isBase) {
             console.log("pruning resource", this.craftingData.get(this.name));
@@ -419,6 +423,23 @@ export class StepNode {
                 parent.children = parent.children.filter(child => child.name != this.name);
             }
         }
+    }
+
+    findPermOptions() {
+        if (this.root) {
+            for (const child of this.children) {
+                child.findPermOptions();
+            }
+        } else {
+            if (this.children.length > 1 && this.type == StepNodeType.RESOURCE && this.solveMeta.recipeOptions[this.name] == undefined) {
+                this.solveMeta.recipeOptions[this.name] = this.children.length;
+                console.log("adding permutation", this.name, this.solveMeta.recipeOptions)
+            }
+            for (const child of this.children) {
+                child.findPermOptions();
+            }
+        }
+
     }
 
     setDepths() {
@@ -469,6 +490,10 @@ export class TempSolver {
         let meta = new SolveMeta(this.data);
         let rootNode = this.createGraph(request, meta);
         console.log("root node", rootNode);
+        if (!rootNode.possible) {
+            console.error("Request has invalid items. Not sure how you did that.")
+            return rootNode;
+        }
         let permutation = new Permutation(meta.recipeOptions);
         for (meta.recipePermutation = permutation.get(); 
             !permutation.done; 
@@ -493,6 +518,10 @@ export class TempSolver {
         rootNode.root = true;
         rootNode.countRatio = 1;
         for (let stack of request) {
+            if (this.data.resources[stack.resourceName] == undefined) {
+                rootNode.possible = false;
+                return rootNode;
+            }
             let resourceNode = new StepNode(StepNodeType.RESOURCE, stack.resourceName, this.data, meta);
             resourceNode.countRatio = stack.amount;
             resourceNode.startingRequestRatio = stack.amount;
@@ -501,6 +530,7 @@ export class TempSolver {
         }
         rootNode.populateChildren();
         rootNode.pruneBadNodes();
+        rootNode.findPermOptions();
         return rootNode;
     }
 

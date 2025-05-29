@@ -12,6 +12,7 @@ import { PresetConfig } from "./components/presetConfig";
 import { compressedCobblePreset, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
 import { HuristicsInfoDisplay } from "./components/huristics";
 import { TempSolver } from './crafting/solver';
+import { vanilla } from './crafting/vanillaPreset';
 
 
 
@@ -54,7 +55,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     if (!value) {
         // value = "Dev";
         // value = "HDPE Pellet"
-        value = "BBF"
+        value = "Vanilla"
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -125,6 +126,12 @@ function ensureDefaultPresets() {
         localStorage.setItem("Comp Cobble", JSON.stringify(tempData));
         availablePresetNames.push("Comp Cobble");
 
+        // Vanilla generated
+        fakeDispatch({type: "reset"});
+        vanilla(fakeDispatch);
+        localStorage.setItem("Vanilla", JSON.stringify(tempData));
+        availablePresetNames.push("Vanilla");
+
         
         // Store the currently available items
         localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
@@ -189,13 +196,17 @@ export default function Main() {
 
     // const testResourceName = "Iron Pickaxe";
     // const testResourceName = "HDPE Pellet"
-    const testResourceName = "Bricked Blast Furnace"
+    const testResourceName = "iron ingot"
+    // const testResourceName = "mud"
     useEffect(() => {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
         // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
-        dispatchCraftingRequest({type: "toggle", name: testResourceName})
+        // dispatchCraftingRequest({type: "toggle", name: testResourceName})
+        dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
+        dispatchCraftingRequest({type: "toggle", name: "iron axe"})
+        dispatchCraftingRequest({type: "toggle", name: "rail"})
     }, []);  // Run update once after main page load
 
     return (  // we can define the datalist early so that it can be used everywhere.
@@ -231,3 +242,8 @@ export default function Main() {
 
 var initialCraftingData = new CraftingData();
 
+// Todo:
+// when a requested item is needed in a later requested chain, an arrow is missing leaving the first item req
+// scrollable requests page maybe?
+// Remove process list?
+// 

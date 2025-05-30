@@ -9,21 +9,26 @@ import { PermMeta, RRKey, StepNode, StepNodeType } from "../crafting/solver";
 type InfoTextCircleProc = {
     center: Coordinate,
     circleData: StepCircle, 
-    text: string, 
     scale?: number, 
     config?: svgConfig, 
 }
 
 
-function InfoTextCircle({center, circleData, text, scale = 1, config = new svgConfig()}: InfoTextCircleProc) {
+function InfoTextCircle({center, circleData, scale = 1, config = new svgConfig()}: InfoTextCircleProc) {
     const [popupState, setPopupState] = useState(false);
     const disablePopup = () => {setPopupState(false)};
     const togglePopup = () => {setPopupState(!popupState)};
 
+    let text = "";
+    if (circleData.stepNode.type == StepNodeType.RECIPE) {
+        text = `${circleData.stepNode.countRatio}x`;
+    } else if (circleData.stepNode.type == StepNodeType.RESOURCE) {
+        text = `${circleData.stepNode.countRatio}x of ${circleData.stepNode.name}`
+    }
     return (
         <g onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
             <CTBStackPopup pState={popupState} pClose={disablePopup} stack={new Stack(circleData.stepNode.name as string, circleData.stepNode.countRatio)} permMeta={circleData.mRef} showProcess={!circleData.stepNode.isBase()}/>
-            <TextCircle center={center} text={text} config={config} scale={scale}/>
+            <TextCircle center={center} text={text} node={circleData.stepNode} config={config} scale={scale}/>
         </g>
     )
 }
@@ -55,6 +60,9 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
     let boxWidth = window.innerWidth;
     let widthPadding = boxWidth / 10;
     let screenHeight = 0.5;
+    if (config.largeSvg) {
+        screenHeight = 1;   
+    }
     let boxHeight = window.innerHeight * screenHeight;
     let heightPadding = boxHeight / 10;
     let breadthOffset = (boxHeight - 2 * heightPadding) / permMeta.root.width;  // This one will need to get scaled better latter
@@ -121,7 +129,7 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
             })}
             {circleCollection.map((cir, i) => {
                 if (!cir.stepNode.root) { // Remove the root holding node that we don't actually need (for now.)
-                    return <InfoTextCircle center={{x: cir.x + originalBoxStartX, y: cir.y}} circleData={cir} text={`${cir.stepNode.countRatio}x of ${cir.stepNode.name}`} config={config} scale={scale} key={[cir.stepNode.name, cir.x, cir.y].join(" ")}/>
+                    return <InfoTextCircle center={{x: cir.x + originalBoxStartX, y: cir.y}} circleData={cir} config={config} scale={scale} key={[cir.stepNode.name, cir.x, cir.y].join(" ")}/>
                 }
             })}
             {/* Debug circles */}

@@ -1,5 +1,5 @@
-import { Dispatch, SyntheticEvent, useState } from "react"
-import { CraftingData, Process, Resource, Stack } from "../crafting/units"
+import { Dispatch, SyntheticEvent, useEffect, useState } from "react"
+import { CraftingData, Process, Recipe, Resource, Stack } from "../crafting/units"
 import xIcon from "./xIcon.png"
 import { OnEnterCall } from "../utils/onEnter"
 import Popup from "reactjs-popup"
@@ -68,26 +68,39 @@ function ResourceListItem({resource, dispatch, debugScore}: {resource: Resource,
 function ListResources({craftingData, requestDispatch}: {craftingData: CraftingData, requestDispatch: Dispatch<RequestMenuAction>}) {
     const [textState, setText] = useState("");
     let topName = "";
+    const [topScoresState, setTopScores] = useState<Array<Resource>>([]);
 
     function updateText() {
         let selectTextBox = document.getElementById("resource_search") as HTMLInputElement;
         setText(selectTextBox.value);
+
+        const resourceScores: Record<number, Array<Resource>> = {}
+        let maxScore = 0;
+        for (const resource of Object.values(craftingData.resources)) {
+            const score = simmilarityScoreFunc(textState, resource.name);
+            if (resourceScores[score] == undefined) {
+                resourceScores[score] = [];
+            }
+            resourceScores[score].push(resource);
+            maxScore = Math.max(maxScore, score);;
+        }
+        let topScores: Array<Resource> = [];
+        for (let i = 0; i <= maxScore; i++) {
+            if (resourceScores[i] != undefined) {
+                topScores = topScores.concat(resourceScores[i]);
+            }
+            if (topScores.length > 50) {   // This should be long enough to fill element
+                break;
+            }
+        }
+        setTopScores(topScores);
     }
 
     return (
         <ul>
             <div className="font-bold text-lime-500">Resource List</div>
             <input placeholder="Resource" id="resource_search" className="text-black pl-1" onChange={() => updateText()} onKeyDown={OnEnterCall(() => requestDispatch({type: "toggle", name: topName}))}/>
-            {Object.values(craftingData.resources)
-                .sort((rValA, rValB) => { 
-                    // This works, but I think I'd rather use a filter via the TextMatch function defined above. 
-                    // This method does not handle shortened versions of text comparisons well (leather vs tanned leather)
-                    if (simmilarityScoreFunc(textState, rValA.name) < simmilarityScoreFunc(textState, rValB.name)) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                })
+            {topScoresState
                 .map((rval, rIndex) => {
                     if (rIndex == 0) {  // Store the name of the top item in the sort so that we can reference it in an enter toggle later.
                         topName = rval.name;
@@ -160,7 +173,9 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
                 <input className="bg-slate-900 px-2" type="number" defaultValue={item.amount} onChange={(e) => {updateRequestMenu(e, item.resourceName, requestDispatch)}}/>
                 x {item.resourceName}
             </label>
-            <Image src={xIcon.src} 
+            {/* <Image src={xIcon.src} 
+                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer" alt="X Icon"/> */}
+            <img src={xIcon.src} 
                 onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer" alt="X Icon"/>
         </li>
     )

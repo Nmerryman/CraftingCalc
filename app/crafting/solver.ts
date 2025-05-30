@@ -104,7 +104,9 @@ export class PermMeta {
                 // We know that childless nodes will be resources
                 this.resourceCounts[node.name] = node.countRatio;
                 this.resourceOrder.push(node.name);
-                this.cost += node.countRatio * this.craftingData.resources[node.name as string].value;
+                // log2 because the assumtion is that it's easier to get more of an item you already have many of
+                // as opposed to adding new items
+                this.cost += Math.log2(node.countRatio * this.craftingData.resources[node.name as string].value);
             } else {
                 if (node.type == StepNodeType.RECIPE) {
                     this.recipeCounts[node.name] = node.countRatio;

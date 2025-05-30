@@ -246,6 +246,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
             chosenMetaText = Object.keys(metaSolves.permMetaCollection)[huristicNum];
             bestMeta = metaSolves.permMetaCollection[chosenMetaText];
         }
+        const chosenMetaCost = "Costs: " + bestMeta.cost.toPrecision(4).toString();
         return (
             <div>
                 <div className="flex">
@@ -253,6 +254,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
                     <label><button onClick={() => console.log(bestMeta)}/>(Log best huristic)</label>
                     <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
+                    {chosenMetaCost}
                     <ConfigButtons config={svgConfigObj} configDispatch={dispatchConfig}/>
                 </div>
                 <div>

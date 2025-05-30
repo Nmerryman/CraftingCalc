@@ -63,17 +63,21 @@ export function DisplayRecipe({recipe, ratio = 1}: {recipe: Recipe, ratio: numbe
 function ProcessesUsedText({nodeKey, permMeta}: {nodeKey: string, permMeta: PermMeta}) {
     // RecipeUsedText may be more accurate
     const stepNode = permMeta.nodeCache[nodeKey];
+    let stepRatio = 0;
     let recipe = null;
     if (stepNode.type == StepNodeType.RECIPE) {
         recipe = permMeta.craftingData.get(nodeKey) as Recipe;
+        stepRatio = stepNode.countRatio;
     } else {
-        recipe = permMeta.craftingData.get(stepNode.children[0].name) as Recipe;
+        const childNode = stepNode.children[0];
+        recipe = permMeta.craftingData.get(childNode.name) as Recipe;
+        stepRatio = childNode.countRatio;
     }
 
     return (
         <div>
             <h1>{`Craft recipe ${nodeKey} via`}</h1>
-            <DisplayRecipe recipe={recipe} ratio={stepNode.countRatio}/>
+            <DisplayRecipe recipe={recipe} ratio={stepRatio}/>
         </div>
     )
 }

@@ -4,6 +4,8 @@
 //     return <path d="M 0 0 L 30 30 L 50 80 Z" className="stroke-yellow-300 fill-none" onClick={() => console.log("Clicked line")}/>;
 // }
 
+import { CSSProperties } from "react";
+import { StepNode, StepNodeType } from "../crafting/solver";
 import { svgConfig } from "./huristics";
 
 // export function TestMaxBox() {
@@ -78,21 +80,42 @@ export function ArrowPath({start, end, scale = 1}: {start: Coordinate, end: Coor
 }
 
 
-export function TextCircle({center, text, scale = 1, config = new svgConfig()}: {center: Coordinate, text: string, scale?: number, config?: svgConfig}) {
+export function TextCircle({center, text, node = undefined, scale = 1, config = new svgConfig()}: {center: Coordinate, text: string, node?: StepNode, scale?: number, config?: svgConfig}) {
     // This is hard coded and not synced up with other radius uses.
+    let color = "green";
+    if (node) {
+        if (node.type == StepNodeType.RECIPE) {
+            color = "#004000"
+            scale = 0.75
+        }
+        if (node.parents.some(node => node.root)) {
+            scale = scale * 1.2
+            color = "lightgreen"
+        }
+    }
+
     let radius = 10 * scale;
-    let boxWidth = text.length * 8.6 * scale;
-    let boxhight = 19 * scale;
+
+    const style: CSSProperties = {
+        fontSize:  `${18 * scale}px`,
+        paintOrder: "stroke",
+        stroke: "#000000",
+        strokeWidth: "3px",
+        strokeLinecap: "butt",
+        strokeLinejoin: "miter",
+        fontWeight: 800
+    }
 
     return (
         <g>
            {/* //Text and circle calculator visual display */}
-            <circle cx={center.x} cy={center.y} r={radius} fill="green"/>
+            <circle cx={center.x} cy={center.y} r={radius} fill={color}/>
 
             {(config.showText) ?
             <>
-            <rect x={center.x - boxWidth / 2} y={center.y - radius * 3.2} fill="black" width={boxWidth} height={boxhight}></rect>
-            <text x={center.x} y={center.y - scale * 6 - radius} fill="white" textAnchor="middle" fontSize={`${scale}em`}>{text}</text>
+            {/* <rect x={center.x - boxWidth / 2} y={center.y - radius * 3.2} fill="black" width={boxWidth} height={boxhight}></rect>
+            <text x={center.x} y={center.y - scale * 6 - radius} fill="white" textAnchor="middle" fontSize={`${scale}em`}>{text}</text> */}
+            <text x={center.x} y={center.y - scale * 6 - radius} fill="white" textAnchor="middle" style={style}>{text}</text>
             </>
             :
             <></>}

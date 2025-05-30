@@ -53,6 +53,8 @@ function removeFuzzyMatching(fromString: string, toString: string): {remaining: 
 
 export function simmilarityScoreFunc(fromString: string, toString: string): number {
     // Simplified to try to speed it up.
+    fromString = fromString.toLowerCase();
+    toString = toString.toLowerCase();
     if (fromString.length == 0) {
         return toString.length;
     } else if (toString.length == 0) {

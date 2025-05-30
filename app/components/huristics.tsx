@@ -71,7 +71,11 @@ function HuristicStats({permMeta}: {permMeta: PermMeta}) {
 }
 
 
-type svgConfigActionOptions = "disable zoom" | "enable zoom" | "reset zoom" |  "set tl" | "set br" | "ready set first" | "set first" | "set second" | "disable text" | "enable text";
+type svgConfigActionOptions = "disable zoom" | "enable zoom" | "reset zoom" 
+    |  "set tl" | "set br" 
+    | "ready set first" | "set first" | "set second" 
+    | "disable text" | "enable text"
+    | "large svg" | "small svg";
 
 
 export type svgConfigAction = {
@@ -118,6 +122,12 @@ function svgReducer(state: svgConfig, action: svgConfigAction): svgConfig {
             temp._settingZoomSecond = false;
             temp._zoomAvailable = true;
             break
+        case "large svg":
+            temp.largeSvg = true;
+            break;
+        case "small svg":
+            temp.largeSvg = false;
+            break;
     }
     return temp;
 }
@@ -128,6 +138,7 @@ export class svgConfig {
     tl: Coordinate | undefined;
     br: Coordinate | undefined;
     showText: boolean = true;
+    largeSvg: boolean = false;
     
     // Hidden state stuff
     _zoomAvailable: boolean = false;
@@ -140,6 +151,7 @@ export class svgConfig {
         temp.tl = this.tl;
         temp.br = this.br;
         temp.showText = this.showText;
+        temp.largeSvg = this.largeSvg;
 
         temp._zoomAvailable = this._zoomAvailable;
         temp._settingZoomFirst = this._settingZoomFirst;
@@ -160,6 +172,23 @@ function ToggleText({config, configDispatch}: {config: svgConfig, configDispatch
         return (
             <label className="input_button">
                 <button className="input_button" onClick={() => configDispatch({type: "enable text"})}/>Show text
+            </label>
+        )
+    }
+}
+
+
+function LargeSvg({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
+    if (config.largeSvg) {
+        return (
+            <label className="input_button">
+                <button className="input_button" onClick={() => configDispatch({type: "small svg"})}/>Small Svg
+            </label>
+        )
+    } else {
+        return (
+            <label className="input_button">
+                <button className="input_button" onClick={() => configDispatch({type: "large svg"})}/>Large Svg
             </label>
         )
     }
@@ -204,6 +233,7 @@ function ConfigButtons({config, configDispatch}: {config: svgConfig, configDispa
     return (
         <span className="ml-auto">
             <ToggleText config={config} configDispatch={configDispatch}/>
+            <LargeSvg config={config} configDispatch={configDispatch}/>
             <ToggleZoom config={config} configDispatch={configDispatch}/>
             <ChangeZoom config={config} configDispatch={configDispatch}/>
         </span>

@@ -95,6 +95,9 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
         }
         setTopScores(topScores);
     }
+    setTimeout(() => {
+        updateText();
+    }, 500);  // Delay the first update to allow the input to be rendered
 
     return (
         <ul>

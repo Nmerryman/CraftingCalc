@@ -55,7 +55,8 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     if (!value) {
         // value = "Dev";
         // value = "HDPE Pellet"
-        value = "Vanilla"
+        // value = "Vanilla"
+        value = "BBF";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -196,17 +197,18 @@ export default function Main() {
 
     // const testResourceName = "Iron Pickaxe";
     // const testResourceName = "HDPE Pellet"
-    const testResourceName = "iron ingot"
+    // const testResourceName = "iron ingot"
+    const testResourceName = "Bricked Blast Furnace";
     // const testResourceName = "mud"
     useEffect(() => {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
         // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
-        // dispatchCraftingRequest({type: "toggle", name: testResourceName})
-        dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
-        dispatchCraftingRequest({type: "toggle", name: "iron axe"})
-        dispatchCraftingRequest({type: "toggle", name: "rail"})
+        dispatchCraftingRequest({type: "toggle", name: testResourceName})
+        // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
+        // dispatchCraftingRequest({type: "toggle", name: "iron axe"})
+        // dispatchCraftingRequest({type: "toggle", name: "rail"})
     }, []);  // Run update once after main page load
 
     return (  // we can define the datalist early so that it can be used everywhere.

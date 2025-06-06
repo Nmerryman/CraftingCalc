@@ -259,9 +259,14 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
 
     useEffect(() => {
         if (Object.keys(requestState).length > 0) {
-            const solver = new TempSolver(craftingData);
-            const rootSolve = solver.solve(Object.values(requestState));
-            setRootNodeState(rootSolve);
+            craftingData.runHealthChecks();
+            if (craftingData.passedHealthCheck) {
+                const solver = new TempSolver(craftingData);
+                const rootSolve = solver.solve(Object.values(requestState));
+                setRootNodeState(rootSolve);
+            }
+        } else {
+            setRootNodeState(null);
         }
     },
         [requestState, craftingData]
@@ -292,7 +297,8 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
             <div>
                 <div className="flex">
                     <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
-                    <label><button onClick={() => console.log(bestMeta)}/>(Log best huristic)</label>
+                    <label><button onClick={() => console.log(metaSolves)}/>(Log all meta)</label>
+                    <label><button onClick={() => console.log(bestMeta)}/>(Log best meta)</label>
                     <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
                     {chosenMetaCost}
@@ -307,7 +313,11 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         )
     } else {
         return (
-            <></>
+            <div className="flex justify-center items-center h-full text-red-500">
+                <div className="">
+                    Either no request in place or health check failed. (Check console(f12) for details)
+                </div>
+            </div>
         )
     }
 }

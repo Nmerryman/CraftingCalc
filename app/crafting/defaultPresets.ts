@@ -44,6 +44,7 @@ function devGenResources(): Record<string, Resource> {
         "Birch Logs": new Resource("Birch Logs"),
         "Plank Dust": new Resource("Plank Dust"),
         "Bucket": new Resource("Bucket"),
+        "Fuel": new Resource("Fuel"),
     }
     resources["Oak Logs"].isBase = true;
     resources["Birch Logs"].isBase = true;
@@ -54,14 +55,15 @@ function devGenResources(): Record<string, Resource> {
 function devGenProcesses(): Record<string, Process> {
     return {
         "Crafting Table": new Process("Crafting Table"),
-        "Furnace": new Process("Furnace")
+        "Furnace": new Process("Furnace"),
+        "Solar Heater": new Process("Solar Heater", {isBase: true}),
     }
 }
 
 
 function devGenRecipes(): Array<Recipe> {
     return [
-        new Recipe("Furnace", [new Stack("Iron Ore")], [new Stack("Iron Ingot")]),                                      // 0
+        new Recipe("Furnace", [new Stack("Iron Ore"), new Stack("Fuel")], [new Stack("Iron Ingot")]),                                      // 0
         new Recipe("Crafting Table", [new Stack("Iron Nuggets", 9)], [new Stack("Iron Ingot")]),                        // 1
         new Recipe("Crafting Table", [new Stack("Stick", 3), new Stack("Iron Ingot", 3)], [new Stack("Iron Pickaxe")]), // 2
         new Recipe("Crafting Table", [new Stack("Iron Ingot")], [new Stack("Iron Nuggets", 9)]),                        // 3
@@ -70,7 +72,8 @@ function devGenRecipes(): Array<Recipe> {
         new Recipe("Crafting Table", [new Stack("Birch Logs")], [new Stack("Planks")]),                                 // 6
         new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),                              // 7
         new Recipe("Crafting Table", [new Stack("Oak Logs", 2), new Stack("Iron Nuggets", 3)], [new Stack("Iron Pickaxe")]), // 8
-        new Recipe("Furnace", [new Stack("Birch Logs", 3)], [new Stack("Iron Nuggets")]),                                  // 9
+        new Recipe("Furnace", [new Stack("Birch Logs", 3), new Stack("Fuel")], [new Stack("Iron Nuggets")]),                                  // 9
+        new Recipe("Solar Heater", [], [new Stack("Fuel")]), // 10
     ]
 }
 

@@ -9,7 +9,7 @@ import Popup from 'reactjs-popup';
 
 function Header() {
     return (
-        <div className="flex justify-center">
+        <div className="flex justify-center text-2xl">
             <h1>
                 Preset generator
             </h1>
@@ -29,7 +29,9 @@ function Editor({codeState, setCodeState, setSaveAvail}: {codeState: string, set
 }
 
 
-let defaultText = `let data = arguments[0];  // Connection to the outside
+let defaultText = `// This is written in javascript and passed to an eval function.
+
+let data = arguments[0];  // Connection to the outside
 
 // This code isn't necessarily the best, but just to show examples of what is possible.
 let resources = {
@@ -110,6 +112,7 @@ export default function Main() {
     }
 
     function saveData() {
+        navigator.clipboard.writeText(JSON.stringify(craftingData, null, 2));
         setPopupOpen(true);
     }
 
@@ -124,10 +127,13 @@ export default function Main() {
     return (
         <div className='flex flex-col items-center h-screen'>
             <Header/>
+            <div>
+                <a href="/wiki/presetGenerator.html" target="_blank" rel="noreferrer" className='hover:underline'>Documentation/Examples</a>
+            </div>
             <Editor codeState={codeText} setCodeState={setCodeText} setSaveAvail={setSaveAvail}/>
             <Popup open={popupOpen} onClose={popupClose}>
                 <div className='readable_text border border-black'>
-                    <div>Data in json form:</div>
+                    <div>Data in json form (also already copied):</div>
                     <input className='border border-black' defaultValue={JSON.stringify(craftingData)}/>
                 </div>
             </Popup>

@@ -65,6 +65,7 @@ export class Recipe {
         public timeSpent: number = 0,
         public id?: number,  // This is optional because we can set it as it gets inserted into the collection
         public isDisabled: boolean = false,
+        public isBase: boolean = false,
     ) {}
 
     // We could absolutly cache these methods.
@@ -214,17 +215,17 @@ export class CraftingData {
     healthCheckValidMetadata() {
         // Make sure that the meta data seems reasonable
         if (this._meta.dataVersion != 1) {
-            console.log(`Metadata version is an unexpected value. (Expected 1 but got ${this._meta.dataVersion})`);
+            console.error(`Metadata version is an unexpected value. (Expected 1 but got ${this._meta.dataVersion})`);
             return false;
         }
 
         if (!this._meta.name) {
-            console.log("Metadata name has not been set");
+            console.error("Metadata name has not been set");
             return false;
         }
 
         if (this._meta.downloaded && !this._meta.source) {
-            console.log("Downloaded file has no source listed in metadata");
+            console.error("Downloaded file has no source listed in metadata");
             return false;
         }
 
@@ -245,7 +246,7 @@ export class CraftingData {
         }
 
         if (missing.size> 0) {
-            console.log("The following items are listed in recipes but don't exist as items:");
+            console.error("The following items are listed in recipes but don't exist as items:");
             console.log(missing);
             return false;
         }
@@ -265,7 +266,7 @@ export class CraftingData {
         }
 
         if (failed.length > 0) {
-            console.log("The following resources have no recipe but are also not marked as base items.");
+            console.error("The following resources have no recipe but are also not marked as base items.");
             console.log(failed);
             return false;
         }
@@ -281,7 +282,7 @@ export class CraftingData {
             }
         }
         if (failedRIds.length > 0) {
-            console.log("The following recipes have invalid keys:");
+            console.error("The following recipes have invalid keys:");
             console.log(failedRIds);
             return false;
         }
@@ -290,13 +291,13 @@ export class CraftingData {
         for (const [i, r] of Object.entries(this.resources)) {
             if (!isNaN(Number(r.name as unknown as number))) {
                 failedNameKeys = true;
-                console.log(`Resource: ${r.name} cannot be a number`)
+                console.error(`Resource: ${r.name} cannot be a number`)
             }
         }
         for (const [i, r] of Object.entries(this.processes)) {
             if (!isNaN(Number(r.name as unknown as number))) {
                 failedNameKeys = true;
-                console.log(`Process: ${r.name} cannot be a number`)
+                console.error(`Process: ${r.name} cannot be a number`)
             }
         }
         if (failedNameKeys) {
@@ -307,7 +308,7 @@ export class CraftingData {
         const processKeys = new Set(Object.keys(this.processes));
         const intersection = resourceKeys.intersection(processKeys);
         if (intersection.size > 0) {
-            console.log("The following names are both resources and processes:");
+            console.error("The following names are both resources and processes:");
             console.log(intersection);
             return false;
         }

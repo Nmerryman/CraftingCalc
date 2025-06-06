@@ -53,10 +53,10 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        // value = "Dev";
+        value = "Dev";
         // value = "HDPE Pellet"
         // value = "Vanilla"
-        value = "BBF";
+        // value = "BBF";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -76,6 +76,7 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
 
 
 function ensureDefaultPresets() {
+    console.log("Ensuring default presets are loaded...");
     
     // DEBUG clear
     localStorage.clear();
@@ -166,6 +167,7 @@ function Header({craftingDispatch, craftingData, localAvailPresetNames, setLocal
             </div>
             <div className="flex justify-around ">
                 <LinkBtn kind="link" text="Help" url="wiki" debugText="Clicked Help"/>
+                <LinkBtn kind="link" text="Preset Creator" url="presetGenerator" debugText="Clicked Preset Generator"/>
                 <LinkBtn kind="link" text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
                 <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             </div>
@@ -198,14 +200,14 @@ export default function Main() {
     // const testResourceName = "Iron Pickaxe";
     // const testResourceName = "HDPE Pellet"
     // const testResourceName = "iron ingot"
-    const testResourceName = "Bricked Blast Furnace";
+    // const testResourceName = "Bricked Blast Furnace";
     // const testResourceName = "mud"
     useEffect(() => {
         ensureDefaultPresets(); 
         setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
         PullPreset(dispatchData); 
         // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
-        dispatchCraftingRequest({type: "toggle", name: testResourceName})
+        // dispatchCraftingRequest({type: "toggle", name: testResourceName})
         // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
         // dispatchCraftingRequest({type: "toggle", name: "iron axe"})
         // dispatchCraftingRequest({type: "toggle", name: "rail"})
@@ -230,6 +232,13 @@ export default function Main() {
                 console.log("Solver: ", tempSolver);
                 console.log("Solved: ", tempSolver.solve([new Stack(testResourceName, 1)]));
             }}>test temp solver</button> */}
+            <button onClick={() => {
+                fetch("https://rshim.hydris.dev", {cache: "no-store"}).then(resp => resp.text()).then(text => {
+                    console.log("Response from backend: ", text);
+                }).catch(err => {
+                    console.error("Error connecting to backend: ", err);
+                });
+            }}>test backend</button>
             <Header craftingDispatch={dispatchData} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
             <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
             {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}

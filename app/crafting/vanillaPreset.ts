@@ -405,7 +405,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -414,7 +414,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -603,7 +603,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -612,7 +612,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -1062,7 +1062,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -1197,7 +1197,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -1440,7 +1440,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -1521,7 +1521,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -1611,7 +1611,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -2331,7 +2331,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -2421,7 +2421,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -2556,7 +2556,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -2709,7 +2709,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -2970,7 +2970,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -3150,7 +3150,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -3465,7 +3465,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -3600,7 +3600,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -3735,7 +3735,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -3924,7 +3924,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -4581,7 +4581,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -4833,7 +4833,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -4842,7 +4842,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -4851,7 +4851,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -5283,7 +5283,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -6237,7 +6237,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -6948,7 +6948,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -7740,7 +7740,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": true,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -7848,7 +7848,7 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
-    "value": 1,
+    "value": 1.01,
     "tags": [],
     "baseQuantity": 1
   },
@@ -9476,8 +9476,8 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
 
 
   let processes = {
-  "crafting_decorated_pot": {
-    "name": "crafting_decorated_pot",
+  "crafting_shapeless": {
+    "name": "crafting_shapeless",
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
@@ -9485,17 +9485,8 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "tags": [],
     "baseQuantity": 1
   },
-  "crafting_special_mapcloning": {
-    "name": "crafting_special_mapcloning",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "crafting_special_bannerduplicate": {
-    "name": "crafting_special_bannerduplicate",
+  "smithing_trim": {
+    "name": "smithing_trim",
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
@@ -9512,53 +9503,8 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "tags": [],
     "baseQuantity": 1
   },
-  "crafting_special_firework_rocket": {
-    "name": "crafting_special_firework_rocket",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "smoking": {
-    "name": "smoking",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "crafting_special_bookcloning": {
-    "name": "crafting_special_bookcloning",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "stonecutting": {
-    "name": "stonecutting",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "crafting_special_mapextending": {
-    "name": "crafting_special_mapextending",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "crafting_special_repairitem": {
-    "name": "crafting_special_repairitem",
+  "as_fuel": {
+    "name": "as_fuel",
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
@@ -9584,24 +9530,6 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "tags": [],
     "baseQuantity": 1
   },
-  "crafting_special_armordye": {
-    "name": "crafting_special_armordye",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "crafting_transmute": {
-    "name": "crafting_transmute",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
   "crafting_special_tippedarrow": {
     "name": "crafting_special_tippedarrow",
     "isBase": false,
@@ -9611,8 +9539,8 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "tags": [],
     "baseQuantity": 1
   },
-  "smithing_transform": {
-    "name": "smithing_transform",
+  "crafting_special_mapcloning": {
+    "name": "crafting_special_mapcloning",
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
@@ -9620,44 +9548,8 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
     "tags": [],
     "baseQuantity": 1
   },
-  "crafting_special_firework_star": {
-    "name": "crafting_special_firework_star",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "smithing_trim": {
-    "name": "smithing_trim",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "as_fuel": {
-    "name": "as_fuel",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "crafting_shapeless": {
-    "name": "crafting_shapeless",
-    "isBase": false,
-    "isDisabled": false,
-    "durability": -1,
-    "value": 1,
-    "tags": [],
-    "baseQuantity": 1
-  },
-  "crafting_shaped": {
-    "name": "crafting_shaped",
+  "crafting_special_armordye": {
+    "name": "crafting_special_armordye",
     "isBase": false,
     "isDisabled": false,
     "durability": -1,
@@ -9676,6 +9568,114 @@ export function vanilla(dispatch: Dispatch<CraftingAction>) {
   },
   "crafting_special_shielddecoration": {
     "name": "crafting_special_shielddecoration",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_special_firework_rocket": {
+    "name": "crafting_special_firework_rocket",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "smithing_transform": {
+    "name": "smithing_transform",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "stonecutting": {
+    "name": "stonecutting",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_shaped": {
+    "name": "crafting_shaped",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_transmute": {
+    "name": "crafting_transmute",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_decorated_pot": {
+    "name": "crafting_decorated_pot",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_special_firework_star": {
+    "name": "crafting_special_firework_star",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_special_mapextending": {
+    "name": "crafting_special_mapextending",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "smoking": {
+    "name": "smoking",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_special_bannerduplicate": {
+    "name": "crafting_special_bannerduplicate",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_special_repairitem": {
+    "name": "crafting_special_repairitem",
+    "isBase": false,
+    "isDisabled": false,
+    "durability": -1,
+    "value": 1,
+    "tags": [],
+    "baseQuantity": 1
+  },
+  "crafting_special_bookcloning": {
+    "name": "crafting_special_bookcloning",
     "isBase": false,
     "isDisabled": false,
     "durability": -1,

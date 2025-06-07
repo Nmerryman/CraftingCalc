@@ -89,7 +89,7 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
     for (const stepNode of permMeta.leveledNodes) {
         for (const parent of stepNode.parents) {
             if (parent.root) {
-                break;
+                continue;
             }
             const newArrow = new StepArrow(circleCache[stepNode.name], circleCache[parent.name]);
             arrowCollection.push(newArrow);

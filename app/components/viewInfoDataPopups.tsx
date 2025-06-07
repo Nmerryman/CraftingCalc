@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Recipe, Resource, Stack } from "../crafting/units"
+import { Process, Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
 import { PermMeta, StepNodeType } from "../crafting/solver";
 
@@ -23,17 +23,17 @@ export function DisplayStack({stack}: {stack: Stack}) {
 }
 
 
-export function ItemPopupText({resource}: {resource: Resource}) {
+export function ItemPopupText({resource}: {resource: Resource | Recipe}) {
     const [dummy, setDummy] = useState(false);  // This exists to reload the component on checkbox change to show it did something
     const toggleDummy = () => setDummy(!dummy);
     return (
         <div>
             <label>
-                <input type="checkbox" checked={resource.isDisabled} onChange={() => {resource.isDisabled = !resource.isDisabled; toggleDummy()}}/>Disable the resource
+                <input type="checkbox" checked={resource.isDisabled} onChange={() => {resource.isDisabled = !resource.isDisabled; toggleDummy()}}/>Disable the resource/recipe
             </label>
             <br/>
             <label>
-                <input type="checkbox" checked={resource.isBase} onChange={() => {resource.isBase = !resource.isBase, toggleDummy()}}/>Treat resource as base
+                <input type="checkbox" checked={resource.isBase} onChange={() => {resource.isBase = !resource.isBase, toggleDummy()}}/>Treat resource/recipe as base
             </label>
         </div>
     )
@@ -103,6 +103,7 @@ export function CTBStackPopup({pState, pClose, stack, permMeta, showProcess}: {p
             <Popup open={pState} onClose={pClose}>
                 <div className="text-black">
                     <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
+                    <ItemPopupText resource={permMeta.craftingData.recipes[stack.resourceName as unknown as number]}/>
                     <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/>
                 </div>
                 <div className="flex">

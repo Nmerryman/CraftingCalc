@@ -99,14 +99,14 @@ export class PermMeta {
             return;
         }
         for (const node of this.leveledNodes.toReversed()) {
-            if (node.children.length == 0) {
+            if (node.type == StepNodeType.RESOURCE && node.isBase()) {
                 node.width = 1;
-                // We know that childless nodes will be resources
+                
                 this.resourceCounts[node.name] = node.countRatio;
                 this.resourceOrder.push(node.name);
                 // log2 because the assumtion is that it's easier to get more of an item you already have many of
                 // as opposed to adding new items
-                this.cost += Math.log2(node.countRatio * this.craftingData.resources[node.name as string].value);
+                this.cost += Math.log2(node.countRatio * this.craftingData.resources[node.name as string].value + 1);
             } else {
                 if (node.type == StepNodeType.RECIPE) {
                     this.recipeCounts[node.name] = node.countRatio;
@@ -120,11 +120,15 @@ export class PermMeta {
                     node.widthsAccountedFor = node.widthsAccountedFor.union(child.widthsAccountedFor);
                 }
                 // Add if not already accounted for
-                node.width = 0;
-                for (const child of node.children) {
-                    if (!(node.widthsAccountedFor.has(child.name))) {
-                        node.width += child.width;
-                        node.widthsAccountedFor.add(child.name);
+                if (node.isBase()) {
+                    node.width = 1;
+                } else {
+                    node.width = 0;
+                    for (const child of node.children) {
+                        if (!(node.widthsAccountedFor.has(child.name))) {
+                            node.width += child.width;
+                            node.widthsAccountedFor.add(child.name);
+                        }
                     }
                 }
             }
@@ -304,7 +308,7 @@ export class StepNode {
                         let childNode = new StepNode(this.swapType(), srcName, this.craftingData, this.solveMeta);
                         this.addChild(childNode);
                         this.solveMeta.stepNodeCache[srcName] = childNode;
-                        if (!(this.type == StepNodeType.RECIPE && (srcThing as Resource).isBase)) {
+                        if (!(srcThing.isBase)) {
                             childNode.populateChildren();
                         }
                     }
@@ -476,6 +480,7 @@ export class StepNode {
     
     isBase() {
         // I'm lazy and I think this looks nicer.
+        // This is ok because health checks already passed.
         return this.children.length == 0;
     }
 }
@@ -485,6 +490,9 @@ export class TempSolver {
 
     constructor(public data: CraftingData) {
         this.data = data;
+        if (!data.passedHealthCheck) {
+            console.error("CraftingData has not passed health check. Please run data.healthCheck() before using the solver.");
+        }
 
     }
 
@@ -493,7 +501,7 @@ export class TempSolver {
         let rootNode = this.createGraph(request, meta);
         console.log("root node", rootNode);
         if (!rootNode.possible) {
-            console.error("Request has invalid items. Not sure how you did that.")
+            console.error("Request has invalid items. (Items that cannot be crafted based on available base items.) Not sure how you did that.")
             return rootNode;
         }
         let permutation = new Permutation(meta.recipeOptions);

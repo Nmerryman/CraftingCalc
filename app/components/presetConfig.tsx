@@ -100,6 +100,7 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
         if (!currentAvailable.includes(tempData._meta.name)) {
             currentAvailable.push(tempData._meta.name);
             setLocalAvailPresetNames(JSON.stringify(currentAvailable));
+            localStorage.setItem("_available_local", JSON.stringify(currentAvailable));
         }
         
         setStatusText(`Added and loaded "${tempData._meta.name}" preset.`);

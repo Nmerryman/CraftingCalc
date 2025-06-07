@@ -9,7 +9,7 @@ import Image from "next/image"
 
 
 type RequestMenuAction = {
-    type: "toggle"|"set"|"remove"|"reset",
+    type: "toggle"|"set"|"remove"|"reset"|"refresh",
     name: string,
     value?: number
 }
@@ -35,6 +35,8 @@ export function requestMenuReducer(currentState: CraftingRequestType, action: Re
         return temp;
     case "reset":
         return {};
+    case "refresh":
+        return temp;
     }
 }
 
@@ -95,6 +97,9 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
         }
         setTopScores(topScores);
     }
+    setTimeout(() => {
+        updateText();
+    }, 500);  // Delay the first update to allow the input to be rendered
 
     return (
         <ul>
@@ -186,7 +191,7 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
 function ListRequests({requestState, requestDispatch}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <ul className="px-5">
-            <span className="font-bold text-red-500">Crafting Request</span>
+            <span className="font-bold text-red-500">Crafting Request</span><button onClick={() => requestDispatch({type: "refresh", name: ""})}> (refresh calculations)</button>
             {Object.values(requestState).map((rval) => {return <RequestListItem key={rval.resourceName} item={rval} requestDispatch={requestDispatch}/>})}
         </ul>
     )

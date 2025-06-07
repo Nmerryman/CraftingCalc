@@ -85,8 +85,10 @@ export function TextCircle({center, text, node = undefined, scale = 1, config = 
     let color = "green";
     if (node) {
         if (node.type == StepNodeType.RECIPE) {
-            color = "#004000"
-            scale = 0.75
+            scale = 0.65
+        }
+        if (node.children.length == 0) {
+            color = "#003000"
         }
         if (node.parents.some(node => node.root)) {
             scale = scale * 1.2

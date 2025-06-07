@@ -4,7 +4,7 @@ import { SVGHuristic } from "./svgHuristics";
 import { Coordinate } from "./svg";
 import { DisplayCTBItemStack } from "./viewInfoDataPopups";
 import { CraftingData } from "../crafting/units";
-import { PermMeta, SolveMeta, TempSolver } from "../crafting/solver";
+import { PermMeta, SolveMeta, StepNode, TempSolver } from "../crafting/solver";
 
 // If the select number box is checked, create an input that allows the user to enter a number
 function HuristicNumberChoice({boxState, permMetaNum, updateMetaNum, metaOptSize}: {boxState: boolean, permMetaNum: number, updateMetaNum: Dispatch<number>, metaOptSize: number}) {
@@ -246,6 +246,7 @@ function ConfigButtons({config, configDispatch}: {config: svgConfig, configDispa
 export function HuristicsInfoDisplay({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
     const [modeCheckbox, updateModeCheckbox] = useState(true);
     const [huristicNum, updateHuristicNum] = useState(0);
+    const [rootNodeState, setRootNodeState] = useState<StepNode | null>(null);
     const [svgConfigObj, dispatchConfig] = useReducer(svgReducer, new svgConfig());
 
     useEffect(() => {
@@ -256,11 +257,24 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         // dispatchConfig({type: "enable zoom"});
     }, [])
 
-    if (Object.keys(requestState).length > 0) {
+    useEffect(() => {
+        if (Object.keys(requestState).length > 0) {
+            craftingData.runHealthChecks();
+            if (craftingData.passedHealthCheck) {
+                const solver = new TempSolver(craftingData);
+                const rootSolve = solver.solve(Object.values(requestState));
+                setRootNodeState(rootSolve);
+            }
+        } else {
+            setRootNodeState(null);
+        }
+    },
+        [requestState, craftingData]
+    );
+
+    if (Object.keys(requestState).length > 0 && rootNodeState != null) {
+        const metaSolves = rootNodeState.solveMeta;
         
-        const solver = new TempSolver(craftingData);
-        const rootSolve = solver.solve(Object.values(requestState));
-        const metaSolves = rootSolve.solveMeta;
         if (Object.keys(metaSolves.permMetaCollection).length == 0) {
             return (
                 <div className="error_mess">
@@ -270,9 +284,11 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         }
         // console.log(huristicList)
         // let bestHuristic = solver.bestHuristic(huristicList, solver.defaultHuristic)!;
-        let bestMeta = metaSolves.getBest(SolveMeta.minCostFunc);
+        let bestMeta = null;
         let chosenMetaText = "";
-        if (!modeCheckbox) {
+        if (modeCheckbox) {
+            bestMeta = metaSolves.getBest(SolveMeta.minCostFunc);
+        } else {
             chosenMetaText = Object.keys(metaSolves.permMetaCollection)[huristicNum];
             bestMeta = metaSolves.permMetaCollection[chosenMetaText];
         }
@@ -281,7 +297,8 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
             <div>
                 <div className="flex">
                     <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
-                    <label><button onClick={() => console.log(bestMeta)}/>(Log best huristic)</label>
+                    <label><button onClick={() => console.log(metaSolves)}/>(Log all meta)</label>
+                    <label><button onClick={() => console.log(bestMeta)}/>(Log best meta)</label>
                     <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
                     {chosenMetaCost}
@@ -296,7 +313,11 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         )
     } else {
         return (
-            <></>
+            <div className="flex justify-center items-center h-full text-red-500">
+                <div className="">
+                    Either no request in place or health check failed. (Check console(f12) for details)
+                </div>
+            </div>
         )
     }
 }

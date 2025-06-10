@@ -1,10 +1,11 @@
 'use client'
 
 import 'reflect-metadata'
-import { ChangeEvent, Dispatch, useReducer, useState } from "react"
+import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react"
 import { CraftingData, Resource, Process, Recipe, Stack, craftingMetaData } from "../crafting/units";
 import { craftingReducer } from "../components/crafting";
 import Popup from 'reactjs-popup';
+import { pingServer, pullNameInfo, pushNameInfo } from '../utils/serverApi';
 
 
 function Header() {
@@ -76,6 +77,80 @@ data.recipes = recipes;
 data.meta = {dataVersion: 1, name: "Pickaxe"};
 `
 
+enum uploadState {
+    checking,
+    dead,
+    broken,
+    openName,
+    protectedName
+}
+
+
+function Uploader({popupState, craftingData}: {popupState: boolean, craftingData: CraftingData}) {
+    const [uploaderState, setUploaderState] = useState(uploadState.checking);
+    const [uploadResSate, setUploadResState] = useState("");
+
+    let nameInUse = false;
+    let passwordField = "";
+
+    useEffect(() => {
+        if (popupState) {
+            pingServer()
+                .then(res => {
+                    if (res) {
+                        pullNameInfo(craftingData._meta.name)
+                            .then(res => {
+                                if (res.error) {    // Error means no user exists for that name
+                                    if (res.error == "Server error.") {
+                                        setUploaderState(uploadState.broken)
+                                    } else {
+                                        setUploaderState(uploadState.openName);
+                                        nameInUse = false;
+                                    }
+                                } else {
+                                    if (res.hasPassword && res.hasPassword) {   // lol
+                                        setUploaderState(uploadState.protectedName);
+                                    } else {    // Exists without password
+                                        setUploaderState(uploadState.openName);
+                                    }
+                                    nameInUse = true;
+                                }
+                            })
+                    } else {
+                        setUploaderState(uploadState.dead);
+                    }
+                })
+        }
+    }, [popupState]);
+    
+    function send() {
+        pushNameInfo(craftingData._meta.name, JSON.stringify(craftingData), passwordField.length == 0 ? undefined: passwordField)
+            .then((res) => {
+                setUploadResState(JSON.stringify(res));
+            })
+        
+    }
+    
+    function updatePassword(e: ChangeEvent<HTMLInputElement>) {
+        passwordField = e.target.value;
+    }
+
+    if (uploaderState == uploadState.checking) {
+        return <div>Checking for server.</div>
+    } else if (uploaderState == uploadState.dead) {
+        return <div>No server found.</div>
+    } else if (uploaderState == uploadState.broken) {
+        return <div>Server is broken somehow.</div>
+    } else {
+        return <div>
+            {!nameInUse ? "Create": "Overrite"} preset {craftingData._meta.name}
+            <button onClick={send}>(Send)</button>
+            <input placeholder='Opt/edit Password' onChange={updatePassword}/>
+            <br/>
+            {uploadResSate}
+        </div>
+    }
+}
 
 export default function Main() {
     const [codeText, setCodeText] = useState(defaultText);
@@ -85,6 +160,8 @@ export default function Main() {
     const [validData, setValidData] = useState(false);
     const [popupOpen, setPopupOpen] = useState(false);
     const popupClose = () => setPopupOpen(false);
+
+    const [testState, setTestState] = useState(false);
 
     function runFunction() {
         setFirstTry(false);
@@ -132,9 +209,10 @@ export default function Main() {
             </div>
             <Editor codeState={codeText} setCodeState={setCodeText} setSaveAvail={setSaveAvail}/>
             <Popup open={popupOpen} onClose={popupClose}>
-                <div className='readable_text border border-black'>
+                <div className='readable_text border border-black bg-white flex-col'>
                     <div>Data in json form (also already copied):</div>
                     <input className='border border-black' defaultValue={JSON.stringify(craftingData)}/>
+                    <Uploader popupState={popupOpen} craftingData={craftingData}/>
                 </div>
             </Popup>
             <div>

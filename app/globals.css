@@ -63,6 +63,10 @@ header {
   @apply checkloadconfig hover:bg-gray-400 cursor-pointer active:bg-gray-600 hover:rounded-sm
 }
 
+input {
+  @apply readable_text highlight_background
+}
+
 .bow_text {
   @apply text-black text-center
 }
@@ -82,3 +86,4 @@ header {
 .highlight_background {
   @apply bg-slate-300
 }
+

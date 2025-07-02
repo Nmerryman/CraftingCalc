@@ -11,7 +11,7 @@ type errorRespOptions =
     "Server error." |
     string
 
-type getResponse = {
+export type getResponse = {
     error?: errorRespOptions,
     data?: string,
     hasPassword?: boolean

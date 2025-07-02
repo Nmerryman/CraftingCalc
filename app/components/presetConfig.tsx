@@ -4,6 +4,7 @@ import xIcon from "./xIcon.png"
 import { CraftingData } from "../crafting/units";
 import { CraftingAction } from "./crafting";
 import Image from "next/image";
+import { getResponse, pullNameInfo } from "../utils/serverApi";
 
 
 export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNames, setLocalAvailPresetNames}: {craftingData: CraftingData, craftingDispatch: Dispatch<CraftingAction>, localAvailPresetNames: string, setLocalAvailPresetNames: Dispatch<string>}) {
@@ -44,42 +45,58 @@ export function PresetConfig({craftingData, craftingDispatch, localAvailPresetNa
         setStatusText(`Removed "${localInput}" from localStorage.`)
     }
 
+    function loadFromJSONString(resp: string, srcUrl: string) {
+        // Assume no error
+        let tempData = JSON.parse(resp) as CraftingData;
+        console.log(tempData);
+
+        if (tempData._meta.dataVersion != 1) {
+            throw Error("Expected metadata version 1, got " + tempData._meta.dataVersion);
+        }
+        tempData._meta.downloaded = true;
+        tempData._meta.source = srcUrl;
+        
+        localStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
+        craftingDispatch({type: "replace all", anyValue: tempData})
+        let currentAvailable: Array<string> = JSON.parse(localAvailPresetNames);
+        if (!currentAvailable.includes(tempData._meta.name)) {
+            currentAvailable.push(tempData._meta.name);
+            setLocalAvailPresetNames(JSON.stringify(currentAvailable));
+        }
+        return tempData._meta.name;     // Should be fine and not too hacky
+    }
+
     function downloadToLocal() {
         let url = downloadInput;
-
-        if (url.length >= 4 && url.slice(0, 4) != "http") {
-            // Assume it's a hosted preset request
-            url = "presets/" + url;
-            if (url.length >= 5 && url.slice(-5, 5) == ".json") {
-                url = url + ".json";
-            }
-        }
-
         // debug default
-        if (url.length == 0) {
-            url = "presets/Compressed.json"
+        // if (url.length == 0) {
+        //     url = "presets/Compressed.json"
+        // }
+
+        if (url.length >= 4 && url.slice(0, 4) == "http") {
+            fetch(url)
+                .then(response => {
+                    return response.text();
+                })
+                .then(response => {
+                    loadFromJSONString(response, url)
+                })
+        } else {
+            // Assume it's a hosted preset requested via name
+            pullNameInfo(url)
+                .then(response => {
+                    if (response.error) {
+                        setStatusText(`Returned error ${response.error}`);
+                    } else {
+                        if (response.data) {
+                            const loadedName = loadFromJSONString(response.data, url)
+                            setStatusText(`Added and loaded "${loadedName}" preset.`);
+                        } else {
+                            setStatusText("Malformed server response.")
+                        }
+                    }
+                })
         }
-
-        fetch(url).then(req => req.json().then((val) => {
-            let tempData = val as CraftingData;
-            console.log(tempData);
-
-            if (tempData._meta.dataVersion != 1) {
-                throw Error("Expected metadata version 1, got " + tempData._meta.dataVersion);
-            }
-            tempData._meta.downloaded = true;
-            tempData._meta.source = url;
-            
-            localStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
-            craftingDispatch({type: "replace all", anyValue: tempData})
-            let currentAvailable: Array<string> = JSON.parse(localAvailPresetNames);
-            if (!currentAvailable.includes(tempData._meta.name)) {
-                currentAvailable.push(tempData._meta.name);
-                setLocalAvailPresetNames(JSON.stringify(currentAvailable));
-            }
-
-            setStatusText(`Added and loaded "${tempData._meta.name}" preset.`);
-        }))
     }
 
     function loadJsonPreset() {

@@ -28,6 +28,7 @@ function addProcesses(r: Record<string, Process>, names: Array<string>) {
 }
 
 function defaultRecipeFactory(process: string) {
+    // This is a factory function handles vanilla recipes, multiple inputs, and single output.
     return (output: string, input: Array<Stack>) => {return new Recipe(process, input, [new Stack(output)])};
 }
 

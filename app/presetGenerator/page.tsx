@@ -6,6 +6,7 @@ import { CraftingData, Resource, Process, Recipe, Stack, craftingMetaData } from
 import { craftingReducer } from "../components/crafting";
 import Popup from 'reactjs-popup';
 import { pingServer, pullNameInfo, pushNameInfo } from '../utils/serverApi';
+import { basicText, basicTextWithHelpers, brickedBlastFurnaceText, defaultText, emptyText } from './preset_texts';
 
 
 function Header() {
@@ -30,52 +31,6 @@ function Editor({codeState, setCodeState, setSaveAvail}: {codeState: string, set
 }
 
 
-let defaultText = `// This is written in javascript and passed to an eval function.
-
-let data = arguments[0];  // Connection to the outside
-
-// This code isn't necessarily the best, but just to show examples of what is possible.
-let resources = {
-    "Stick": new Resource("Stick"),
-    "Iron Ingot": new Resource("Iron Ingot"),
-    "Iron Ore": new Resource("Iron Ore", {isBase: true}),
-    "Iron Pickaxe": new Resource("Iron Pickaxe"),
-    "Iron Nugget": new Resource("Iron Nugget"),
-    "Iron Block": new Resource("Iron Block"),
-    "Plank": new Resource("Plank"),
-    "Oak Log": new Resource("Oak Log"),
-    "Birch Log": new Resource("Birch Log"),
-    "Plank Dust": new Resource("Plank Dust"),
-    "Bucket": new Resource("Bucket"),
-}
-resources["Oak Log"].isBase = true;
-resources["Birch Log"].isBase = true;
-resources["Iron Block"].isBase = true;
-resources["Iron Block"].isDisabled = true;
-
-let processes = {
-    "Crafting Table": new Process("Crafting Table"),
-    "Furnace": new Process("Furnace")
-}
-
-let recipes = [
-    new Recipe("Furnace", [new Stack("Iron Ore")], [new Stack("Iron Ingot")]),
-    new Recipe("Crafting Table", [new Stack("Iron Nugget", 9)], [new Stack("Iron Ingot")]),
-    new Recipe("Crafting Table", [new Stack("Iron Block")], [new Stack("Iron Ingot", 9)]),
-    new Recipe("Crafting Table", [new Stack("Stick", 3), new Stack("Iron Ingot", 3)], [new Stack("Iron Pickaxe")]),
-    new Recipe("Crafting Table", [new Stack("Iron Ingot")], [new Stack("Iron Nugget", 9)]),
-    new Recipe("Crafting Table", [new Stack("Plank")], [new Stack("Stick", 2)]), 
-    new Recipe("Crafting Table", [new Stack("Oak Log")], [new Stack("Plank", 2), new Stack("Plank Dust")]),
-    new Recipe("Crafting Table", [new Stack("Birch Log")], [new Stack("Plank")]),
-    new Recipe("Crafting Table", [new Stack("Iron Ingot", 3)], [new Stack("Bucket")]),
-    new Recipe("Crafting Table", [new Stack("Oak Log", 2), new Stack("Iron Nugget", 3)], [new Stack("Iron Pickaxe")])
-]
-
-data.resources = resources;
-data.processes = processes;
-data.recipes = recipes;
-data.meta = {dataVersion: 1, name: "Pickaxe"};
-`
 
 enum uploadState {
     checking,
@@ -171,7 +126,7 @@ export default function Main() {
         try {
             func(container)
         } catch {
-            console.log("Syntax error in provided script.");
+            console.log("(Syntax) Error in provided script.");
             return;
         }
         container._meta = container.meta;
@@ -200,12 +155,49 @@ export default function Main() {
         (window as any).Stack = Stack;
     }
 
+    function handleTextChange(event: ChangeEvent<HTMLSelectElement>) {
+        const value = event.target.value;
+        switch (value) {
+            case "default":
+                setCodeText(defaultText);
+                break;
+            case "Empty":
+                setCodeText(emptyText);
+                break;
+            case "Basic":
+                setCodeText(basicText);
+                break;
+            case "BasicWithHelpers":
+                setCodeText(basicTextWithHelpers);
+                break;
+            case "BrickedBlastFurnace":
+                setCodeText(brickedBlastFurnaceText);
+                break;
+            default:
+                setCodeText(defaultText);
+                break;
+        }
+        setSaveAvail(false);
+    }
+
 
     return (
         <div className='flex flex-col items-center h-screen'>
             <Header/>
             <div>
-                <a href="/wiki/presetGenerator.html" target="_blank" rel="noreferrer" className='hover:underline'>Documentation/Examples</a>
+                <a href="/wiki/presetGenerator.html" target="_blank" className='hover:underline'>Documentation/Examples</a>
+            </div>
+            <div>
+                Generate preset objects for the crafting system by writing (JavaScript) code.
+                <select className='input_button' onChange={handleTextChange} defaultValue="default">
+                    <option value="default">Default</option>
+                    <option value="Empty">Empty</option>
+                    <option value="Basic">Basic</option>
+                    <option value="BasicWithHelpers">Basic with Helpers</option>
+                    <option value="BrickedBlastFurnace">Bricked Blast Furnace</option>
+                    {/* <option value="Plastic">Plastic Pellet</option> */}
+                </select>
+
             </div>
             <Editor codeState={codeText} setCodeState={setCodeText} setSaveAvail={setSaveAvail}/>
             <Popup open={popupOpen} onClose={popupClose}>

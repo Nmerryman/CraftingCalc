@@ -3,16 +3,62 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+  --dark-color: #000000;
+  --light-color: #ffffff;
+  --almost-dark-color: #5a5a5a;
+  --almost-light-color: #b0b0b0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+.dark_text {
+  color: var(--light-color);
+}
+
+.dark_bg {
+  background-color: var(--dark-color);
+}
+
+.light_text {
+  color: var(--dark-color);
+}
+
+.light_bg {
+  background-color: var(--light-color);
+}
+
+.dark {
+  @apply dark_text dark_bg;
+}
+
+.light {
+  @apply light_text light_bg;
+}
+
+.dark_thing {
+  @apply dark_text dark_bg;
+  border: 1px solid var(--light-color);
+}
+
+.light_thing {
+  @apply light_text light_bg;
+  border: 1px solid var(--dark_color);
+}
+
+.highlight_text {
+  color: var(--almost-light-color);
+}
+
+.highlight_bg {
+  background-color: var(--almost-dark-color);
+}
+
+.clickable {
+  cursor: pointer;
+  &:hover {
+    background-color: var(--light-color);
+    color: var(--dark-color);
   }
 }
 
@@ -64,7 +110,7 @@ header {
 }
 
 input {
-  @apply readable_text highlight_background
+  @apply text-black highlight_background
 }
 
 .bow_text {
@@ -79,9 +125,6 @@ input {
   @apply text-center border-2 border-rose-700 rounded-md mx-[35%]
 }
 
-.readable_text {
-  @apply text-black
-}
 
 .highlight_background {
   @apply bg-slate-300

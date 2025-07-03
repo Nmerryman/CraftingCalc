@@ -6,7 +6,7 @@ import { CraftingData, Resource, Process, Recipe, Stack, craftingMetaData } from
 import { craftingReducer } from "../components/crafting";
 import Popup from 'reactjs-popup';
 import { pingServer, pullNameInfo, pushNameInfo } from '../utils/serverApi';
-import { basicText, basicTextWithHelpers, brickedBlastFurnaceText, defaultText, emptyText } from './preset_texts';
+import { basicText, basicTextWithHelpers, brickedBlastFurnaceText, defaultText, emptyText, plasticText } from './preset_texts';
 
 
 function Header() {
@@ -19,6 +19,61 @@ function Header() {
     )
 }
 
+
+function SubHeader({setCodeText, setSaveAvail}: {setCodeText: Dispatch<string>, setSaveAvail: Dispatch<boolean>}) {
+
+    function handleTextChange(event: ChangeEvent<HTMLSelectElement>) {
+        const value = event.target.value;
+        switch (value) {
+            case "default":
+                setCodeText(defaultText);
+                break;
+            case "Empty":
+                setCodeText(emptyText);
+                break;
+            case "Basic":
+                setCodeText(basicText);
+                break;
+            case "BasicWithHelpers":
+                setCodeText(basicTextWithHelpers);
+                break;
+            case "BrickedBlastFurnace":
+                setCodeText(brickedBlastFurnaceText);
+                break;
+            case "Plastic":
+                setCodeText(plasticText);
+                break;
+            default:
+                setCodeText(defaultText);
+                break;
+        }
+        setSaveAvail(false);
+    }
+    return (
+    <>
+        <div>
+            <a href="/wiki/presetGenerator.html" target="_blank" className='hover:underline'>Documentation/Examples</a>
+        </div>
+        <div>
+            Generate preset objects for the crafting system by writing (JavaScript) code.
+            <select className='dark_thing clickable' onChange={handleTextChange} defaultValue="default">
+                <option value="default">Default</option>
+                <option value="Empty">Empty</option>
+                <option value="Basic">Basic</option>
+                <option value="BasicWithHelpers">Basic with Helpers</option>
+                <option value="BrickedBlastFurnace">Bricked Blast Furnace</option>
+                <option value="Plastic">Plastic Pellet</option>
+            </select>
+
+        </div>
+        <div>
+            Do <strong>not</strong> paste in code from anyone you don't know personally. 
+        </div>
+    </>
+    );
+}
+
+
 function Editor({codeState, setCodeState, setSaveAvail}: {codeState: string, setCodeState: Dispatch<string>, setSaveAvail: Dispatch<boolean>}) {
     function textChange(event: ChangeEvent<HTMLTextAreaElement>) {
         setCodeState(event.target.value);
@@ -26,7 +81,7 @@ function Editor({codeState, setCodeState, setSaveAvail}: {codeState: string, set
     }
 
     return (
-        <textarea value={codeState} onChange={textChange} className='w-5/6 h-5/6 readable_text' placeholder='Insert Code here'/>
+        <textarea value={codeState} onChange={textChange} className='w-5/6 h-5/6 dark_thing' placeholder='Insert Code here'/>
     )
 }
 
@@ -97,10 +152,11 @@ function Uploader({popupState, craftingData}: {popupState: boolean, craftingData
     } else if (uploaderState == uploadState.broken) {
         return <div>Server is broken somehow.</div>
     } else {
-        return <div>
-            {!nameInUse ? "Create": "Overrite"} preset {craftingData._meta.name}
-            <button onClick={send}>(Send)</button>
-            <input placeholder='Opt/edit Password' onChange={updatePassword}/>
+        return <div className=''>
+            (Optional){!nameInUse ? "Create": "Overwrite"} saved preset "{craftingData._meta.name}"
+            <br/>
+            <input className='grow dark_thing' placeholder='Opt/edit Password' onChange={updatePassword}/>
+            <button className='dark_thing clickable' onClick={send}>(Send)</button>
             <br/>
             {uploadResSate}
         </div>
@@ -155,63 +211,25 @@ export default function Main() {
         (window as any).Stack = Stack;
     }
 
-    function handleTextChange(event: ChangeEvent<HTMLSelectElement>) {
-        const value = event.target.value;
-        switch (value) {
-            case "default":
-                setCodeText(defaultText);
-                break;
-            case "Empty":
-                setCodeText(emptyText);
-                break;
-            case "Basic":
-                setCodeText(basicText);
-                break;
-            case "BasicWithHelpers":
-                setCodeText(basicTextWithHelpers);
-                break;
-            case "BrickedBlastFurnace":
-                setCodeText(brickedBlastFurnaceText);
-                break;
-            default:
-                setCodeText(defaultText);
-                break;
-        }
-        setSaveAvail(false);
-    }
-
 
     return (
         <div className='flex flex-col items-center h-screen'>
             <Header/>
-            <div>
-                <a href="/wiki/presetGenerator.html" target="_blank" className='hover:underline'>Documentation/Examples</a>
-            </div>
-            <div>
-                Generate preset objects for the crafting system by writing (JavaScript) code.
-                <select className='input_button' onChange={handleTextChange} defaultValue="default">
-                    <option value="default">Default</option>
-                    <option value="Empty">Empty</option>
-                    <option value="Basic">Basic</option>
-                    <option value="BasicWithHelpers">Basic with Helpers</option>
-                    <option value="BrickedBlastFurnace">Bricked Blast Furnace</option>
-                    {/* <option value="Plastic">Plastic Pellet</option> */}
-                </select>
-
-            </div>
+            <SubHeader setCodeText={setCodeText} setSaveAvail={setSaveAvail}/>
             <Editor codeState={codeText} setCodeState={setCodeText} setSaveAvail={setSaveAvail}/>
             <Popup open={popupOpen} onClose={popupClose}>
-                <div className='readable_text border border-black bg-white flex-col'>
+                {/* <div className='readable_text border border-white bg-white flex-col'> */}
+                <div className='dark border flex flex-col'>
                     <div>Data in json form (also already copied):</div>
-                    <input className='border border-black' defaultValue={JSON.stringify(craftingData)}/>
+                    <input className='dark_thing light_bg' defaultValue={JSON.stringify(craftingData)}/>
                     <Uploader popupState={popupOpen} craftingData={craftingData}/>
                 </div>
             </Popup>
             <div>
                 {/* <button className='input_button' onClick={() => console.log(craftingData)}>Log craftingdata</button> */}
-                <button className='input_button' onClick={runFunction}>Validate code</button>
+                <button className='dark_thing clickable' onClick={runFunction}>Validate code</button>
                 {
-                (saveAvail) ? <button className='input_button' onClick={saveData}>Save generated preset (to clipboard)</button> : <></>
+                (saveAvail) ? <button className='dark_thing clickable' onClick={saveData}>Save generated preset (to clipboard)</button> : <></>
                 }
             </div>
             {

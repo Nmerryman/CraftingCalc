@@ -67,7 +67,7 @@ function SubHeader({setCodeText, setSaveAvail}: {setCodeText: Dispatch<string>, 
 
         </div>
         <div>
-            Do <strong>not</strong> paste in code from anyone you don't know personally. 
+            Do <strong>not</strong> paste in code from anyone you don&apos;t know personally. 
         </div>
     </>
     );
@@ -153,7 +153,7 @@ function Uploader({popupState, craftingData}: {popupState: boolean, craftingData
         return <div>Server is broken somehow.</div>
     } else {
         return <div className=''>
-            (Optional){!nameInUse ? "Create": "Overwrite"} saved preset "{craftingData._meta.name}"
+            (Optional){!nameInUse ? "Create": "Overwrite"} saved preset &quot;{craftingData._meta.name}&quot;
             <br/>
             <input className='grow dark_thing' placeholder='Password' onChange={updatePassword}/>
             <button className='dark_thing clickable' onClick={send}>(Send)</button>

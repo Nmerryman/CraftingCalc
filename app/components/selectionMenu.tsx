@@ -99,11 +99,9 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
         setTopScores(topScores);
     }
 
-    if (typeof window !== "undefined") {
-        setTimeout(() => {
-            updateText();
-        }, 500);  // Delay the first update to allow the input to be rendered
-    }
+    useEffect(() => {
+        updateText();
+    }, [craftingData]);
 
     return (
         <ul>

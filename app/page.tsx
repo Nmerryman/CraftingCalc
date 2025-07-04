@@ -28,9 +28,9 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>, presetStorage: S
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
     if (!value) {
-        value = "Dev";
+        // value = "Dev";
         // value = "HDPE Pellet"
-        // value = "Vanilla"
+        value = "Vanilla"
         // value = "BBF";
     }
     console.log("Preset is " + value);
@@ -188,6 +188,15 @@ export default function Main() {
             // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
             // dispatchCraftingRequest({type: "toggle", name: "iron axe"})
             // dispatchCraftingRequest({type: "toggle", name: "rail"})
+            dispatchCraftingRequest({type: "toggle", name: "repeater"})
+            dispatchCraftingRequest({type: "toggle", name: "comparator"})
+            dispatchCraftingRequest({type: "toggle", name: "dispenser"})
+            dispatchCraftingRequest({type: "toggle", name: "copper bulb"})
+            dispatchCraftingRequest({type: "toggle", name: "redstone"})
+            dispatchCraftingRequest({type: "toggle", name: "observer"})
+            dispatchCraftingRequest({type: "toggle", name: "piston"})
+            dispatchCraftingRequest({type: "toggle", name: "red bed"})
+
         }
     }, [loadingStage]);  // Run update once after main page load
 

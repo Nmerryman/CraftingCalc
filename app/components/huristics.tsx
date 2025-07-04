@@ -308,6 +308,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
                     <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
                     {chosenMetaCost}
+                    {metaSolves.permLimitHit ? <span className="text-red-500">More than {metaSolves.permLimit} permutations. Skipped some for performance.</span> : <></>}
                     <ConfigButtons config={svgConfigObj} configDispatch={dispatchConfig}/>
                 </div>
                 <div>

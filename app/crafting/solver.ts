@@ -191,6 +191,8 @@ export class SolveMeta{
     // Resetable traversal stats after each permutation
     currentPermMeta: PermMeta | null = null
     permMetaCollection: Record<string, PermMeta> = {};
+    permLimitHit = false;
+    permLimit = 500;
 
     craftingData: CraftingData;
     constructor(craftingData: CraftingData) {
@@ -506,7 +508,7 @@ export class TempSolver {
         }
         let permutation = new Permutation(meta.recipeOptions);
         for (meta.recipePermutation = permutation.get(); 
-            !permutation.done; 
+            !permutation.done && Object.keys(meta.permMetaCollection).length < meta.permLimit; 
             permutation.incrementPermutation(), meta.recipePermutation = permutation.get()) {
 
             const permMeta = new PermMeta(meta.recipePermutation, this.data);
@@ -517,6 +519,11 @@ export class TempSolver {
             permMeta.build();
 
             meta.reset();
+        }
+
+        if (Object.keys(meta.permMetaCollection).length >= meta.permLimit) {
+            console.warn("Permutations exceeded collection size limit of " + meta.permLimit + ". Some permutations may not have been evaluated.");
+            rootNode.solveMeta.permLimitHit = true;
         }
 
 

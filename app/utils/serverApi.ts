@@ -1,6 +1,6 @@
 
-// const serverUrl = new URL("https://rshim.hydris.dev");
-const serverUrl = new URL("http://localhost:8000");
+const serverUrl = new URL("https://rshim.hydris.dev");
+// const serverUrl = new URL("http://localhost:8000");
 
 const projectName = "CC";
 

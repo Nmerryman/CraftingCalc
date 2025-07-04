@@ -6,49 +6,24 @@ import { LinkBtn } from "./components/button";
 import { CraftingData, Stack } from "./crafting/units";
 import { PopupEditor, togglePopupCallback } from "./components/modifyDataPopup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
-import { OnEnterCall } from "./utils/onEnter";
-import { requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
+import { OnEnterCall } from "./utils/keyboardUtil";
+import { RequestMenuAction, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
-import { compressedCobblePreset, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { compressedCobblestonePreset, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
 import { HuristicsInfoDisplay } from "./components/huristics";
 import { TempSolver } from './crafting/solver';
 import { vanilla } from './crafting/vanillaPreset';
+import { RamStorage, StorageWrapper } from './utils/storage';
 
 
 
 let resetRequestStateFunc: Function;  // Ugly hack to set a function, but in avoids passing a function through a bunch of innocent props/components.
 
 
-// function CheckBackendStatus() {
-//     // Actually tries to fetch and update the status text
-//     const [backendStatus, setBackendStatus] = useState("Unchecked");
+function PullPreset(craftingDispatch: Dispatch<CraftingAction>, presetStorage: StorageWrapper, dispatchRequestMenu: Dispatch<RequestMenuAction>) {
+    // TODO I should pass in request state dispatch and maybe current preset name request.
 
-//     function netCheck() {
-//         fetch("http://p8000.hydris.dev/test", {cache: "no-store"})  // no-store to make sure that we don't cache any status (Probably doesn't matter though)
-//             .then(resp => {
-//                 setBackendStatus("Server is alive!")
-//             })
-//             .catch(err => {
-//                 console.log(err);
-//                 setBackendStatus("Backend target is unreachable.")
-//             })
-//     }
-
-//     return (
-//         <div className="my-1">
-//             <input type="button" className="checkloadconfig" value="Check" onClick={netCheck}/>
-//             {backendStatus}
-//         </div>
-//     )
-// }
-
-
-function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
-
-    // If we have a way to reset the current state, do it.
-    if (resetRequestStateFunc) {
-        resetRequestStateFunc();
-    }
+    dispatchRequestMenu({type: "reset", name: ""});  // Reset the request menu state so that it doesn't show any old requests.
 
     const element = document.getElementById("preset_input") as HTMLInputElement;
     var value = element?.value;
@@ -61,28 +36,27 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>) {
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
 
-    let presetNames: Array<string> = JSON.parse(localStorage.getItem("_available_local")!);
-    console.log(presetNames)
-
-    if (presetNames.includes(value)) {  // We check this because it's my "best practices", but we can bypass this and just check the value for undifined directly.
-        craftingDispatch({type: "replace all", anyValue: JSON.parse(localStorage.getItem(value)!)})
+    if (presetStorage.getKeys().has(value)) {  // We check this because it's my "best practices", but we can bypass this and just check the value for undifined directly.
+        const existingData = presetStorage.getItem(value);
+        if (existingData) {
+            craftingDispatch({type: "replace all", anyValue: JSON.parse(existingData)});  // This will load the preset data into the crafting data.
+        } else {
+            craftingDispatch({type: "reset"});
+        }
     } else {
-        console.log("Unkown preset set: " + value);
+        console.log("Unknown preset set: " + value);
     }
 
-    // craftingDispatch({type: "log"});
 
 }
 
 
-function ensureDefaultPresets() {
+function ensureDefaultPresets(presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>) {
     console.log("Ensuring default presets are loaded...");
     
     // DEBUG clear
     localStorage.clear();
-    
-    let availablePresetNamesStr = localStorage.getItem("_available_local");  // We assume there is no preset called _available. TODO hard code a check when setting?
-    let availablePresetNames = [];
+    presetStorage = new StorageWrapper(localStorage, "_available_local");  // Recreate the storage wrapper to ensure that it has the latest data.
 
     // Create temp object
     let tempData = new CraftingData();
@@ -90,68 +64,58 @@ function ensureDefaultPresets() {
         tempData = craftingReducer(tempData, action);
     }
 
-    if (!availablePresetNamesStr) {  // If this item is not found in localStorage, that means we haven't loaded anything into it.
+    if (presetStorage.cacheNames.size == 0) {  // If this item is empty, that means we haven't loaded anything into it.
 
         // Add defaults
         // Dev
         fakeDispatch({type: "reset"});
         vanillaPickaxePreset(fakeDispatch)
-        localStorage.setItem("Dev", JSON.stringify(tempData));
-        availablePresetNames.push("Dev");
+        presetStorage.setItem("Dev", JSON.stringify(tempData));
 
         // Empty
         fakeDispatch({type: "reset"});
-        localStorage.setItem("Empty", JSON.stringify(tempData));
-        availablePresetNames.push("Empty");
+        presetStorage.setItem("Empty", JSON.stringify(tempData));
 
         // Backpack
         fakeDispatch({type: "reset"});
         gtBackpackPreset(fakeDispatch);
-        localStorage.setItem("Backpack", JSON.stringify(tempData));
-        availablePresetNames.push("Backpack");
+        presetStorage.setItem("Backpack", JSON.stringify(tempData));
 
         // BBF
         fakeDispatch({type: "reset"});
         gtBlastFurnace(fakeDispatch);
-        localStorage.setItem("BBF", JSON.stringify(tempData));
-        availablePresetNames.push("BBF");
+        presetStorage.setItem("BBF", JSON.stringify(tempData));
 
         // MM HDPE Pellet 
         fakeDispatch({type: "reset"});
         mmHDPEPellet(fakeDispatch);
-        localStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
-        availablePresetNames.push(tempData._meta.name);
+        presetStorage.setItem(tempData._meta.name, JSON.stringify(tempData));
 
         // Compressed Cobblestone
         fakeDispatch({type: "reset"});
-        compressedCobblePreset(fakeDispatch);
-        localStorage.setItem("Comp Cobble", JSON.stringify(tempData));
-        availablePresetNames.push("Comp Cobble");
+        compressedCobblestonePreset(fakeDispatch);
+        presetStorage.setItem("Comp Cobble", JSON.stringify(tempData));
 
         // Vanilla generated
         fakeDispatch({type: "reset"});
         vanilla(fakeDispatch);
-        localStorage.setItem("Vanilla", JSON.stringify(tempData));
-        availablePresetNames.push("Vanilla");
+        presetStorage.setItem("Vanilla", JSON.stringify(tempData));
 
-        
-        // Store the currently available items
-        localStorage.setItem("_available_local", JSON.stringify(availablePresetNames));
-
+        setPresetStorage(presetStorage.shallowClone());  // Update the state to reflect the new preset storage.
     }
 }
 
 
 // Preset Menu of Nav Bar
-function PresetMenu({craftingDispatch, craftingData, localAvailPresetNames, setLocalAvailPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, localAvailPresetNames: string, setLocalAvailPresetNames: Dispatch<string>}) {
+function PresetMenu({craftingDispatch, dispatchRequestMenu, craftingData, presetStorage, setPresetStorage}: {craftingDispatch: Dispatch<CraftingAction>, dispatchRequestMenu: Dispatch<RequestMenuAction>, craftingData: CraftingData, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
     return (
-        <div className="w-full">
+        <div className="">
             {/* <CheckBackendStatus/> */}
-            <div className="text-black">
-                <input className="pl-2" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch))}></input>
-                <input type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch)}} className="checkloadconfig ml-1"></input>
-                <PresetConfig craftingData={craftingData} craftingDispatch={craftingDispatch} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
+            <div className="text-black grid grid-cols-2">
+                <input className="col-span-2 dark_thing" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu))}></input>
+                <input className="dark_thing clickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
+                <PresetConfig craftingData={craftingData} dispatchRequestMenu={dispatchRequestMenu} craftingDispatch={craftingDispatch} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>
     )
@@ -159,17 +123,18 @@ function PresetMenu({craftingDispatch, craftingData, localAvailPresetNames, setL
 
 
 // Header and Nav Bar
-function Header({craftingDispatch, craftingData, localAvailPresetNames, setLocalAvailPresetNames}: {craftingDispatch: Dispatch<CraftingAction>, craftingData: CraftingData, localAvailPresetNames: string, setLocalAvailPresetNames: Dispatch<string>}) {
+function Header({craftingDispatch, dispatchRequestMenu, craftingData, presetStorage, setPresetStorage}: {craftingDispatch: Dispatch<CraftingAction>, dispatchRequestMenu: Dispatch<RequestMenuAction>, craftingData: CraftingData, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
     return (
         <div>
-            <div className="text-3xl font-bold underline w-screen bg-slate-700 flex justify-center pb-2">
+            {/* <div className="text-3xl font-bold underline w-screen bg-slate-700 flex justify-center pb-2"> */}
+            <div className="text-3xl font-bold underline w-screen flex justify-center pb-2 highlight_bg">
                 Crafting Site
             </div>
-            <div className="flex justify-around ">
-                <LinkBtn kind="link" text="Help" url="wiki" debugText="Clicked Help"/>
-                <LinkBtn kind="link" text="Preset Creator" url="presetGenerator" debugText="Clicked Preset Generator"/>
-                <LinkBtn kind="link" text="Source" url="https://github.com/Nmerryman/CraftingCalc-Frontend"/>
-                <PresetMenu craftingDispatch={craftingDispatch} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
+            <div className="grid grid-cols-4">
+                <a className="dark_thing clickable grow flex items-center justify-center" href="wiki">Help</a>
+                <a className="dark_thing clickable grow flex items-center justify-center" href="presetGenerator">Preset Creator</a>
+                <a className="dark_thing clickable grow flex items-center justify-center" href="https://github.com/Nmerryman/CraftingCalc-Frontend">Source</a>
+                <PresetMenu craftingDispatch={craftingDispatch} dispatchRequestMenu={dispatchRequestMenu} craftingData={craftingData} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>
     )
@@ -190,12 +155,9 @@ export default function Main() {
 
     var initialcraftingRequests: Record<string, Stack> = {}
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
-    resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})  // load the global shortcut
-    const [localAvailPresetNames, setLocalAvailPresetNames] = useState("");  // By storing the value as a json string, we don't need to use a reducer given that we alway deserialize it.
-    let pVals: Array<string> = [];
-    if (localAvailPresetNames) {
-        pVals = JSON.parse(localAvailPresetNames);
-    }
+    // resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})  // load the global shortcut
+    const [presetStorage, setPresetStorage] = useState(new RamStorage());  // This will be a wrapper around localStorage, but localStorage isn't defined until the effect runs.
+    const [loadingStage, setLoadingStage] = useState(0);  // This is used to show the loading stage of the app. Basically just to make sure that effects fire once the last is done. 
 
     // const testResourceName = "Iron Pickaxe";
     // const testResourceName = "HDPE Pellet"
@@ -203,22 +165,38 @@ export default function Main() {
     // const testResourceName = "Bricked Blast Furnace";
     // const testResourceName = "mud"
     useEffect(() => {
-        ensureDefaultPresets(); 
-        setLocalAvailPresetNames(localStorage.getItem("_available_local")!)
-        PullPreset(dispatchData); 
-        // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
-        // dispatchCraftingRequest({type: "toggle", name: testResourceName})
-        // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
-        // dispatchCraftingRequest({type: "toggle", name: "iron axe"})
-        // dispatchCraftingRequest({type: "toggle", name: "rail"})
-    }, []);  // Run update once after main page load
+        // Setup the correct storage location
+        if (loadingStage === 0) {
+            setPresetStorage(new StorageWrapper(localStorage, "_available_local"));  // Recreate the storage wrapper to ensure that it has the latest data.
+            setLoadingStage(1);
+        }
+    }, [loadingStage]);  // Run update once after main page load
+
+    useEffect(() => {
+        // Ensure that the default presets are loaded.
+        if (loadingStage === 1) {
+            ensureDefaultPresets(presetStorage, setPresetStorage);
+            setLoadingStage(2);
+        }
+    }, [loadingStage]);  // Run update once after main page load
+
+    useEffect(() => {
+        if (loadingStage === 2) {
+            PullPreset(dispatchData, presetStorage, dispatchCraftingRequest);
+            // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
+            // dispatchCraftingRequest({type: "toggle", name: testResourceName})
+            // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
+            // dispatchCraftingRequest({type: "toggle", name: "iron axe"})
+            // dispatchCraftingRequest({type: "toggle", name: "rail"})
+        }
+    }, [loadingStage]);  // Run update once after main page load
 
     return (  // we can define the datalist early so that it can be used everywhere.
         <div className="">
-            {(localAvailPresetNames) ?
+            {(presetStorage.getKeys().size > 0) ?
                 <datalist id="preset_names">
                     {
-                        pVals.map(name => {
+                        presetStorage.getKeysArray().map(name => {
                             return <option value={name} key={name}/>
                         })
                     }
@@ -226,24 +204,11 @@ export default function Main() {
                 :
                 <></>
             }
-            {/* <button onClick={() => {
-                craftingData.runHealthChecks();
-                let tempSolver = new TempSolver(craftingData);
-                console.log("Solver: ", tempSolver);
-                console.log("Solved: ", tempSolver.solve([new Stack(testResourceName, 1)]));
-            }}>test temp solver</button> */}
-            <button onClick={() => {
-                fetch("https://rshim.hydris.dev", {cache: "no-store"}).then(resp => resp.text()).then(text => {
-                    console.log("Response from backend: ", text);
-                }).catch(err => {
-                    console.error("Error connecting to backend: ", err);
-                });
-            }}>test backend</button>
-            <Header craftingDispatch={dispatchData} craftingData={craftingData} localAvailPresetNames={localAvailPresetNames} setLocalAvailPresetNames={setLocalAvailPresetNames}/>
-            <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/>
+            <Header craftingDispatch={dispatchData} dispatchRequestMenu={dispatchCraftingRequest} craftingData={craftingData} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
+            {/* <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/> */}
             {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}
             <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
-            <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button>
+            {/* <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button> */}
             <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
         </div>
     );

@@ -118,7 +118,7 @@ export function vanillaPickaxePreset(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set metadata", anyValue: meta});
 }
 
-export function compressedCobblePreset(dispatch: Dispatch<CraftingAction>) {
+export function compressedCobblestonePreset(dispatch: Dispatch<CraftingAction>) {
     remoteTest(dispatch);
 }
 

@@ -1,14 +1,14 @@
 import { Dispatch, SyntheticEvent, useEffect, useState } from "react"
 import { CraftingData, Process, Recipe, Resource, Stack } from "../crafting/units"
 import xIcon from "./xIcon.png"
-import { OnEnterCall } from "../utils/onEnter"
+import { OnEnterCall, onlyNumbers } from "../utils/keyboardUtil"
 import Popup from "reactjs-popup"
 import { DisplayRecipe, DisplayStack, ItemPopupText } from "./viewInfoDataPopups"
 import { simmilarityScoreFunc } from "./searchBarFunctionality"
 import Image from "next/image"
 
 
-type RequestMenuAction = {
+export type RequestMenuAction = {
     type: "toggle"|"set"|"remove"|"reset"|"refresh",
     name: string,
     value?: number
@@ -34,6 +34,7 @@ export function requestMenuReducer(currentState: CraftingRequestType, action: Re
         }
         return temp;
     case "reset":
+        console.log("Resetting request menu state.");
         return {};
     case "refresh":
         return temp;
@@ -42,8 +43,8 @@ export function requestMenuReducer(currentState: CraftingRequestType, action: Re
 
 function ItemPopup({pState, pClose, stack, resource}: {pState: boolean, pClose: () => void, stack: Stack, resource: Resource}) {
     return (
-        <Popup open={pState} onClose={pClose}>
-            <div className="popup-content text-black">
+        <Popup className="narrow-popup" open={pState} onClose={pClose}>
+            <div className="">
                 <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
                 <ItemPopupText resource={resource}/>
             </div>
@@ -97,21 +98,26 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
         }
         setTopScores(topScores);
     }
-    setTimeout(() => {
-        updateText();
-    }, 500);  // Delay the first update to allow the input to be rendered
+
+    if (typeof window !== "undefined") {
+        setTimeout(() => {
+            updateText();
+        }, 500);  // Delay the first update to allow the input to be rendered
+    }
 
     return (
         <ul>
-            <div className="font-bold text-lime-500">Resource List</div>
-            <input placeholder="Resource" id="resource_search" className="text-black pl-1" onChange={() => updateText()} onKeyDown={OnEnterCall(() => requestDispatch({type: "toggle", name: topName}))}/>
-            {topScoresState
-                .map((rval, rIndex) => {
-                    if (rIndex == 0) {  // Store the name of the top item in the sort so that we can reference it in an enter toggle later.
-                        topName = rval.name;
-                    }
-                    return <ResourceListItem key={rval.name} resource={rval} debugScore={simmilarityScoreFunc(textState, rval.name)} dispatch={requestDispatch}/>
-                    })}
+            <div className="font-bold text-lime-500 mb-1">Resource List</div>
+            <input placeholder="Resource" id="resource_search" className="dark_thing pl-1" onChange={() => updateText()} onKeyDown={OnEnterCall(() => requestDispatch({type: "toggle", name: topName}))}/>
+            <div className="scrollable_list">
+                {topScoresState
+                    .map((rval, rIndex) => {
+                        if (rIndex == 0) {  // Store the name of the top item in the sort so that we can reference it in an enter toggle later.
+                            topName = rval.name;
+                        }
+                        return <ResourceListItem key={rval.name} resource={rval} debugScore={simmilarityScoreFunc(textState, rval.name)} dispatch={requestDispatch}/>
+                        })}
+            </div>
         </ul>
     )
 }
@@ -119,8 +125,8 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
 
 function ProcessPopup({pState, pClose, processName}: {pState: boolean, pClose: () => void, processName: string}) {
     return (
-        <Popup open={pState} onClose={pClose}>
-            <div className="popup-content text-black">
+        <Popup className="narrow-popup" open={pState} onClose={pClose}>
+            <div className="">
                 {/* <DisplayStack stack={stack}/>  Not sure if this recursion is bad or not */}
                 <ItemPopupText resource={new Resource(processName)}/>
                 
@@ -149,8 +155,12 @@ function ProcessListItem({name}: {name: string}) {
 function ListProcesses({craftingData}: {craftingData: CraftingData}) {
     return (
         <ul className="px-5">
-            <span className="font-bold text-yellow-300">Process List</span>
-            {Object.values(craftingData.processes).map((pval) => {return <ProcessListItem name={pval.name} key={pval.name}/>})}
+            <div className="mb-1">
+                <span className="font-bold text-yellow-300">Process List</span>
+            </div>
+            <div className="scrollable_list">
+                {Object.values(craftingData.processes).map((pval) => {return <ProcessListItem name={pval.name} key={pval.name}/>})}
+            </div>
         </ul>
     )
 }
@@ -175,13 +185,13 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
     return (
         <li key={item.resourceName} className="h-8">
             <label>
-                <input className="bg-slate-900 px-2" type="number" defaultValue={item.amount} onChange={(e) => {updateRequestMenu(e, item.resourceName, requestDispatch)}}/>
+                <input className="dark_thing px-1 mr-1" type="number" defaultValue={item.amount} onChange={(e) => { updateRequestMenu(e, item.resourceName, requestDispatch)}}/>
                 x {item.resourceName}
             </label>
             {/* <Image src={xIcon.src} 
                 onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer" alt="X Icon"/> */}
             <img src={xIcon.src} 
-                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer" alt="X Icon"/>
+                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer ml-1" alt="X Icon"/>
         </li>
     )
 
@@ -191,8 +201,12 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
 function ListRequests({requestState, requestDispatch}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <ul className="px-5">
-            <span className="font-bold text-red-500">Crafting Request</span><button onClick={() => requestDispatch({type: "refresh", name: ""})}> (refresh calculations)</button>
-            {Object.values(requestState).map((rval) => {return <RequestListItem key={rval.resourceName} item={rval} requestDispatch={requestDispatch}/>})}
+            <div className="flex justify-between items-center mb-1">
+                <span className="font-bold text-red-500">Crafting Request</span><button className="dark_thing clickable" onClick={() => requestDispatch({type: "refresh", name: ""})}> refresh calculations</button>
+            </div>
+            <div className="scrollable_list">
+                {Object.values(requestState).map((rval) => {return <RequestListItem key={rval.resourceName} item={rval} requestDispatch={requestDispatch}/>})}
+            </div>
         </ul>
     )
 }
@@ -202,12 +216,12 @@ function ListRequests({requestState, requestDispatch}: {requestState: CraftingRe
 export function SelectionDisplay({craftingData, requestState, requestDispatch}: {craftingData: CraftingData, requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <>
-        <div className="flex justify-around h-[40vh] overflow-hidden divide-x-2 divide-dashed divide-slate-600/30">
+        <div className="flex justify-around h-[40vh] max-h-[40vh] overflow-hidden divide-x-2 divide-dashed divide-slate-600/30">
             <ListResources craftingData={craftingData} requestDispatch={requestDispatch}/>
             <ListProcesses craftingData={craftingData}/>
             <ListRequests requestState={requestState} requestDispatch={requestDispatch}/>
         </div>
-        <input type="button" className="cursor-pointer" onClick={() => {console.log(requestState)}} value="(debug) Log request state."/>
+        {/* <input type="button" className="cursor-pointer" onClick={() => {console.log(requestState)}} value="(debug) Log request state."/> */}
         </>
 
     )

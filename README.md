@@ -94,7 +94,7 @@ No focus on merging recipe paths
 - gravel -> sand + ore -> combined later
 No focus on using bonus chances
 
-`_available_local` and `_available_backend` are restricted names in localStorage. They are used to cache information.
+`_available_local` are restricted names in localStorage. They are used to cache information.
 
 
 # Helping Instructions

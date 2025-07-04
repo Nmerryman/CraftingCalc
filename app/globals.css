@@ -8,7 +8,7 @@
   --background-end-rgb: 0, 0, 0;
   --dark-color: #000000;
   --light-color: #ffffff;
-  --almost-dark-color: #5a5a5a;
+  --almost-dark-color: #3a3a3a;
   --almost-light-color: #b0b0b0;
 }
 
@@ -39,11 +39,21 @@
 .dark_thing {
   @apply dark_text dark_bg;
   border: 1px solid var(--light-color);
+  padding: 1px;
 }
 
 .light_thing {
   @apply light_text light_bg;
   border: 1px solid var(--dark_color);
+}
+
+/* Custom for popups */
+.popup-content.standard-popup-content {
+  @apply dark_thing w-4/5;
+}
+
+.popup-content.narrow-popup-content {
+  @apply dark_thing w-1/2;
 }
 
 .highlight_text {
@@ -60,6 +70,13 @@
     background-color: var(--light-color);
     color: var(--dark-color);
   }
+}
+
+/* I don't like the max height hack. The number is the way it is because it 
+doesn't know what non-scrollable content is in the div that controls the height */
+.scrollable_list {
+  overflow-y: auto;
+  max-height: 25vh; 
 }
 
 body {
@@ -111,10 +128,6 @@ header {
 
 input {
   @apply text-black highlight_background
-}
-
-.bow_text {
-  @apply text-black text-center
 }
 
 .navbar_button {

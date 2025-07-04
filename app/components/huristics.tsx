@@ -164,15 +164,15 @@ export class svgConfig {
 function ToggleText({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (config.showText) {
         return (
-            <label className="input_button">
-                <button className="input_button" onClick={() => configDispatch({type: "disable text"})}/>Hide text
-            </label>
+            <span className="dark_thing clickable" onClick={() => configDispatch({type: "disable text"})}>
+                Hide text
+            </span>
         )
     } else {
         return (
-            <label className="input_button">
-                <button className="input_button" onClick={() => configDispatch({type: "enable text"})}/>Show text
-            </label>
+            <span className="dark_thing clickable" onClick={() => configDispatch({type: "enable text"})}>
+                Show text
+            </span>
         )
     }
 }
@@ -181,15 +181,15 @@ function ToggleText({config, configDispatch}: {config: svgConfig, configDispatch
 function LargeSvg({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (config.largeSvg) {
         return (
-            <label className="input_button">
-                <button className="input_button" onClick={() => configDispatch({type: "small svg"})}/>Small Svg
-            </label>
+            <span className="dark_thing clickable" onClick={() => configDispatch({type: "small svg"})}>
+                Use small svg
+            </span>
         )
     } else {
         return (
-            <label className="input_button">
-                <button className="input_button" onClick={() => configDispatch({type: "large svg"})}/>Large Svg
-            </label>
+            <span className="dark_thing clickable" onClick={() => configDispatch({type: "large svg"})}>
+                Large Svg
+            </span>
         )
     }
 }
@@ -199,15 +199,15 @@ function ToggleZoom({config, configDispatch}: {config: svgConfig, configDispatch
     if (config._zoomAvailable) {
         if (config.useZoom) {
             return (
-                <label className="input_button">
-                    <button className="input_button" onClick={() => configDispatch({type: "disable zoom"})}/>Disable Zoom
-                </label>
+                <span className="dark_thing clickable" onClick={() => configDispatch({type: "disable zoom"})}>
+                    Disable Zoom
+                </span>
             )
         } else {
             return (
-                <label className="input_button">
-                    <button className="input_button" onClick={() => configDispatch({type: "enable zoom"})}/>Enable Zoom
-                </label>
+                <span className="dark_thing clickable" onClick={() => configDispatch({type: "enable zoom"})}>
+                    Enable Zoom
+                </span>
             )
         }
     } else {
@@ -221,9 +221,15 @@ function ToggleZoom({config, configDispatch}: {config: svgConfig, configDispatch
 function ChangeZoom({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (!config._settingZoomFirst && !config._settingZoomSecond) {
         return (
-            <label className="input_button">
-                <button onClick={() => configDispatch({type: "ready set first"})}/>Change zoom
-            </label>
+            <span className="dark_thing clickable" onClick={() => configDispatch({type: "ready set first"})}>
+                Set zoom
+            </span>
+        )
+    } else {
+        return (
+            <span className="dark_thing">
+                Waiting for zoom coordinates corners. (Top Left, Bottom Right)
+            </span>
         )
     }
 }
@@ -296,9 +302,9 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         return (
             <div>
                 <div className="flex">
-                    <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
+                    {/* <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
                     <label><button onClick={() => console.log(metaSolves)}/>(Log all meta)</label>
-                    <label><button onClick={() => console.log(bestMeta)}/>(Log best meta)</label>
+                    <label><button onClick={() => console.log(bestMeta)}/>(Log best meta)</label> */}
                     <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
                     {chosenMetaCost}

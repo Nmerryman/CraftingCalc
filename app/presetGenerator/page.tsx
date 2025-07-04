@@ -99,8 +99,8 @@ enum uploadState {
 function Uploader({popupState, craftingData}: {popupState: boolean, craftingData: CraftingData}) {
     const [uploaderState, setUploaderState] = useState(uploadState.checking);
     const [uploadResSate, setUploadResState] = useState("");
+    const [nameInUse, setNameInUse] = useState(false);
 
-    let nameInUse = false;
     let passwordField = "";
 
     useEffect(() => {
@@ -115,7 +115,7 @@ function Uploader({popupState, craftingData}: {popupState: boolean, craftingData
                                         setUploaderState(uploadState.broken)
                                     } else {
                                         setUploaderState(uploadState.openName);
-                                        nameInUse = false;
+                                        setNameInUse(false);
                                     }
                                 } else {
                                     if (res.hasPassword && res.hasPassword) {   // lol
@@ -123,7 +123,7 @@ function Uploader({popupState, craftingData}: {popupState: boolean, craftingData
                                     } else {    // Exists without password
                                         setUploaderState(uploadState.openName);
                                     }
-                                    nameInUse = true;
+                                    setNameInUse(true);
                                 }
                             })
                     } else {
@@ -155,7 +155,7 @@ function Uploader({popupState, craftingData}: {popupState: boolean, craftingData
         return <div className=''>
             (Optional){!nameInUse ? "Create": "Overwrite"} saved preset "{craftingData._meta.name}"
             <br/>
-            <input className='grow dark_thing' placeholder='Opt/edit Password' onChange={updatePassword}/>
+            <input className='grow dark_thing' placeholder='Password' onChange={updatePassword}/>
             <button className='dark_thing clickable' onClick={send}>(Send)</button>
             <br/>
             {uploadResSate}

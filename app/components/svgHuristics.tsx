@@ -120,7 +120,7 @@ export function SVGHuristic({permMeta, config, configDispatch}: {permMeta: PermM
     }
 
     return (
-        <svg className={`bg-neutral-100 w-full h-[${Math.round(originalBoxHeight)}px]`} viewBox={`${boxStartX} ${boxStartY} ${boxWidth} ${boxHeight}`} onClick={svgClickCallback} ref={svgthing}>
+        <svg className={`dark_thing w-full h-[${Math.round(originalBoxHeight)}px]`} viewBox={`${boxStartX} ${boxStartY} ${boxWidth} ${boxHeight}`} onClick={svgClickCallback} ref={svgthing}>
             {arrowCollection.map((arrow, i) => {
                 let lineVals = calcArrows(arrow.from, arrow.to, scale);
                 lineVals.a.x += originalBoxStartX;

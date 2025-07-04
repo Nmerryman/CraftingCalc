@@ -75,8 +75,8 @@ export function ArrowPath({start, end, scale = 1}: {start: Coordinate, end: Coor
     }
     command += "L " + start.x + " " + start.y;
 
-    return <path d={command}/>
-    
+    return <path stroke="var(--light-color)" fill="var(--light-color)" d={command}/>
+
 }
 
 

@@ -28,6 +28,7 @@ function addProcesses(r: Record<string, Process>, names: Array<string>) {
 }
 
 function defaultRecipeFactory(process: string) {
+    // This is a factory function handles vanilla recipes, multiple inputs, and single output.
     return (output: string, input: Array<Stack>) => {return new Recipe(process, input, [new Stack(output)])};
 }
 
@@ -117,7 +118,7 @@ export function vanillaPickaxePreset(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set metadata", anyValue: meta});
 }
 
-export function compressedCobblePreset(dispatch: Dispatch<CraftingAction>) {
+export function compressedCobblestonePreset(dispatch: Dispatch<CraftingAction>) {
     remoteTest(dispatch);
 }
 

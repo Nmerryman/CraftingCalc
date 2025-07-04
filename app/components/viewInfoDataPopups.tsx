@@ -44,15 +44,15 @@ export function DisplayRecipe({recipe, ratio = 1}: {recipe: Recipe, ratio: numbe
     // Now calculates and inserts the ratio.
     return (
         <div>
-            <div className="highlight_background">
+            <div className="highlight_bg">
                 {recipe.inputResources.map(stack => <div key={stack.resourceName}><DisplayStackInline stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/> ({stack.amount}x per)</div>)}
             </div>
             &darr;
-            <div className="highlight_background">
+            <div className="highlight_bg">
             Into: {recipe.processUsed}({ratio}x) 
             </div>
             &darr;
-            <div className="highlight_background">
+            <div className="highlight_bg">
                 {recipe.outputResources.map(stack => <div key={stack.resourceName}><DisplayStackInline stack={new Stack(stack.resourceName, stack.amount * ratio)} key={stack.resourceName}/> ({stack.amount}x per)</div>)}
             </div>
         </div>
@@ -87,21 +87,21 @@ export function CTBStackPopup({pState, pClose, stack, permMeta, showProcess}: {p
     let resourceVal = permMeta.craftingData.resources[stack.resourceName];
     if (resourceVal != undefined) {
         return (
-            <Popup open={pState} onClose={pClose}>
-                <div className="text-black">
+            <Popup className="narrow-popup" open={pState} onClose={pClose}>
+                <div className="">
                     <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
                     <ItemPopupText resource={resourceVal}/>
                     {(showProcess) ? <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/> : <></>}
                 </div>
                 <div className="flex">
-                    <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+                    <button className="dark_thing clickable ml-auto mt-1" onClick={pClose}>Done</button>
                 </div>
             </Popup>
         )
     } else {
         return (
-            <Popup open={pState} onClose={pClose}>
-                <div className="text-black">
+            <Popup className="narrow-popup" open={pState} onClose={pClose}>
+                <div className="">
                     <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
                     <ItemPopupText resource={permMeta.craftingData.recipes[stack.resourceName as unknown as number]}/>
                     <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/>

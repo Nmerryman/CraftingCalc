@@ -1,5 +1,5 @@
 import { Permutation } from "./permutations";
-import { CraftingData, Resource, Stack } from "./units";
+import { CraftingData, Recipe, Resource, Stack } from "./units";
 
 
 export type RRKey = string | number;   // Recipe or Resource name/key
@@ -191,6 +191,8 @@ export class SolveMeta{
     // Resetable traversal stats after each permutation
     currentPermMeta: PermMeta | null = null
     permMetaCollection: Record<string, PermMeta> = {};
+    permLimitHit = false;
+    permLimit = 500;
 
     craftingData: CraftingData;
     constructor(craftingData: CraftingData) {
@@ -291,16 +293,19 @@ export class StepNode {
     }
 
     populateChildren() {
+        // Builds an acyclic graph of all possible recipes and resources
         if (this.root) {
             for (let child of this.children) {
                 this.solveMeta.stepNodeCache[child.name] = child;
                 child.populateChildren();
             }
         } else {
-            let parents = this.parentNames();
+            let parents = this.parentNames();   // Names of all possible parents to make sure we haven't seen this node before
             for (let srcName of this.getSrcs()) {
                 const srcThing = this.craftingData.get(srcName)!;
-                if (!parents.has(srcName) && !srcThing.isDisabled) {
+                if (!parents.has(srcName) 
+                    && !srcThing.isDisabled 
+                    && !(this.type == StepNodeType.RESOURCE && this.craftingData.processes[(srcThing as Recipe).processUsed].isDisabled)) {
                     if (srcName in this.solveMeta.stepNodeCache) {
                         let childNode = this.solveMeta.stepNodeCache[srcName];
                         this.addChild(childNode);
@@ -308,7 +313,7 @@ export class StepNode {
                         let childNode = new StepNode(this.swapType(), srcName, this.craftingData, this.solveMeta);
                         this.addChild(childNode);
                         this.solveMeta.stepNodeCache[srcName] = childNode;
-                        if (!(srcThing.isBase)) {
+                        if (!srcThing.isBase) {
                             childNode.populateChildren();
                         }
                     }
@@ -418,10 +423,10 @@ export class StepNode {
             return;
         } else if (this.type == StepNodeType.RECIPE && this.children.length != this.craftingData.getRecipe(this.name as number)!.inputResources.length) {    // This also handles the root
             const tempRecipe = this.craftingData.getRecipe(this.name as number);
-            console.log("pruning recipe, in:", tempRecipe?.inputResources, "out", tempRecipe?.outputResources);
+            // console.log("pruning recipe, in:", tempRecipe?.inputResources, "out", tempRecipe?.outputResources);
             removeSelf = true;
         } else if (this.type == StepNodeType.RESOURCE && this.children.length == 0 && !this.craftingData.resources[this.name]!.isBase) {
-            console.log("pruning resource", this.craftingData.get(this.name));
+            // console.log("pruning resource", this.craftingData.get(this.name));
             removeSelf = true;
         }
         if (removeSelf) {
@@ -439,7 +444,7 @@ export class StepNode {
         } else {
             if (this.children.length > 1 && this.type == StepNodeType.RESOURCE && this.solveMeta.recipeOptions[this.name] == undefined) {
                 this.solveMeta.recipeOptions[this.name] = this.children.length;
-                console.log("adding permutation", this.name, this.solveMeta.recipeOptions)
+                // console.log("adding permutation", this.name, this.solveMeta.recipeOptions)
             }
             for (const child of this.children) {
                 child.findPermOptions();
@@ -490,23 +495,32 @@ export class TempSolver {
 
     constructor(public data: CraftingData) {
         this.data = data;
-        if (!data.passedHealthCheck) {
-            console.error("CraftingData has not passed health check. Please run data.healthCheck() before using the solver.");
-        }
+        this.healthCheck();
+    }
 
+    healthCheck() {
+        if (!this.data.passedHealthCheck) {
+            console.error("CraftingData has not passed health check. Please run data.healthCheck() before using the solver.");
+            return false;
+        }
+        return true;
     }
 
     solve(request: Array<Stack>) {
+        console.log("health", this.data.passedHealthCheck);
+        if (!this.healthCheck()) {
+            return null;
+        }
         let meta = new SolveMeta(this.data);
         let rootNode = this.createGraph(request, meta);
         console.log("root node", rootNode);
         if (!rootNode.possible) {
-            console.error("Request has invalid items. (Items that cannot be crafted based on available base items.) Not sure how you did that.")
+            console.error("Request has invalid items. (Items that cannot be crafted based on available base items.) Not sure how you did that. (Maybe you disabled items that were needed)")
             return rootNode;
         }
         let permutation = new Permutation(meta.recipeOptions);
         for (meta.recipePermutation = permutation.get(); 
-            !permutation.done; 
+            !permutation.done && Object.keys(meta.permMetaCollection).length < meta.permLimit; 
             permutation.incrementPermutation(), meta.recipePermutation = permutation.get()) {
 
             const permMeta = new PermMeta(meta.recipePermutation, this.data);
@@ -517,6 +531,11 @@ export class TempSolver {
             permMeta.build();
 
             meta.reset();
+        }
+
+        if (Object.keys(meta.permMetaCollection).length >= meta.permLimit) {
+            console.warn("Permutations exceeded collection size limit of " + meta.permLimit + ". Some permutations may not have been evaluated.");
+            rootNode.solveMeta.permLimitHit = true;
         }
 
 

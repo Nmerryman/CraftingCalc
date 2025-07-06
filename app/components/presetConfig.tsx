@@ -2,14 +2,15 @@ import { ChangeEvent, Dispatch, useEffect, useState } from "react";
 import { Popup } from "reactjs-popup"
 import xIcon from "./xIcon.png"
 import { CraftingData } from "../crafting/units";
-import { CraftingAction } from "./crafting";
+import { CraftingAction, useCraftingData, useCraftingDataDispatch } from "./contexts/craftingContext";
 import Image from "next/image";
-import { getResponse, pullNameInfo } from "../utils/serverApi";
+import { pullNameInfo } from "../utils/serverApi";
 import { StorageWrapper } from "../utils/storage";
 import { OnEnterCall } from "../utils/keyboardUtil";
 import { RequestMenuAction } from "./selectionMenu";
+import { useDisabledList, useDisabledListDispatch } from "./contexts/disabledListContext";
 
-export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatch, presetStorage, setPresetStorage}: {craftingData: CraftingData, dispatchRequestMenu: Dispatch<RequestMenuAction>, craftingDispatch: Dispatch<CraftingAction>, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
+export function PresetConfig({dispatchRequestMenu, presetStorage, setPresetStorage}: {dispatchRequestMenu: Dispatch<RequestMenuAction>, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
 
     const [popupState, setPopupState] = useState(false);
     const closePopup = () => {setPopupState(false)};
@@ -17,6 +18,11 @@ export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatc
     const [jsonInput, setJsonInput] = useState("");
     const [deletionInput, setDeletionInput] = useState("");
     const [downloadInput, setDownloadInput] = useState("");
+    const craftingData = useCraftingData();
+    const craftingDispatch = useCraftingDataDispatch();
+
+    const disabledList = useDisabledList();
+    const setDisabledList = useDisabledListDispatch();
 
     // I feel like a bunch of this stuff is duplicate and ugly
     function removeFromLocal() {
@@ -97,6 +103,27 @@ export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatc
         }
     }
 
+    function undoLastDisabled() {
+        if (disabledList.length > 0) {
+            const lastDisabled = disabledList[disabledList.length - 1];
+            setDisabledList(disabledList.slice(0, -1)); 
+            const thing = craftingData.get(lastDisabled);
+            if (thing) {
+                thing.isDisabled = false;  // Should always be defined
+                setStatusText(`Re-enabled "${lastDisabled}".`);
+            } else {
+                console.error(`Tried to undo disabled thing "${lastDisabled}" but it was not found in craftingData.`);
+            }
+        } else {
+            setStatusText("No things to undo.");
+        }
+    }
+
+    let undoButtonText = "Undo ";
+    if (disabledList.length > 0) {
+        undoButtonText += `"${disabledList[disabledList.length - 1]}"`;
+    }
+
     return (
         <>
             <input type="button" value="Config" className="dark_thing clickable" onClick={() => setPopupState(true)}/>
@@ -110,17 +137,26 @@ export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatc
                     Load from (generated) JSON
                     </span>
                     <input type="text" className="dark_thing" placeholder="Preset Data" onChange={e => setJsonInput(e.currentTarget.value)} onKeyDown={OnEnterCall(loadJsonPreset)}></input>
-                    <input type="button" className="dark_thing clickable" value="Load JSON Preset" onClick={loadJsonPreset}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Load JSON Preset" onClick={loadJsonPreset}/>
                     <span>
                     Delete saved preset
                     </span>
                     <input type="text" className="dark_thing" placeholder="Preset Name" value={deletionInput} onChange={e => setDeletionInput(e.currentTarget.value)} onKeyDown={OnEnterCall(removeFromLocal)} list="preset_names"/>
-                    <input type="button" className="dark_thing clickable" value="Delete Local" onClick={removeFromLocal}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Delete Local" onClick={removeFromLocal}/>
                     <span>
                     Download remote presets
                     </span>
                     <input type="text" className="dark_thing" placeholder="Preset Link" value={downloadInput} onChange={e => setDownloadInput(e.currentTarget.value)} onKeyDown={OnEnterCall(downloadToLocal)}/>
-                    <input type="button" className="dark_thing clickable" value="Download" onClick={downloadToLocal}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Download" onClick={downloadToLocal}/>
+                    <span>Undo last disabled thing</span>
+                    <input type="button" className="dark_thing clickable lclickable" value={undoButtonText} onClick={undoLastDisabled}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Reset local presets" onClick={() => {
+                        for (const key of presetStorage.getKeys()) {
+                            presetStorage.removeItem(key);
+                        }
+                        setPresetStorage(presetStorage.shallowClone());
+                        setStatusText("Cleared all local presets. (refresh page to reload default presets)");
+                    }}/>
                 </div>
                 {
                     (statusText.length > 0) ? 

@@ -1,10 +1,12 @@
-import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
+import { ChangeEvent, Dispatch, SetStateAction, useEffect, useReducer, useState } from "react";
 import { CraftingRequestType } from "./selectionMenu";
 import { SVGHuristic } from "./svgHuristics";
 import { Coordinate } from "./svg";
-import { DisplayCTBItemStack } from "./viewInfoDataPopups";
-import { CraftingData } from "../crafting/units";
+import { DisplayCTBItemStack, DisplayRecipe } from "./viewInfoDataPopups";
+import { CraftingData, Recipe } from "../crafting/units";
 import { PermMeta, SolveMeta, StepNode, TempSolver } from "../crafting/solver";
+import Popup from "reactjs-popup";
+import { useCraftingData } from "./contexts/craftingContext";
 
 // If the select number box is checked, create an input that allows the user to enter a number
 function HuristicNumberChoice({boxState, permMetaNum, updateMetaNum, metaOptSize}: {boxState: boolean, permMetaNum: number, updateMetaNum: Dispatch<number>, metaOptSize: number}) {
@@ -164,13 +166,13 @@ export class svgConfig {
 function ToggleText({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (config.showText) {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "disable text"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "disable text"})}>
                 Hide text
             </span>
         )
     } else {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "enable text"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "enable text"})}>
                 Show text
             </span>
         )
@@ -181,13 +183,13 @@ function ToggleText({config, configDispatch}: {config: svgConfig, configDispatch
 function LargeSvg({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (config.largeSvg) {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "small svg"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "small svg"})}>
                 Use small svg
             </span>
         )
     } else {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "large svg"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "large svg"})}>
                 Large Svg
             </span>
         )
@@ -199,13 +201,13 @@ function ToggleZoom({config, configDispatch}: {config: svgConfig, configDispatch
     if (config._zoomAvailable) {
         if (config.useZoom) {
             return (
-                <span className="dark_thing clickable" onClick={() => configDispatch({type: "disable zoom"})}>
+                <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "disable zoom"})}>
                     Disable Zoom
                 </span>
             )
         } else {
             return (
-                <span className="dark_thing clickable" onClick={() => configDispatch({type: "enable zoom"})}>
+                <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "enable zoom"})}>
                     Enable Zoom
                 </span>
             )
@@ -221,7 +223,7 @@ function ToggleZoom({config, configDispatch}: {config: svgConfig, configDispatch
 function ChangeZoom({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (!config._settingZoomFirst && !config._settingZoomSecond) {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "ready set first"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "ready set first"})}>
                 Set zoom
             </span>
         )
@@ -248,12 +250,91 @@ function ConfigButtons({config, configDispatch}: {config: svgConfig, configDispa
 }
 
 
+function DisableableCheckbox({recipe, currentCheckedCount, setCurrentCheckedCount}: {recipe: Recipe, currentCheckedCount: number, setCurrentCheckedCount: Dispatch<SetStateAction<number>>}) {
+    const [currentlyChecked, setCurrentlyChecked] = useState(!recipe.isDisabled);
+    return (<>
+        <div key={recipe.id}>
+            <label className="font-bold lclickable">
+                <input type="checkbox" className="mr-2" checked={currentlyChecked} onChange={() => {
+                    console.log("starts with", currentlyChecked, currentCheckedCount);
+                    // if (currentlyChecked && currentCheckedCount > 1) {
+                    if (currentlyChecked) {
+                        recipe.isDisabled = true;
+                        setCurrentCheckedCount(currentCheckedCount - 1);
+                        setCurrentlyChecked(false);
+                    } else if (!currentlyChecked) {
+                        recipe.isDisabled = false;
+                        setCurrentCheckedCount(currentCheckedCount + 1);
+                        setCurrentlyChecked(true);
+                    }
+                }} />
+            {recipe.id}
+            <DisplayRecipe recipe={recipe} ratio={1}/>
+            </label>
+        </div>
+        <br/>
+    </>)
+}
 
-export function HuristicsInfoDisplay({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
+function MetaPart({name, value}: {name: string, value: any}) {
+    const [choicePopupOpen, setChoicePopupOpen] = useState(false);
+    const [currentCheckedCount, setCurrentCheckedCount] = useState(0);
+    const craftingData = useCraftingData();
+    const tempRIds = craftingData.findRecipesFor(name);
+    const tempRecipes: Array<Recipe> = tempRIds.map(rId => craftingData.get(rId)) as Array<Recipe>;
+    const recipeElements = tempRecipes.map((recipe, i) => <DisableableCheckbox recipe={recipe} currentCheckedCount={currentCheckedCount} setCurrentCheckedCount={setCurrentCheckedCount} key={i}/>);
+
+    useEffect(() => {
+        setCurrentCheckedCount(tempRecipes.filter(r => !r.isDisabled).length);
+    }, []);
+
+    return (
+        <span>
+            <Popup open={choicePopupOpen} onClose={() => setChoicePopupOpen(false)} className="narrow-popup">
+                <div>
+                    Enable recipes for {name}:
+                    {recipeElements}
+                </div>
+
+            </Popup>
+            <span className="dark clickable lclickable" onClick={() => setChoicePopupOpen(true)}>
+                {name}: {value}
+            </span>
+        </span>
+    )
+}
+
+function DisplayChosenMetaText({modeCheckbox, rootNodeState, heuristicNum}: {modeCheckbox: boolean, rootNodeState: StepNode, heuristicNum: number}) {
+    const metaSolves = rootNodeState.solveMeta;
+    let chosenMetaText = "";
+    if (modeCheckbox) {
+        return (<></>)
+    } else {
+        let chosenMeta = JSON.parse(Object.keys(metaSolves.permMetaCollection)[heuristicNum]);
+        chosenMetaText = JSON.stringify(chosenMeta);
+
+        let metaValues = [];
+        for (const [key, value] of Object.entries(chosenMeta)) {
+            metaValues.push(<MetaPart name={key} value={value} key={`${key}_meta`}/>);
+            metaValues.push(", ")
+        }
+        metaValues.pop();
+        return (
+            <div>
+                {metaValues}                
+            </div>
+        )
+    }
+
+
+}
+
+export function HuristicsInfoDisplay({requestState}: {requestState: CraftingRequestType}) {
     const [modeCheckbox, updateModeCheckbox] = useState(true);
     const [huristicNum, updateHuristicNum] = useState(0);
     const [rootNodeState, setRootNodeState] = useState<StepNode | null>(null);
     const [svgConfigObj, dispatchConfig] = useReducer(svgReducer, new svgConfig());
+    const craftingData = useCraftingData();
 
     useEffect(() => {
         // dispatchConfig({type: "disable text"});
@@ -305,14 +386,13 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
                     {/* <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
                     <label><button onClick={() => console.log(metaSolves)}/>(Log all meta)</label>
                     <label><button onClick={() => console.log(bestMeta)}/>(Log best meta)</label> */}
-                    <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
+                    <label className="mr-2 lclickable"><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
                     {chosenMetaCost}
+                    {metaSolves.permLimitHit ? <span className="text-red-500">More than {metaSolves.permLimit} permutations. Skipped some for performance.</span> : <></>}
                     <ConfigButtons config={svgConfigObj} configDispatch={dispatchConfig}/>
                 </div>
-                <div>
-                    {chosenMetaText}
-                </div>
+                <DisplayChosenMetaText modeCheckbox={modeCheckbox} rootNodeState={rootNodeState} heuristicNum={huristicNum}/>
                 <SVGHuristic permMeta={bestMeta} config={svgConfigObj} configDispatch={dispatchConfig}/>
                 <HuristicStats permMeta={bestMeta}/>
             </div>
@@ -321,7 +401,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
         return (
             <div className="flex justify-center items-center h-full text-red-500">
                 <div className="">
-                    Either no request in place or health check failed. (Check console(f12) for details)
+                    Either no preset under that name, resource request in place or health check failed. (Check console(f12) for details)
                 </div>
             </div>
         )

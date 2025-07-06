@@ -18,6 +18,10 @@ class BaseThing {
             Object.assign(this, config);
         }
     }
+
+    getKey(): string{
+        return this.name;
+    }
 }
 
 
@@ -97,6 +101,13 @@ export class Recipe {
             }
         }
         return names;
+    }
+
+    getKey(): number{
+        if (this.id == undefined) {
+            throw new Error("Recipe id is not set. This should never happen.");
+        }
+        return this.id;
     }
 }
 
@@ -206,6 +217,7 @@ export class CraftingData {
 
     runHealthChecks() {
         // TODO Make sure that the data is in a valid state
+        console.log("Running health checks on crafting data. Starts at", this.passedHealthCheck);
         this.passedHealthCheck = this.healthCheckValidMetadata() 
             && this.healthCheckNoMissingThings() 
             && this.healthCheckBaseItems()
@@ -237,19 +249,33 @@ export class CraftingData {
 
         // Make sure that all items used in recipes are accounted for
         const itemsInRecipes = this.recipes.map(r => [r.getInputNames(), r.getOutputNames()]).flat(2)
-        let missing: Set<string> = new Set();
+        let missingItems: Set<string> = new Set();
 
         for (const item of itemsInRecipes) {
             if (!(item in this.resources)) {
-                missing.add(item);
+                missingItems.add(item);
             }
         }
 
-        if (missing.size> 0) {
+        if (missingItems.size > 0) {
             console.error("The following items are listed in recipes but don't exist as items:");
-            console.log(missing);
+            console.log(missingItems);
             return false;
         }
+        
+        const processesInRecipes = this.recipes.map(r => r.processUsed);
+        let missingProcesses: Set<string> = new Set();
+        for (const process of processesInRecipes) {
+            if (!(process in this.processes)) {
+                missingProcesses.add(process);
+            }
+        }
+        if (missingProcesses.size > 0) {
+            console.error("The following processes are listed in recipes but don't exist as processes:");
+            console.log(missingProcesses);
+            return false;
+        }
+
         return true
     }
 

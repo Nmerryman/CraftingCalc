@@ -1,5 +1,5 @@
 import { craftingMetaData, Process, Recipe, Resource, Stack } from "./units";
-import { CraftingAction } from "../components/crafting";
+import { CraftingAction } from "../components/contexts/craftingContext";
 import { Dispatch } from "react";
 
 
@@ -191,7 +191,7 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
         new Recipe("Crafting", [new Stack("Calcite Dust", 2), new Stack("Clay Dust"), new Stack("Stone Dust"), new Stack("Quartz Sand"), new Stack("Water Bucket"), new Stack("Bucket")], [new Stack("Bucket of Concrete")]),
         new Recipe("Cauldron Washing", [new Stack("Impure Pile of Calcite Dust")], [new Stack("Calcite Dust")]),
         new Recipe("Forge Hammer", [new Stack("Crushed Calcite Ore")], [new Stack("Impure Pile of Calcite Dust")]),
-        new Recipe("Macertor", [new Stack("Calcite Ore")], [new Stack("Crushed Calcite Ore", 2)]),
+        new Recipe("Macerator", [new Stack("Calcite Ore")], [new Stack("Crushed Calcite Ore", 2)]),
         new Recipe("Crafting", [new Stack("Iron Plate", 3), new Stack("Hammer")], [new Stack("Bucket")]),
         new Recipe("Right Clicking Source", [new Stack("Bucket")], [new Stack("Water Bucket")]),
         // new Recipe("Crafting", [new Stack("Bucket"), new Stack("Cactus Juice", 8)], [new Stack("Water Bucket")]),
@@ -206,7 +206,7 @@ export function gtBlastFurnace(dispatch: Dispatch<CraftingAction>) {
         // new Recipe("Crafting", [new Stack("XP Bucket", 4)], [new Stack("Small Pile of Brick Dust")]),
         // new Recipe("Crafting", [new Stack("Brick"), new Stack("Mortar")], [new Stack("Small Pile of Brick Dust")]),
         new Recipe("Forge Hammer", [new Stack("Brick")], [new Stack("Small Pile of Brick Dust")]),
-        new Recipe("Macertor", [new Stack("Hardened Clay")], [new Stack("Clay Dust")]),
+        new Recipe("Macerator", [new Stack("Hardened Clay")], [new Stack("Clay Dust")]),
         new Recipe("Smelting", [new Stack("Unfired Clay Brick")] , [new Stack("Brick")]),
         new Recipe("Alloy Smelter", [new Stack("Clay"), new Stack("Mold (Ingot)")], [new Stack("Brick")]),
         // new Recipe("Crafting", [new Stack("Clay"), new Stack("Wooden Form (Brick)")], [new Stack("Unfired Clay Brick")]),

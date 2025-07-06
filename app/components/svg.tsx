@@ -109,7 +109,7 @@ export function TextCircle({center, text, node = undefined, scale = 1, config = 
     }
 
     return (
-        <g>
+        <g className="rclickable">
            {/* //Text and circle calculator visual display */}
             <circle cx={center.x} cy={center.y} r={radius} fill={color}/>
 

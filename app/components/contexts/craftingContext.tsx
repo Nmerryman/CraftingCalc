@@ -1,7 +1,32 @@
-import { CraftingData, craftingMetaData, Process, Recipe, Resource } from "../crafting/units";
+import { createContext, Dispatch, ReactNode, useContext, useReducer } from "react";
+import { CraftingData, craftingMetaData, Process, Recipe, Resource } from "../../crafting/units";
 
 
-type CraftingTypeOptions = "log"|"reset"|"set resources"|"set processes"|"set recipes"|"set resource"|"set process"|"set recipe"|"replace all"|"set metadata";
+const craftingDataContext = createContext<CraftingData>(new CraftingData());
+const craftingDataDispatchContext = createContext<Dispatch<CraftingAction>>(() => {});
+
+
+export function CraftingDataProvider({children}: {children: ReactNode}) {
+    const [craftingData, setCraftingData] = useReducer(craftingReducer, new CraftingData());
+    return (
+        <craftingDataContext.Provider value={craftingData}>
+            <craftingDataDispatchContext.Provider value={setCraftingData}>
+                {children}
+            </craftingDataDispatchContext.Provider>
+        </craftingDataContext.Provider>
+    );
+}
+
+
+export function useCraftingData() {
+    return useContext(craftingDataContext);
+}
+export function useCraftingDataDispatch() {
+    return useContext(craftingDataDispatchContext);
+}
+
+
+type CraftingTypeOptions = "log"|"reset"|"set resources"|"set processes"|"set recipes"|"set resource"|"set process"|"set recipe"|"replace all"|"set metadata"|"invalidate healthcheck";
 
 export type CraftingAction = {
     type: CraftingTypeOptions,
@@ -55,6 +80,9 @@ export function craftingReducer(state: CraftingData, action: CraftingAction): Cr
         return temp;
     case "set metadata":
         state._meta = action.anyValue as craftingMetaData;
+        return state.shallowClone();
+    case "invalidate healthcheck":
+        state.passedHealthCheck = false;
         return state.shallowClone();
     default:
         console.log("Unkown action: " + action.type);

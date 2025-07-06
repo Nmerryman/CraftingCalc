@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Process, Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
 import { PermMeta, StepNodeType } from "../crafting/solver";
+import { useDisabledList, useDisabledListDispatch } from "./contexts/disabledListContext";
 
 
 function DisplayStackInline({stack}: {stack: Stack}) {
@@ -23,17 +24,41 @@ export function DisplayStack({stack}: {stack: Stack}) {
 }
 
 
-export function ItemPopupText({resource}: {resource: Resource | Recipe}) {
+export function ItemPopupText({resource}: {resource: Resource | Recipe | Process}) {
     const [dummy, setDummy] = useState(false);  // This exists to reload the component on checkbox change to show it did something
-    const toggleDummy = () => setDummy(!dummy);
+    const disabledList = useDisabledList();
+    const setDisabledList = useDisabledListDispatch();
+
+    function toggleBase() {
+        resource.isBase = !resource.isBase;
+        setDummy(!dummy);
+    }
+    function toggleDisabled() {
+        console.log("Toggling disabled for " + resource.getKey() + " from " + resource.isDisabled);
+        const resourceKey = resource.getKey();
+        if (resource.isDisabled) {  // Disabled -> Enabled
+            setDisabledList(disabledList.filter(item => item != resourceKey));
+        } else {
+            if (!disabledList.includes(resourceKey)) {  // Not sure if this is too slow
+                setDisabledList([...disabledList, resourceKey]);
+            }
+        }
+            
+        resource.isDisabled = !resource.isDisabled;
+        console.log("resource is now ", resource.isDisabled);
+        setDummy(!dummy);
+
+    }
+
+
     return (
         <div>
-            <label>
-                <input type="checkbox" checked={resource.isDisabled} onChange={() => {resource.isDisabled = !resource.isDisabled; toggleDummy()}}/>Disable the resource/recipe
+            <label className="lclickable">
+                <input type="checkbox" checked={resource.isDisabled} onChange={toggleDisabled}/>Disable the resource/recipe
             </label>
             <br/>
-            <label>
-                <input type="checkbox" checked={resource.isBase} onChange={() => {resource.isBase = !resource.isBase, toggleDummy()}}/>Treat resource/recipe as base
+            <label className="lclickable">
+                <input type="checkbox" checked={resource.isBase} onChange={toggleBase}/>Treat resource/recipe as base
             </label>
         </div>
     )
@@ -123,7 +148,7 @@ export function DisplayCTBItemStack({stack, permMeta, showProcess = true}: {stac
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
             <CTBStackPopup pState={popupState} pClose={disablePopup} stack={stack} permMeta={permMeta} showProcess={showProcess}/>
-            <label>
+            <label className="bclickable">
             <input type="checkbox" className="mr-1"/>
             {stack.amount}x {stack.resourceName}
             </label>

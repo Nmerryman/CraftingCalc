@@ -2,9 +2,7 @@
 
 import 'reflect-metadata'
 import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
-import { LinkBtn } from "./components/button";
 import { CraftingData, Stack } from "./crafting/units";
-import { PopupEditor, togglePopupCallback } from "./components/modifyDataPopup";
 import { CraftingAction, craftingReducer } from "./components/crafting";
 import { OnEnterCall } from "./utils/keyboardUtil";
 import { RequestMenuAction, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
@@ -14,6 +12,7 @@ import { HuristicsInfoDisplay } from "./components/huristics";
 import { TempSolver } from './crafting/solver';
 import { vanilla } from './crafting/vanillaPreset';
 import { RamStorage, StorageWrapper } from './utils/storage';
+import { DisabledListProvider } from './components/disabledListContext';
 
 
 
@@ -150,14 +149,12 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
 
 // Homepage Displays and general root
 export default function Main() {
-    const [craftingData, dispatchData] = useReducer(craftingReducer, initialCraftingData);
-    const [popupState, setPopupState] = useState(false);
-
-    var initialcraftingRequests: Record<string, Stack> = {}
-    const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, initialcraftingRequests)
-    // resetRequestStateFunc = () => dispatchCraftingRequest({type: "reset", name: ""})  // load the global shortcut
+    const [craftingData, dispatchData] = useReducer(craftingReducer, new CraftingData());
+    const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, {})
     const [presetStorage, setPresetStorage] = useState(new RamStorage());  // This will be a wrapper around localStorage, but localStorage isn't defined until the effect runs.
     const [loadingStage, setLoadingStage] = useState(0);  // This is used to show the loading stage of the app. Basically just to make sure that effects fire once the last is done. 
+    // const [manuallyDisabledList, setManuallyDisabledList] = useState([] as Array<string|number>); 
+
 
     // const testResourceName = "Iron Pickaxe";
     // const testResourceName = "HDPE Pellet"
@@ -191,41 +188,42 @@ export default function Main() {
             dispatchCraftingRequest({type: "toggle", name: "repeater"})
             dispatchCraftingRequest({type: "toggle", name: "comparator"})
             dispatchCraftingRequest({type: "toggle", name: "dispenser"})
-            dispatchCraftingRequest({type: "toggle", name: "copper bulb"})
+            // dispatchCraftingRequest({type: "toggle", name: "copper bulb"})
             dispatchCraftingRequest({type: "toggle", name: "redstone"})
             dispatchCraftingRequest({type: "toggle", name: "observer"})
             dispatchCraftingRequest({type: "toggle", name: "piston"})
-            dispatchCraftingRequest({type: "toggle", name: "red bed"})
+            // dispatchCraftingRequest({type: "toggle", name: "red bed"})
 
         }
     }, [loadingStage]);  // Run update once after main page load
 
     return (  // we can define the datalist early so that it can be used everywhere.
-        <div className="">
-            {(presetStorage.getKeys().size > 0) ?
-                <datalist id="preset_names">
-                    {
-                        presetStorage.getKeysArray().map(name => {
-                            return <option value={name} key={name}/>
-                        })
-                    }
-                </datalist>
-                :
-                <></>
-            }
-            <Header craftingDispatch={dispatchData} dispatchRequestMenu={dispatchCraftingRequest} craftingData={craftingData} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
-            {/* <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/> */}
-            {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}
-            <SelectionDisplay craftingData={craftingData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
-            {/* <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button> */}
-            <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
-        </div>
+        <DisabledListProvider>
+            <div className="">
+                {(presetStorage.getKeys().size > 0) ?
+                    <datalist id="preset_names">
+                        {
+                            presetStorage.getKeysArray().map(name => {
+                                return <option value={name} key={name}/>
+                            })
+                        }
+                    </datalist>
+                    :
+                    <></>
+                }
+                <Header craftingDispatch={dispatchData} dispatchRequestMenu={dispatchCraftingRequest} craftingData={craftingData} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
+                {/* <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/> */}
+                {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}
+                <SelectionDisplay craftingData={craftingData} craftingDataDispatch={dispatchData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
+                {/* <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button> */}
+                <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
+            </div>
+        </DisabledListProvider>
     );
 }
 
 
 
-var initialCraftingData = new CraftingData();
 
 // Todo:
 // when a requested item is needed in a later requested chain, an arrow is missing leaving the first item req

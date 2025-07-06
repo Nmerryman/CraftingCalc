@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Process, Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
 import { PermMeta, StepNodeType } from "../crafting/solver";
+import { useDisabledList, useDisabledListDispatch } from "./disabledListContext";
 
 
 function DisplayStackInline({stack}: {stack: Stack}) {
@@ -25,15 +26,37 @@ export function DisplayStack({stack}: {stack: Stack}) {
 
 export function ItemPopupText({resource}: {resource: Resource | Recipe}) {
     const [dummy, setDummy] = useState(false);  // This exists to reload the component on checkbox change to show it did something
-    const toggleDummy = () => setDummy(!dummy);
+    const disabledList = useDisabledList();
+    const setDisabledList = useDisabledListDispatch();
+
+    function toggleBase() {
+        resource.isBase = !resource.isBase;
+        setDummy(!dummy);
+    }
+    function toggleDisabled() {
+        const resourceKey = resource.getKey();
+        if (resource.isDisabled) {  // Disabled -> Enabled
+            setDisabledList(disabledList.filter(item => item != resourceKey));
+        } else {
+            if (!disabledList.includes(resourceKey)) {  // Not sure if this is too slow
+                setDisabledList([...disabledList, resourceKey]);
+            }
+        }
+            
+        resource.isDisabled = !resource.isDisabled;
+        setDummy(!dummy);
+
+    }
+
+
     return (
         <div>
             <label>
-                <input type="checkbox" checked={resource.isDisabled} onChange={() => {resource.isDisabled = !resource.isDisabled; toggleDummy()}}/>Disable the resource/recipe
+                <input type="checkbox" checked={resource.isDisabled} onChange={toggleDisabled}/>Disable the resource/recipe
             </label>
             <br/>
             <label>
-                <input type="checkbox" checked={resource.isBase} onChange={() => {resource.isBase = !resource.isBase, toggleDummy()}}/>Treat resource/recipe as base
+                <input type="checkbox" checked={resource.isBase} onChange={toggleBase}/>Treat resource/recipe as base
             </label>
         </div>
     )

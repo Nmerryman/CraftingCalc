@@ -6,6 +6,7 @@ import Popup from "reactjs-popup"
 import { DisplayRecipe, DisplayStack, ItemPopupText } from "./viewInfoDataPopups"
 import { simmilarityScoreFunc } from "./searchBarFunctionality"
 import Image from "next/image"
+import { CraftingAction } from "./crafting"
 
 
 export type RequestMenuAction = {
@@ -196,11 +197,11 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
 }
 
 
-function ListRequests({requestState, requestDispatch}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
+function ListRequests({requestState, requestDispatch, craftingDataDispatch, craftingData}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>, craftingDataDispatch: Dispatch<CraftingAction>, craftingData: CraftingData}) {
     return (
         <ul className="px-5">
             <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-red-500">Crafting Request</span><button className="dark_thing clickable" onClick={() => requestDispatch({type: "refresh", name: ""})}> refresh calculations</button>
+                <span className="font-bold text-red-500">Crafting Request</span><button className="dark_thing clickable" onClick={() => {craftingData.passedHealthCheck = false; requestDispatch({type: "refresh", name: ""})}}> refresh calculations</button>
             </div>
             <div className="scrollable_list">
                 {Object.values(requestState).map((rval) => {return <RequestListItem key={rval.resourceName} item={rval} requestDispatch={requestDispatch}/>})}
@@ -211,13 +212,13 @@ function ListRequests({requestState, requestDispatch}: {requestState: CraftingRe
 
 
 
-export function SelectionDisplay({craftingData, requestState, requestDispatch}: {craftingData: CraftingData, requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
+export function SelectionDisplay({craftingData, craftingDataDispatch, requestState, requestDispatch}: {craftingData: CraftingData, craftingDataDispatch: Dispatch<CraftingAction>, requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <>
         <div className="flex justify-around h-[40vh] max-h-[40vh] overflow-hidden divide-x-2 divide-dashed divide-slate-600/30">
             <ListResources craftingData={craftingData} requestDispatch={requestDispatch}/>
             <ListProcesses craftingData={craftingData}/>
-            <ListRequests requestState={requestState} requestDispatch={requestDispatch}/>
+            <ListRequests requestState={requestState} requestDispatch={requestDispatch} craftingDataDispatch={craftingDataDispatch} craftingData={craftingData}/>
         </div>
         {/* <input type="button" className="cursor-pointer" onClick={() => {console.log(requestState)}} value="(debug) Log request state."/> */}
         </>

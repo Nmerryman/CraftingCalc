@@ -4,10 +4,11 @@ import xIcon from "./xIcon.png"
 import { CraftingData } from "../crafting/units";
 import { CraftingAction } from "./crafting";
 import Image from "next/image";
-import { getResponse, pullNameInfo } from "../utils/serverApi";
+import { pullNameInfo } from "../utils/serverApi";
 import { StorageWrapper } from "../utils/storage";
 import { OnEnterCall } from "../utils/keyboardUtil";
 import { RequestMenuAction } from "./selectionMenu";
+import { useDisabledList, useDisabledListDispatch } from "./disabledListContext";
 
 export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatch, presetStorage, setPresetStorage}: {craftingData: CraftingData, dispatchRequestMenu: Dispatch<RequestMenuAction>, craftingDispatch: Dispatch<CraftingAction>, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
 
@@ -17,6 +18,9 @@ export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatc
     const [jsonInput, setJsonInput] = useState("");
     const [deletionInput, setDeletionInput] = useState("");
     const [downloadInput, setDownloadInput] = useState("");
+
+    const disabledList = useDisabledList();
+    const setDisabledList = useDisabledListDispatch();
 
     // I feel like a bunch of this stuff is duplicate and ugly
     function removeFromLocal() {
@@ -97,6 +101,27 @@ export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatc
         }
     }
 
+    function undoLastDisabled() {
+        if (disabledList.length > 0) {
+            const lastDisabled = disabledList[disabledList.length - 1];
+            setDisabledList(disabledList.slice(0, -1)); 
+            const thing = craftingData.get(lastDisabled);
+            if (thing) {
+                thing.isDisabled = false;  // Should always be defined
+                setStatusText(`Re-enabled "${lastDisabled}".`);
+            } else {
+                console.error(`Tried to undo disabled thing "${lastDisabled}" but it was not found in craftingData.`);
+            }
+        } else {
+            setStatusText("No things to undo.");
+        }
+    }
+
+    let undoButtonText = "Undo ";
+    if (disabledList.length > 0) {
+        undoButtonText += `"${disabledList[disabledList.length - 1]}"`;
+    }
+
     return (
         <>
             <input type="button" value="Config" className="dark_thing clickable" onClick={() => setPopupState(true)}/>
@@ -121,6 +146,8 @@ export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatc
                     </span>
                     <input type="text" className="dark_thing" placeholder="Preset Link" value={downloadInput} onChange={e => setDownloadInput(e.currentTarget.value)} onKeyDown={OnEnterCall(downloadToLocal)}/>
                     <input type="button" className="dark_thing clickable" value="Download" onClick={downloadToLocal}/>
+                    <span>Undo last disabled thing</span>
+                    <input type="button" className="dark_thing clickable" value={undoButtonText} onClick={undoLastDisabled}/>
                 </div>
                 {
                     (statusText.length > 0) ? 

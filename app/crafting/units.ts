@@ -18,6 +18,10 @@ class BaseThing {
             Object.assign(this, config);
         }
     }
+
+    getKey(): string{
+        return this.name;
+    }
 }
 
 
@@ -97,6 +101,13 @@ export class Recipe {
             }
         }
         return names;
+    }
+
+    getKey(): number{
+        if (this.id == undefined) {
+            throw new Error("Recipe id is not set. This should never happen.");
+        }
+        return this.id;
     }
 }
 
@@ -206,6 +217,7 @@ export class CraftingData {
 
     runHealthChecks() {
         // TODO Make sure that the data is in a valid state
+        console.log("Running health checks on crafting data. Starts at", this.passedHealthCheck);
         this.passedHealthCheck = this.healthCheckValidMetadata() 
             && this.healthCheckNoMissingThings() 
             && this.healthCheckBaseItems()

@@ -249,19 +249,33 @@ export class CraftingData {
 
         // Make sure that all items used in recipes are accounted for
         const itemsInRecipes = this.recipes.map(r => [r.getInputNames(), r.getOutputNames()]).flat(2)
-        let missing: Set<string> = new Set();
+        let missingItems: Set<string> = new Set();
 
         for (const item of itemsInRecipes) {
             if (!(item in this.resources)) {
-                missing.add(item);
+                missingItems.add(item);
             }
         }
 
-        if (missing.size> 0) {
+        if (missingItems.size > 0) {
             console.error("The following items are listed in recipes but don't exist as items:");
-            console.log(missing);
+            console.log(missingItems);
             return false;
         }
+        
+        const processesInRecipes = this.recipes.map(r => r.processUsed);
+        let missingProcesses: Set<string> = new Set();
+        for (const process of processesInRecipes) {
+            if (!(process in this.processes)) {
+                missingProcesses.add(process);
+            }
+        }
+        if (missingProcesses.size > 0) {
+            console.error("The following processes are listed in recipes but don't exist as processes:");
+            console.log(missingProcesses);
+            return false;
+        }
+
         return true
     }
 

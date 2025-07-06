@@ -6,7 +6,7 @@ import Popup from "reactjs-popup"
 import { DisplayRecipe, DisplayStack, ItemPopupText } from "./viewInfoDataPopups"
 import { simmilarityScoreFunc } from "./searchBarFunctionality"
 import Image from "next/image"
-import { CraftingAction } from "./crafting"
+import { CraftingAction, useCraftingData } from "./contexts/craftingContext"
 
 
 export type RequestMenuAction = {
@@ -69,7 +69,8 @@ function ResourceListItem({resource, dispatch, debugScore}: {resource: Resource,
 }
 
 
-function ListResources({craftingData, requestDispatch}: {craftingData: CraftingData, requestDispatch: Dispatch<RequestMenuAction>}) {
+function ListResources({requestDispatch}: {requestDispatch: Dispatch<RequestMenuAction>}) {
+    const craftingData = useCraftingData();
     const [textState, setText] = useState("");
     let topName = "";
     const [topScoresState, setTopScores] = useState<Array<Resource>>([]);
@@ -152,7 +153,8 @@ function ProcessListItem({process}: {process: Process}) {
     )
 }
 
-function ListProcesses({craftingData}: {craftingData: CraftingData}) {
+function ListProcesses() {
+    const craftingData = useCraftingData();
     return (
         <ul className="px-5">
             <div className="mb-1">
@@ -198,7 +200,8 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
 }
 
 
-function ListRequests({requestState, requestDispatch, craftingDataDispatch, craftingData}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>, craftingDataDispatch: Dispatch<CraftingAction>, craftingData: CraftingData}) {
+function ListRequests({requestState, requestDispatch}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
+    const craftingData = useCraftingData();
     return (
         <ul className="px-5">
             <div className="flex justify-between items-center mb-1">
@@ -213,13 +216,13 @@ function ListRequests({requestState, requestDispatch, craftingDataDispatch, craf
 
 
 
-export function SelectionDisplay({craftingData, craftingDataDispatch, requestState, requestDispatch}: {craftingData: CraftingData, craftingDataDispatch: Dispatch<CraftingAction>, requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
+export function SelectionDisplay({requestState, requestDispatch}: {requestState: CraftingRequestType, requestDispatch: Dispatch<RequestMenuAction>}) {
     return (
         <>
         <div className="flex justify-around h-[40vh] max-h-[40vh] overflow-hidden divide-x-2 divide-dashed divide-slate-600/30">
-            <ListResources craftingData={craftingData} requestDispatch={requestDispatch}/>
-            <ListProcesses craftingData={craftingData}/>
-            <ListRequests requestState={requestState} requestDispatch={requestDispatch} craftingDataDispatch={craftingDataDispatch} craftingData={craftingData}/>
+            <ListResources requestDispatch={requestDispatch}/>
+            <ListProcesses/>
+            <ListRequests requestState={requestState} requestDispatch={requestDispatch}/>
         </div>
         {/* <input type="button" className="cursor-pointer" onClick={() => {console.log(requestState)}} value="(debug) Log request state."/> */}
         </>

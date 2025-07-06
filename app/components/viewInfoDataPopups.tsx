@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { Process, Recipe, Resource, Stack } from "../crafting/units"
 import Popup from "reactjs-popup";
 import { PermMeta, StepNodeType } from "../crafting/solver";
-import { useDisabledList, useDisabledListDispatch } from "./disabledListContext";
+import { useDisabledList, useDisabledListDispatch } from "./contexts/disabledListContext";
 
 
 function DisplayStackInline({stack}: {stack: Stack}) {

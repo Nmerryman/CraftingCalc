@@ -6,6 +6,7 @@ import { DisplayCTBItemStack, DisplayRecipe } from "./viewInfoDataPopups";
 import { CraftingData, Recipe } from "../crafting/units";
 import { PermMeta, SolveMeta, StepNode, TempSolver } from "../crafting/solver";
 import Popup from "reactjs-popup";
+import { useCraftingData } from "./contexts/craftingContext";
 
 // If the select number box is checked, create an input that allows the user to enter a number
 function HuristicNumberChoice({boxState, permMetaNum, updateMetaNum, metaOptSize}: {boxState: boolean, permMetaNum: number, updateMetaNum: Dispatch<number>, metaOptSize: number}) {
@@ -275,9 +276,10 @@ function DisableableCheckbox({recipe, currentCheckedCount, setCurrentCheckedCoun
     </>)
 }
 
-function MetaPart({name, value, craftingData}: {name: string, value: any, craftingData: CraftingData}) {
+function MetaPart({name, value}: {name: string, value: any}) {
     const [choicePopupOpen, setChoicePopupOpen] = useState(false);
     const [currentCheckedCount, setCurrentCheckedCount] = useState(0);
+    const craftingData = useCraftingData();
     const tempRIds = craftingData.findRecipesFor(name);
     const tempRecipes: Array<Recipe> = tempRIds.map(rId => craftingData.get(rId)) as Array<Recipe>;
     const recipeElements = tempRecipes.map((recipe, i) => <DisableableCheckbox recipe={recipe} currentCheckedCount={currentCheckedCount} setCurrentCheckedCount={setCurrentCheckedCount} key={i}/>);
@@ -302,7 +304,7 @@ function MetaPart({name, value, craftingData}: {name: string, value: any, crafti
     )
 }
 
-function DisplayChosenMetaText({modeCheckbox, rootNodeState, heuristicNum, craftingData}: {modeCheckbox: boolean, rootNodeState: StepNode, heuristicNum: number, craftingData: CraftingData}) {
+function DisplayChosenMetaText({modeCheckbox, rootNodeState, heuristicNum}: {modeCheckbox: boolean, rootNodeState: StepNode, heuristicNum: number}) {
     const metaSolves = rootNodeState.solveMeta;
     let chosenMetaText = "";
     if (modeCheckbox) {
@@ -313,7 +315,7 @@ function DisplayChosenMetaText({modeCheckbox, rootNodeState, heuristicNum, craft
 
         let metaValues = [];
         for (const [key, value] of Object.entries(chosenMeta)) {
-            metaValues.push(<MetaPart name={key} value={value} craftingData={craftingData} key={`${key}_meta`}/>);
+            metaValues.push(<MetaPart name={key} value={value} key={`${key}_meta`}/>);
             metaValues.push(", ")
         }
         metaValues.pop();
@@ -327,11 +329,12 @@ function DisplayChosenMetaText({modeCheckbox, rootNodeState, heuristicNum, craft
 
 }
 
-export function HuristicsInfoDisplay({requestState, craftingData}: {requestState: CraftingRequestType, craftingData: CraftingData}) {
+export function HuristicsInfoDisplay({requestState}: {requestState: CraftingRequestType}) {
     const [modeCheckbox, updateModeCheckbox] = useState(true);
     const [huristicNum, updateHuristicNum] = useState(0);
     const [rootNodeState, setRootNodeState] = useState<StepNode | null>(null);
     const [svgConfigObj, dispatchConfig] = useReducer(svgReducer, new svgConfig());
+    const craftingData = useCraftingData();
 
     useEffect(() => {
         // dispatchConfig({type: "disable text"});
@@ -389,7 +392,7 @@ export function HuristicsInfoDisplay({requestState, craftingData}: {requestState
                     {metaSolves.permLimitHit ? <span className="text-red-500">More than {metaSolves.permLimit} permutations. Skipped some for performance.</span> : <></>}
                     <ConfigButtons config={svgConfigObj} configDispatch={dispatchConfig}/>
                 </div>
-                <DisplayChosenMetaText modeCheckbox={modeCheckbox} rootNodeState={rootNodeState} heuristicNum={huristicNum} craftingData={craftingData}/>
+                <DisplayChosenMetaText modeCheckbox={modeCheckbox} rootNodeState={rootNodeState} heuristicNum={huristicNum}/>
                 <SVGHuristic permMeta={bestMeta} config={svgConfigObj} configDispatch={dispatchConfig}/>
                 <HuristicStats permMeta={bestMeta}/>
             </div>

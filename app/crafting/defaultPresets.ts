@@ -1,5 +1,5 @@
 import { craftingMetaData, Process, Recipe, Resource, Stack } from "./units";
-import { CraftingAction } from "../components/crafting";
+import { CraftingAction } from "../components/contexts/craftingContext";
 import { Dispatch } from "react";
 
 

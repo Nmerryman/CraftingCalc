@@ -1,4 +1,29 @@
-import { CraftingData, craftingMetaData, Process, Recipe, Resource } from "../crafting/units";
+import { createContext, Dispatch, ReactNode, useContext, useReducer } from "react";
+import { CraftingData, craftingMetaData, Process, Recipe, Resource } from "../../crafting/units";
+
+
+const craftingDataContext = createContext<CraftingData>(new CraftingData());
+const craftingDataDispatchContext = createContext<Dispatch<CraftingAction>>(() => {});
+
+
+export function CraftingDataProvider({children}: {children: ReactNode}) {
+    const [craftingData, setCraftingData] = useReducer(craftingReducer, new CraftingData());
+    return (
+        <craftingDataContext.Provider value={craftingData}>
+            <craftingDataDispatchContext.Provider value={setCraftingData}>
+                {children}
+            </craftingDataDispatchContext.Provider>
+        </craftingDataContext.Provider>
+    );
+}
+
+
+export function useCraftingData() {
+    return useContext(craftingDataContext);
+}
+export function useCraftingDataDispatch() {
+    return useContext(craftingDataDispatchContext);
+}
 
 
 type CraftingTypeOptions = "log"|"reset"|"set resources"|"set processes"|"set recipes"|"set resource"|"set process"|"set recipe"|"replace all"|"set metadata"|"invalidate healthcheck";

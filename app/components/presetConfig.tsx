@@ -2,15 +2,15 @@ import { ChangeEvent, Dispatch, useEffect, useState } from "react";
 import { Popup } from "reactjs-popup"
 import xIcon from "./xIcon.png"
 import { CraftingData } from "../crafting/units";
-import { CraftingAction } from "./crafting";
+import { CraftingAction, useCraftingData, useCraftingDataDispatch } from "./contexts/craftingContext";
 import Image from "next/image";
 import { pullNameInfo } from "../utils/serverApi";
 import { StorageWrapper } from "../utils/storage";
 import { OnEnterCall } from "../utils/keyboardUtil";
 import { RequestMenuAction } from "./selectionMenu";
-import { useDisabledList, useDisabledListDispatch } from "./disabledListContext";
+import { useDisabledList, useDisabledListDispatch } from "./contexts/disabledListContext";
 
-export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatch, presetStorage, setPresetStorage}: {craftingData: CraftingData, dispatchRequestMenu: Dispatch<RequestMenuAction>, craftingDispatch: Dispatch<CraftingAction>, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
+export function PresetConfig({dispatchRequestMenu, presetStorage, setPresetStorage}: {dispatchRequestMenu: Dispatch<RequestMenuAction>, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
 
     const [popupState, setPopupState] = useState(false);
     const closePopup = () => {setPopupState(false)};
@@ -18,6 +18,8 @@ export function PresetConfig({craftingData, dispatchRequestMenu, craftingDispatc
     const [jsonInput, setJsonInput] = useState("");
     const [deletionInput, setDeletionInput] = useState("");
     const [downloadInput, setDownloadInput] = useState("");
+    const craftingData = useCraftingData();
+    const craftingDispatch = useCraftingDataDispatch();
 
     const disabledList = useDisabledList();
     const setDisabledList = useDisabledListDispatch();

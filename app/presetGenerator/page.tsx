@@ -3,7 +3,7 @@
 import 'reflect-metadata'
 import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react"
 import { CraftingData, Resource, Process, Recipe, Stack, craftingMetaData } from "../crafting/units";
-import { craftingReducer } from "../components/crafting";
+import { craftingReducer } from "../components/contexts/craftingContext";
 import Popup from 'reactjs-popup';
 import { pingServer, pullNameInfo, pushNameInfo } from '../utils/serverApi';
 import { basicText, basicTextWithHelpers, brickedBlastFurnaceText, defaultText, emptyText, plasticText } from './preset_texts';

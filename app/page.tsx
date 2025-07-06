@@ -1,9 +1,9 @@
 'use client'
 
 import 'reflect-metadata'
-import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react";
+import { ChangeEvent, Dispatch, use, useEffect, useReducer, useState } from "react";
 import { CraftingData, Stack } from "./crafting/units";
-import { CraftingAction, craftingReducer } from "./components/crafting";
+import { CraftingAction, CraftingDataProvider, craftingReducer, useCraftingData, useCraftingDataDispatch } from "./components/contexts/craftingContext";
 import { OnEnterCall } from "./utils/keyboardUtil";
 import { RequestMenuAction, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
@@ -12,7 +12,7 @@ import { HuristicsInfoDisplay } from "./components/huristics";
 import { TempSolver } from './crafting/solver';
 import { vanilla } from './crafting/vanillaPreset';
 import { RamStorage, StorageWrapper } from './utils/storage';
-import { DisabledListProvider } from './components/disabledListContext';
+import { DisabledListProvider } from './components/contexts/disabledListContext';
 
 
 
@@ -29,8 +29,8 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>, presetStorage: S
     if (!value) {
         // value = "Dev";
         // value = "HDPE Pellet"
-        value = "Vanilla"
-        // value = "BBF";
+        // value = "Vanilla"
+        value = "BBF";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -106,15 +106,16 @@ function ensureDefaultPresets(presetStorage: StorageWrapper, setPresetStorage: D
 
 
 // Preset Menu of Nav Bar
-function PresetMenu({craftingDispatch, dispatchRequestMenu, craftingData, presetStorage, setPresetStorage}: {craftingDispatch: Dispatch<CraftingAction>, dispatchRequestMenu: Dispatch<RequestMenuAction>, craftingData: CraftingData, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
+function PresetMenu({dispatchRequestMenu, presetStorage, setPresetStorage}: {dispatchRequestMenu: Dispatch<RequestMenuAction>, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
     // TODO this will check the backend status and if it exist, add a load/push preset menu buttons
+    const craftingDispatch = useCraftingDataDispatch();
     return (
         <div className="">
             {/* <CheckBackendStatus/> */}
             <div className="text-black grid grid-cols-2">
                 <input className="col-span-2 dark_thing" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu))}></input>
                 <input className="dark_thing clickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
-                <PresetConfig craftingData={craftingData} dispatchRequestMenu={dispatchRequestMenu} craftingDispatch={craftingDispatch} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
+                <PresetConfig dispatchRequestMenu={dispatchRequestMenu} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>
     )
@@ -122,7 +123,7 @@ function PresetMenu({craftingDispatch, dispatchRequestMenu, craftingData, preset
 
 
 // Header and Nav Bar
-function Header({craftingDispatch, dispatchRequestMenu, craftingData, presetStorage, setPresetStorage}: {craftingDispatch: Dispatch<CraftingAction>, dispatchRequestMenu: Dispatch<RequestMenuAction>, craftingData: CraftingData, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
+function Header({dispatchRequestMenu, presetStorage, setPresetStorage}: {dispatchRequestMenu: Dispatch<RequestMenuAction>, presetStorage: StorageWrapper, setPresetStorage: Dispatch<StorageWrapper>}) {
     return (
         <div>
             {/* <div className="text-3xl font-bold underline w-screen bg-slate-700 flex justify-center pb-2"> */}
@@ -133,7 +134,7 @@ function Header({craftingDispatch, dispatchRequestMenu, craftingData, presetStor
                 <a className="dark_thing clickable grow flex items-center justify-center" href="wiki">Help</a>
                 <a className="dark_thing clickable grow flex items-center justify-center" href="presetGenerator">Preset Creator</a>
                 <a className="dark_thing clickable grow flex items-center justify-center" href="https://github.com/Nmerryman/CraftingCalc-Frontend">Source</a>
-                <PresetMenu craftingDispatch={craftingDispatch} dispatchRequestMenu={dispatchRequestMenu} craftingData={craftingData} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
+                <PresetMenu dispatchRequestMenu={dispatchRequestMenu} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>
     )
@@ -147,9 +148,9 @@ function LogButton({text, dis, popupToggle}: {text: string, dis: Dispatch<Crafti
 }
 
 
-// Homepage Displays and general root
-export default function Main() {
-    const [craftingData, dispatchData] = useReducer(craftingReducer, new CraftingData());
+function MainBody() {
+    const craftingData = useCraftingData();
+    const dispatchData = useCraftingDataDispatch();
     const [craftingRequestState, dispatchCraftingRequest] = useReducer(requestMenuReducer, {})
     const [presetStorage, setPresetStorage] = useState(new RamStorage());  // This will be a wrapper around localStorage, but localStorage isn't defined until the effect runs.
     const [loadingStage, setLoadingStage] = useState(0);  // This is used to show the loading stage of the app. Basically just to make sure that effects fire once the last is done. 
@@ -181,44 +182,55 @@ export default function Main() {
         if (loadingStage === 2) {
             PullPreset(dispatchData, presetStorage, dispatchCraftingRequest);
             // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
+            dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
             // dispatchCraftingRequest({type: "toggle", name: testResourceName})
             // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
             // dispatchCraftingRequest({type: "toggle", name: "iron axe"})
             // dispatchCraftingRequest({type: "toggle", name: "rail"})
-            dispatchCraftingRequest({type: "toggle", name: "repeater"})
-            dispatchCraftingRequest({type: "toggle", name: "comparator"})
-            dispatchCraftingRequest({type: "toggle", name: "dispenser"})
-            // dispatchCraftingRequest({type: "toggle", name: "copper bulb"})
-            dispatchCraftingRequest({type: "toggle", name: "redstone"})
-            dispatchCraftingRequest({type: "toggle", name: "observer"})
-            dispatchCraftingRequest({type: "toggle", name: "piston"})
-            // dispatchCraftingRequest({type: "toggle", name: "red bed"})
+            // dispatchCraftingRequest({type: "toggle", name: "repeater"})
+            // dispatchCraftingRequest({type: "toggle", name: "comparator"})
+            // dispatchCraftingRequest({type: "toggle", name: "dispenser"})
+            // // dispatchCraftingRequest({type: "toggle", name: "copper bulb"})
+            // dispatchCraftingRequest({type: "toggle", name: "redstone"})
+            // dispatchCraftingRequest({type: "toggle", name: "observer"})
+            // dispatchCraftingRequest({type: "toggle", name: "piston"})
+            // // dispatchCraftingRequest({type: "toggle", name: "red bed"})
 
         }
     }, [loadingStage]);  // Run update once after main page load
 
+
+    return (
+        <div className="">
+            {(presetStorage.getKeys().size > 0) ?
+                <datalist id="preset_names">
+                    {
+                        presetStorage.getKeysArray().map(name => {
+                                    return <option value={name} key={name}/>
+                        })
+                            }
+                        </datalist>
+                        :
+                        <></>
+            }
+            <Header dispatchRequestMenu={dispatchCraftingRequest} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
+            {/* <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/> */}
+            {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}
+            <SelectionDisplay requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
+            {/* <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button> */}
+            <HuristicsInfoDisplay requestState={craftingRequestState}/>
+        </div>
+    )
+}
+
+// Homepage Displays and general root
+export default function Main() {
     return (  // we can define the datalist early so that it can be used everywhere.
-        <DisabledListProvider>
-            <div className="">
-                {(presetStorage.getKeys().size > 0) ?
-                    <datalist id="preset_names">
-                        {
-                            presetStorage.getKeysArray().map(name => {
-                                return <option value={name} key={name}/>
-                            })
-                        }
-                    </datalist>
-                    :
-                    <></>
-                }
-                <Header craftingDispatch={dispatchData} dispatchRequestMenu={dispatchCraftingRequest} craftingData={craftingData} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
-                {/* <LogButton text="log craftingData" dis={dispatchData} popupToggle={togglePopupCallback(popupState, setPopupState)}/> */}
-                {/* <PopupEditor craftingDispatch={dispatchData} craftingData={craftingData}></PopupEditor> */}
-                <SelectionDisplay craftingData={craftingData} craftingDataDispatch={dispatchData} requestState={craftingRequestState} requestDispatch={dispatchCraftingRequest}/>
-                {/* <button onClick={() => craftingData.healthCheckBaseItems()}>(Health check debug button)</button> */}
-                <HuristicsInfoDisplay requestState={craftingRequestState} craftingData={craftingData}/>
-            </div>
-        </DisabledListProvider>
+        <CraftingDataProvider>
+            <DisabledListProvider>
+                <MainBody />
+            </DisabledListProvider>
+        </CraftingDataProvider>
     );
 }
 

@@ -1,5 +1,5 @@
 import { Permutation } from "./permutations";
-import { CraftingData, Resource, Stack } from "./units";
+import { CraftingData, Recipe, Resource, Stack } from "./units";
 
 
 export type RRKey = string | number;   // Recipe or Resource name/key
@@ -293,16 +293,19 @@ export class StepNode {
     }
 
     populateChildren() {
+        // Builds an acyclic graph of all possible recipes and resources
         if (this.root) {
             for (let child of this.children) {
                 this.solveMeta.stepNodeCache[child.name] = child;
                 child.populateChildren();
             }
         } else {
-            let parents = this.parentNames();
+            let parents = this.parentNames();   // Names of all possible parents to make sure we haven't seen this node before
             for (let srcName of this.getSrcs()) {
                 const srcThing = this.craftingData.get(srcName)!;
-                if (!parents.has(srcName) && !srcThing.isDisabled) {
+                if (!parents.has(srcName) 
+                    && !srcThing.isDisabled 
+                    && !(this.type == StepNodeType.RESOURCE && this.craftingData.processes[(srcThing as Recipe).processUsed].isDisabled)) {
                     if (srcName in this.solveMeta.stepNodeCache) {
                         let childNode = this.solveMeta.stepNodeCache[srcName];
                         this.addChild(childNode);
@@ -310,7 +313,7 @@ export class StepNode {
                         let childNode = new StepNode(this.swapType(), srcName, this.craftingData, this.solveMeta);
                         this.addChild(childNode);
                         this.solveMeta.stepNodeCache[srcName] = childNode;
-                        if (!(srcThing.isBase)) {
+                        if (!srcThing.isBase) {
                             childNode.populateChildren();
                         }
                     }

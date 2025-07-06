@@ -24,7 +24,7 @@ export function DisplayStack({stack}: {stack: Stack}) {
 }
 
 
-export function ItemPopupText({resource}: {resource: Resource | Recipe}) {
+export function ItemPopupText({resource}: {resource: Resource | Recipe | Process}) {
     const [dummy, setDummy] = useState(false);  // This exists to reload the component on checkbox change to show it did something
     const disabledList = useDisabledList();
     const setDisabledList = useDisabledListDispatch();
@@ -34,6 +34,7 @@ export function ItemPopupText({resource}: {resource: Resource | Recipe}) {
         setDummy(!dummy);
     }
     function toggleDisabled() {
+        console.log("Toggling disabled for " + resource.getKey() + " from " + resource.isDisabled);
         const resourceKey = resource.getKey();
         if (resource.isDisabled) {  // Disabled -> Enabled
             setDisabledList(disabledList.filter(item => item != resourceKey));
@@ -44,6 +45,7 @@ export function ItemPopupText({resource}: {resource: Resource | Recipe}) {
         }
             
         resource.isDisabled = !resource.isDisabled;
+        console.log("resource is now ", resource.isDisabled);
         setDummy(!dummy);
 
     }

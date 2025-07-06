@@ -122,12 +122,13 @@ function ListResources({craftingData, requestDispatch}: {craftingData: CraftingD
 }
 
 
-function ProcessPopup({pState, pClose, processName}: {pState: boolean, pClose: () => void, processName: string}) {
+function ProcessPopup({pState, pClose, process}: {pState: boolean, pClose: () => void, process: Process}) {
     return (
         <Popup className="narrow-popup" open={pState} onClose={pClose}>
             <div className="">
                 {/* <DisplayStack stack={stack}/>  Not sure if this recursion is bad or not */}
-                <ItemPopupText resource={new Resource(processName)}/>
+                {process.name}
+                <ItemPopupText resource={process}/>
                 
                 {/* <DisplayRecipe recipe={recipe} ratio={1}/> */}
             </div>
@@ -139,14 +140,14 @@ function ProcessPopup({pState, pClose, processName}: {pState: boolean, pClose: (
 }
 
 
-function ProcessListItem({name}: {name: string}) {
+function ProcessListItem({process}: {process: Process}) {
     const [popupState, setPopupState] = useState(false);
     const disablePopup = () => {setPopupState(false)};
     const togglePopup = () => {setPopupState(!popupState)};
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
-            <ProcessPopup pState={popupState} pClose={disablePopup} processName={name}/>
-            <li key={name}>{name}</li>
+            <ProcessPopup pState={popupState} pClose={disablePopup} process={process}/>
+            <li>{process.getKey()}</li>
         </div>
     )
 }
@@ -158,7 +159,7 @@ function ListProcesses({craftingData}: {craftingData: CraftingData}) {
                 <span className="font-bold text-yellow-300">Process List</span>
             </div>
             <div className="scrollable_list">
-                {Object.values(craftingData.processes).map((pval) => {return <ProcessListItem name={pval.name} key={pval.name}/>})}
+                {Object.values(craftingData.processes).map((pval) => {return <ProcessListItem process={pval} key={pval.name}/>})}
             </div>
         </ul>
     )

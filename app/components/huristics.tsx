@@ -166,13 +166,13 @@ export class svgConfig {
 function ToggleText({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (config.showText) {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "disable text"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "disable text"})}>
                 Hide text
             </span>
         )
     } else {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "enable text"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "enable text"})}>
                 Show text
             </span>
         )
@@ -183,13 +183,13 @@ function ToggleText({config, configDispatch}: {config: svgConfig, configDispatch
 function LargeSvg({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (config.largeSvg) {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "small svg"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "small svg"})}>
                 Use small svg
             </span>
         )
     } else {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "large svg"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "large svg"})}>
                 Large Svg
             </span>
         )
@@ -201,13 +201,13 @@ function ToggleZoom({config, configDispatch}: {config: svgConfig, configDispatch
     if (config._zoomAvailable) {
         if (config.useZoom) {
             return (
-                <span className="dark_thing clickable" onClick={() => configDispatch({type: "disable zoom"})}>
+                <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "disable zoom"})}>
                     Disable Zoom
                 </span>
             )
         } else {
             return (
-                <span className="dark_thing clickable" onClick={() => configDispatch({type: "enable zoom"})}>
+                <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "enable zoom"})}>
                     Enable Zoom
                 </span>
             )
@@ -223,7 +223,7 @@ function ToggleZoom({config, configDispatch}: {config: svgConfig, configDispatch
 function ChangeZoom({config, configDispatch}: {config: svgConfig, configDispatch: Dispatch<svgConfigAction>}) {
     if (!config._settingZoomFirst && !config._settingZoomSecond) {
         return (
-            <span className="dark_thing clickable" onClick={() => configDispatch({type: "ready set first"})}>
+            <span className="dark_thing clickable lclickable" onClick={() => configDispatch({type: "ready set first"})}>
                 Set zoom
             </span>
         )
@@ -254,7 +254,7 @@ function DisableableCheckbox({recipe, currentCheckedCount, setCurrentCheckedCoun
     const [currentlyChecked, setCurrentlyChecked] = useState(!recipe.isDisabled);
     return (<>
         <div key={recipe.id}>
-            <label className="font-bold">
+            <label className="font-bold lclickable">
                 <input type="checkbox" className="mr-2" checked={currentlyChecked} onChange={() => {
                     console.log("starts with", currentlyChecked, currentCheckedCount);
                     // if (currentlyChecked && currentCheckedCount > 1) {
@@ -297,7 +297,7 @@ function MetaPart({name, value}: {name: string, value: any}) {
                 </div>
 
             </Popup>
-            <span className="dark clickable" onClick={() => setChoicePopupOpen(true)}>
+            <span className="dark clickable lclickable" onClick={() => setChoicePopupOpen(true)}>
                 {name}: {value}
             </span>
         </span>
@@ -386,7 +386,7 @@ export function HuristicsInfoDisplay({requestState}: {requestState: CraftingRequ
                     {/* <label><button onClick={() => console.log(svgConfigObj)}/>logging svgConfigObj</label>
                     <label><button onClick={() => console.log(metaSolves)}/>(Log all meta)</label>
                     <label><button onClick={() => console.log(bestMeta)}/>(Log best meta)</label> */}
-                    <label><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
+                    <label className="mr-2 lclickable"><input type="checkbox" checked={modeCheckbox} onChange={() => {updateModeCheckbox(!modeCheckbox)}}/>{"Use \"Best\" Huristic"}</label>
                     <HuristicNumberChoice boxState={modeCheckbox} permMetaNum={huristicNum} updateMetaNum={updateHuristicNum} metaOptSize={Object.keys(metaSolves.permMetaCollection).length}/>
                     {chosenMetaCost}
                     {metaSolves.permLimitHit ? <span className="text-red-500">More than {metaSolves.permLimit} permutations. Skipped some for performance.</span> : <></>}

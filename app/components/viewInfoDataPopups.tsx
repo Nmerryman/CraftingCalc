@@ -53,11 +53,11 @@ export function ItemPopupText({resource}: {resource: Resource | Recipe | Process
 
     return (
         <div>
-            <label>
+            <label className="lclickable">
                 <input type="checkbox" checked={resource.isDisabled} onChange={toggleDisabled}/>Disable the resource/recipe
             </label>
             <br/>
-            <label>
+            <label className="lclickable">
                 <input type="checkbox" checked={resource.isBase} onChange={toggleBase}/>Treat resource/recipe as base
             </label>
         </div>
@@ -148,7 +148,7 @@ export function DisplayCTBItemStack({stack, permMeta, showProcess = true}: {stac
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
             <CTBStackPopup pState={popupState} pClose={disablePopup} stack={stack} permMeta={permMeta} showProcess={showProcess}/>
-            <label>
+            <label className="bclickable">
             <input type="checkbox" className="mr-1"/>
             {stack.amount}x {stack.resourceName}
             </label>

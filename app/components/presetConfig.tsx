@@ -137,19 +137,19 @@ export function PresetConfig({dispatchRequestMenu, presetStorage, setPresetStora
                     Load from (generated) JSON
                     </span>
                     <input type="text" className="dark_thing" placeholder="Preset Data" onChange={e => setJsonInput(e.currentTarget.value)} onKeyDown={OnEnterCall(loadJsonPreset)}></input>
-                    <input type="button" className="dark_thing clickable" value="Load JSON Preset" onClick={loadJsonPreset}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Load JSON Preset" onClick={loadJsonPreset}/>
                     <span>
                     Delete saved preset
                     </span>
                     <input type="text" className="dark_thing" placeholder="Preset Name" value={deletionInput} onChange={e => setDeletionInput(e.currentTarget.value)} onKeyDown={OnEnterCall(removeFromLocal)} list="preset_names"/>
-                    <input type="button" className="dark_thing clickable" value="Delete Local" onClick={removeFromLocal}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Delete Local" onClick={removeFromLocal}/>
                     <span>
                     Download remote presets
                     </span>
                     <input type="text" className="dark_thing" placeholder="Preset Link" value={downloadInput} onChange={e => setDownloadInput(e.currentTarget.value)} onKeyDown={OnEnterCall(downloadToLocal)}/>
-                    <input type="button" className="dark_thing clickable" value="Download" onClick={downloadToLocal}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Download" onClick={downloadToLocal}/>
                     <span>Undo last disabled thing</span>
-                    <input type="button" className="dark_thing clickable" value={undoButtonText} onClick={undoLastDisabled}/>
+                    <input type="button" className="dark_thing clickable lclickable" value={undoButtonText} onClick={undoLastDisabled}/>
                 </div>
                 {
                     (statusText.length > 0) ? 

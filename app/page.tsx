@@ -114,7 +114,7 @@ function PresetMenu({dispatchRequestMenu, presetStorage, setPresetStorage}: {dis
             {/* <CheckBackendStatus/> */}
             <div className="text-black grid grid-cols-2">
                 <input className="col-span-2 dark_thing" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu))}></input>
-                <input className="dark_thing clickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
+                <input className="dark_thing lclickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
                 <PresetConfig dispatchRequestMenu={dispatchRequestMenu} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>
@@ -131,9 +131,9 @@ function Header({dispatchRequestMenu, presetStorage, setPresetStorage}: {dispatc
                 Crafting Site
             </div>
             <div className="grid grid-cols-4">
-                <a className="dark_thing clickable grow flex items-center justify-center" href="wiki">Help</a>
-                <a className="dark_thing clickable grow flex items-center justify-center" href="presetGenerator">Preset Creator</a>
-                <a className="dark_thing clickable grow flex items-center justify-center" href="https://github.com/Nmerryman/CraftingCalc-Frontend">Source</a>
+                <a className="dark_thing clickable lclickable grow flex items-center justify-center" href="wiki">Help</a>
+                <a className="dark_thing clickable lclickable grow flex items-center justify-center" href="presetGenerator">Preset Creator</a>
+                <a className="dark_thing clickable lclickable grow flex items-center justify-center" href="https://github.com/Nmerryman/CraftingCalc-Frontend">Source</a>
                 <PresetMenu dispatchRequestMenu={dispatchRequestMenu} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>

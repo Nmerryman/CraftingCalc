@@ -65,11 +65,22 @@
 }
 
 .clickable {
-  cursor: pointer;
   &:hover {
     background-color: var(--light-color);
     color: var(--dark-color);
   }
+}
+
+.bclickable {
+  cursor: copy;
+}
+
+.lclickable {
+  cursor: pointer;
+}
+
+.rclickable {
+  cursor: context-menu;
 }
 
 /* I don't like the max height hack. The number is the way it is because it 

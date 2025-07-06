@@ -63,7 +63,7 @@ function ResourceListItem({resource, dispatch, debugScore}: {resource: Resource,
     return (
         <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
             <ItemPopup pState={popupState} pClose={disablePopup} stack={new Stack(resource.name)} resource={resource}/>
-            <li key={resource.name} className="cursor-pointer" {...{"score": debugScore}} onClick={() => dispatch({type: "toggle", name: resource.name})}>({debugScore}){resource.name}</li>
+            <li key={resource.name} className="bclickable" {...{"score": debugScore}} onClick={() => dispatch({type: "toggle", name: resource.name})}>({debugScore}){resource.name}</li>
         </div>
     )
 }
@@ -146,7 +146,7 @@ function ProcessListItem({process}: {process: Process}) {
     const disablePopup = () => {setPopupState(false)};
     const togglePopup = () => {setPopupState(!popupState)};
     return (
-        <div onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
+        <div className="rclickable" onContextMenu={(event) => {togglePopup(); event.preventDefault()}}>
             <ProcessPopup pState={popupState} pClose={disablePopup} process={process}/>
             <li>{process.getKey()}</li>
         </div>
@@ -193,7 +193,7 @@ function RequestListItem({item, requestDispatch}: {item: Stack, requestDispatch:
             {/* <Image src={xIcon.src} 
                 onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer" alt="X Icon"/> */}
             <img src={xIcon.src} 
-                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 hover:cursor-pointer ml-1" alt="X Icon"/>
+                onClick={() => requestDispatch({type: "remove", name: item.resourceName})} className="float-right object-contain h-8 lclickable ml-1" alt="X Icon"/>
         </li>
     )
 
@@ -205,7 +205,7 @@ function ListRequests({requestState, requestDispatch}: {requestState: CraftingRe
     return (
         <ul className="px-5">
             <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-red-500">Crafting Request</span><button className="dark_thing clickable" onClick={() => {craftingData.passedHealthCheck = false; requestDispatch({type: "refresh", name: ""})}}> refresh calculations</button>
+                <span className="font-bold text-red-500">Crafting Request</span><button className="dark_thing lclickable clickable" onClick={() => {craftingData.passedHealthCheck = false; requestDispatch({type: "refresh", name: ""})}}> refresh calculations</button>
             </div>
             <div className="scrollable_list">
                 {Object.values(requestState).map((rval) => {return <RequestListItem key={rval.resourceName} item={rval} requestDispatch={requestDispatch}/>})}

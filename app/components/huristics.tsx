@@ -401,7 +401,7 @@ export function HuristicsInfoDisplay({requestState}: {requestState: CraftingRequ
         return (
             <div className="flex justify-center items-center h-full text-red-500">
                 <div className="">
-                    Either no request in place or health check failed. (Check console(f12) for details)
+                    Either no preset under that name, resource request in place or health check failed. (Check console(f12) for details)
                 </div>
             </div>
         )

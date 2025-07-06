@@ -150,6 +150,13 @@ export function PresetConfig({dispatchRequestMenu, presetStorage, setPresetStora
                     <input type="button" className="dark_thing clickable lclickable" value="Download" onClick={downloadToLocal}/>
                     <span>Undo last disabled thing</span>
                     <input type="button" className="dark_thing clickable lclickable" value={undoButtonText} onClick={undoLastDisabled}/>
+                    <input type="button" className="dark_thing clickable lclickable" value="Reset local presets" onClick={() => {
+                        for (const key of presetStorage.getKeys()) {
+                            presetStorage.removeItem(key);
+                        }
+                        setPresetStorage(presetStorage.shallowClone());
+                        setStatusText("Cleared all local presets. (refresh page to reload default presets)");
+                    }}/>
                 </div>
                 {
                     (statusText.length > 0) ? 

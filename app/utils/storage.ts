@@ -35,7 +35,7 @@ export class StorageWrapper implements StorageInterface {
             if (!this.cacheNames.has(key)) {
                 this.cacheNames.add(key);
                 // Update the meta root to include this key
-                this.base.setItem(this.metaRoot, JSON.stringify(Array.from(this.cacheNames)));
+                this.updateRootInfo();
             }
         }
     }
@@ -51,6 +51,12 @@ export class StorageWrapper implements StorageInterface {
     removeItem(key: string): void {
         this.base.removeItem(this.metaRoot + key);
         this.cacheNames.delete(key);
+        this.updateRootInfo();  // Update the meta root to remove this key
+        console.log("Removed key: " + key);
+    }
+
+    updateRootInfo(): void {
+        this.base.setItem(this.metaRoot, JSON.stringify(Array.from(this.cacheNames)));
     }
 
     shallowClone(): StorageWrapper {

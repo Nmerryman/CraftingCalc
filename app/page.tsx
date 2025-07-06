@@ -54,7 +54,7 @@ function ensureDefaultPresets(presetStorage: StorageWrapper, setPresetStorage: D
     console.log("Ensuring default presets are loaded...");
     
     // DEBUG clear
-    localStorage.clear();
+    // localStorage.clear();
     presetStorage = new StorageWrapper(localStorage, "_available_local");  // Recreate the storage wrapper to ensure that it has the latest data.
 
     // Create temp object
@@ -101,6 +101,8 @@ function ensureDefaultPresets(presetStorage: StorageWrapper, setPresetStorage: D
         presetStorage.setItem("Vanilla", JSON.stringify(tempData));
 
         setPresetStorage(presetStorage.shallowClone());  // Update the state to reflect the new preset storage.
+    } else {
+        console.log("Preexisting presets found.");
     }
 }
 

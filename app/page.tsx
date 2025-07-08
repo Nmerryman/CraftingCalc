@@ -116,7 +116,7 @@ function PresetMenu({dispatchRequestMenu, presetStorage, setPresetStorage}: {dis
             {/* <CheckBackendStatus/> */}
             <div className="text-black grid grid-cols-2">
                 <input className="col-span-2 dark_thing" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu))}></input>
-                <input className="dark_thing lclickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
+                <input className="dark_thing lclickable clickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
                 <PresetConfig dispatchRequestMenu={dispatchRequestMenu} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>
@@ -230,7 +230,7 @@ export default function Main() {
     return (  // we can define the datalist early so that it can be used everywhere.
         <CraftingDataProvider>
             <DisabledListProvider>
-                <MainBody />
+                <MainBody/>
             </DisabledListProvider>
         </CraftingDataProvider>
     );

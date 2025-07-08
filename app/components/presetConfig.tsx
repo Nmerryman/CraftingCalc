@@ -126,7 +126,7 @@ export function PresetConfig({dispatchRequestMenu, presetStorage, setPresetStora
 
     return (
         <>
-            <input type="button" value="Config" className="dark_thing clickable" onClick={() => setPopupState(true)}/>
+            <input type="button" value="Config" className="dark_thing clickable lclickable" onClick={() => setPopupState(true)}/>
             <Popup className="standard-popup" open={popupState} onClose={closePopup}>
                 <div className="dark items-center justify-center flex mt-1"><strong>Preset Config</strong>
                     {/* <Image src={xIcon.src} className="h-7 absolute right-0" onClick={closePopup} alt="X"/> */}

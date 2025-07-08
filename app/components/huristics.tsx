@@ -7,6 +7,7 @@ import { CraftingData, Recipe } from "../crafting/units";
 import { PermMeta, SolveMeta, StepNode, TempSolver } from "../crafting/solver";
 import Popup from "reactjs-popup";
 import { useCraftingData } from "./contexts/craftingContext";
+import { removeFromDisabledList, useDisabledList, useDisabledListDispatch } from "./contexts/disabledListContext";
 
 // If the select number box is checked, create an input that allows the user to enter a number
 function HuristicNumberChoice({boxState, permMetaNum, updateMetaNum, metaOptSize}: {boxState: boolean, permMetaNum: number, updateMetaNum: Dispatch<number>, metaOptSize: number}) {
@@ -252,6 +253,8 @@ function ConfigButtons({config, configDispatch}: {config: svgConfig, configDispa
 
 function DisableableCheckbox({recipe, currentCheckedCount, setCurrentCheckedCount}: {recipe: Recipe, currentCheckedCount: number, setCurrentCheckedCount: Dispatch<SetStateAction<number>>}) {
     const [currentlyChecked, setCurrentlyChecked] = useState(!recipe.isDisabled);
+    const disabledList = useDisabledList();
+    const setDisabledList = useDisabledListDispatch();
     return (<>
         <div key={recipe.id}>
             <label className="font-bold lclickable">
@@ -261,10 +264,12 @@ function DisableableCheckbox({recipe, currentCheckedCount, setCurrentCheckedCoun
                     if (currentlyChecked) {
                         recipe.isDisabled = true;
                         setCurrentCheckedCount(currentCheckedCount - 1);
+                        setDisabledList([...disabledList, recipe.id!]);
                         setCurrentlyChecked(false);
                     } else if (!currentlyChecked) {
                         recipe.isDisabled = false;
                         setCurrentCheckedCount(currentCheckedCount + 1);
+                        removeFromDisabledList(recipe.id!, disabledList, setDisabledList);
                         setCurrentlyChecked(true);
                     }
                 }} />

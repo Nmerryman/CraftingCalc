@@ -234,7 +234,7 @@ export enum StepNodeType {
 export class StepNode {
     // Stage 1: Building the graph
     type: StepNodeType;
-    name: string | number;
+    name: RRKey;
     parents: Array<StepNode> = [];
     children: Array<StepNode> = [];
     root: boolean = false;
@@ -294,16 +294,20 @@ export class StepNode {
 
     populateChildren() {
         // Builds an acyclic graph of all possible recipes and resources
+        if (!this.root) {
+            console.log("base check")
+            console.log(this)
+        }
         if (this.root) {
             for (let child of this.children) {
                 this.solveMeta.stepNodeCache[child.name] = child;
                 child.populateChildren();
             }
-        } else {
+        } else if (!this.isBase()) {    // Add children as long as:
             let parents = this.parentNames();   // Names of all possible parents to make sure we haven't seen this node before
             for (let srcName of this.getSrcs()) {
                 const srcThing = this.craftingData.get(srcName)!;
-                if (!parents.has(srcName) 
+                if (!parents.has(srcName)   // Skip this src child if: 
                     && !srcThing.isDisabled 
                     && !(this.type == StepNodeType.RESOURCE && this.craftingData.processes[(srcThing as Recipe).processUsed].isDisabled)) {
                     if (srcName in this.solveMeta.stepNodeCache) {
@@ -484,9 +488,10 @@ export class StepNode {
     }
     
     isBase() {
-        // I'm lazy and I think this looks nicer.
-        // This is ok because health checks already passed.
-        return this.children.length == 0;
+        // // I'm lazy and I think this looks nicer.
+        // // This is ok because health checks already passed.
+        // return this.children.length == 0;
+        return !this.root && this.craftingData.get(this.name)!.isBase;
     }
 }
 

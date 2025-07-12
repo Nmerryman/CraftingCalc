@@ -1,4 +1,38 @@
 
+const helpers = `
+//
+// Helper functions to add resources, processes, and recipes. No need to mess with these.
+//
+
+function addResources(resourceCollection, names) {
+    for (let name of names) {
+        resourceCollection[name] = new Resource(name);
+    }
+}
+
+function markAsBaseResources(resourceCollection, names) {
+    for (const name of names) {
+        resourceCollection[name].isBase = true;
+    }
+}
+
+function addProcesses(processCollection, names) {
+    for (let name of names) {
+        processCollection[name] = new Process(name);
+    }
+}
+
+function toStackArray(inputStacks) {
+    // Converts an object of stacks to an array of stacks.
+    return Object.entries(inputStacks).map(([name, count]) => new Stack(name, count));
+}
+
+function defaultRecipeFactory(processName) {
+    // This is a factory function handles vanilla style recipes; multiple inputs, and single output.
+    return (outputName, inputStacks, outputCount = 1) => {return new Recipe(processName, toStackArray(inputStacks), [new Stack(outputName, outputCount)])};
+}
+
+`
 
 export const defaultText = `// This is written in javascript and passed to an eval function.
 
@@ -102,29 +136,6 @@ export const basicTextWithHelpers = `// This is written in javascript and passed
 
 let data = arguments[0];  // Connection to the outside
 
-function addResources(resourceCollection, names) {
-    for (let name of names) {
-        resourceCollection[name] = new Resource(name);
-    }
-}
-
-function markAsBaseResources(resourceCollection, names) {
-    for (const name of names) {
-        resourceCollection[name].isBase = true;
-    }
-}
-
-function addProcesses(processCollection, names) {
-    for (let name of names) {
-        processCollection[name] = new Process(name);
-    }
-}
-
-function defaultRecipeFactory(processName) {
-    // This is a factory function handles vanilla recipes, multiple inputs, and single output.
-    return (outputName, inputStacks, outputCount = 1) => {return new Recipe(processName, inputStacks, [new Stack(outputName, outputCount)])};
-}
-
 let resources = {};
 addResources(resources, ["Stick", "Iron Ingot", "Iron Ore", "Iron Pickaxe", "Plank", "Oak Log"]);
 markAsBaseResources(resources, ["Oak Log", "Iron Ore"]);
@@ -137,40 +148,23 @@ const craftingTableRecipe = defaultRecipeFactory("Crafting Table");
 const furnaceRecipe = defaultRecipeFactory("Furnace");
 
 let recipes = [
-    craftingTableRecipe("Iron Pickaxe", [new Stack("Stick", 2), new Stack("Iron Ingot", 3)]),
-    furnaceRecipe("Iron Ingot", [new Stack("Iron Ore")]),
-    craftingTableRecipe("Stick", [new Stack("Plank", 2)], 4),
-    craftingTableRecipe("Plank", [new Stack("Oak Log")], 4),
+    craftingTableRecipe("Iron Pickaxe", {"Stick": 2, "Iron Ingot": 3}),
+    furnaceRecipe("Iron Ingot", {"Iron Ore": 1}),
+    craftingTableRecipe("Stick", {"Plank": 2}, 4),
+    craftingTableRecipe("Plank", {"Oak Log": 4}),
 ];
 
 data.resources = resources;
 data.processes = processes;
 data.recipes = recipes;
 data.meta = {dataVersion: 1, name: "Pickaxe"};
-`
+
+` + helpers;
 
 
 export const brickedBlastFurnaceText = `// This is written in javascript and passed to an eval function.
 
 let data = arguments[0];  // Connection to the outside
-
-function addResources(resourceCollection, names) {
-    for (let name of names) {
-        resourceCollection[name] = new Resource(name);
-    }
-}
-
-function markAsBaseResources(resourceCollection, names) {
-    for (const name of names) {
-        resourceCollection[name].isBase = true;
-    }
-}
-
-function addProcesses(processCollection, names) {
-    for (let name of names) {
-        processCollection[name] = new Process(name);
-    }
-}
 
 let resources = {}
 addResources(resources, ["Bricked Blast Furnace", "Iron Furnace", "Firebricks", "Iron Plate", "Furnace", "Wrench", "Firebrick", 
@@ -182,6 +176,7 @@ addResources(resources, ["Bricked Blast Furnace", "Iron Furnace", "Firebricks", 
 
 markAsBaseResources(resources, ["Wrench", "Iron Ingot", "Hammer", "XP Bucket", "Gypsum Ore", "Calcite Ore", "Cactus", "Cobblestone",
     "Mortar", "Sand", "Hardened Clay", "Mold (Ingot)", "Wooden Form (Brick)", "Gravel", "Clay"])
+resources["Hammer"].durability = 100;
 
 let processes = {}
 addProcesses(processes, ["Crafting", "Forge Hammer", "Smelting", "Compressor", "Cauldron Washing", "Macerator", "Right Clicking Source",
@@ -206,7 +201,7 @@ let recipes = [
     new Recipe("Crafting", [new Stack("Calcite Dust", 2), new Stack("Clay Dust"), new Stack("Stone Dust"), new Stack("Quartz Sand"), new Stack("Water Bucket"), new Stack("Bucket")], [new Stack("Bucket of Concrete")]),
     new Recipe("Cauldron Washing", [new Stack("Impure Pile of Calcite Dust")], [new Stack("Calcite Dust")]),
     new Recipe("Forge Hammer", [new Stack("Crushed Calcite Ore")], [new Stack("Impure Pile of Calcite Dust")]),
-    new Recipe("Macertor", [new Stack("Calcite Ore")], [new Stack("Crushed Calcite Ore", 2)]),
+    new Recipe("Macerator", [new Stack("Calcite Ore")], [new Stack("Crushed Calcite Ore", 2)]),
     new Recipe("Crafting", [new Stack("Iron Plate", 3), new Stack("Hammer")], [new Stack("Bucket")]),
     new Recipe("Right Clicking Source", [new Stack("Bucket")], [new Stack("Water Bucket")]),
     // new Recipe("Crafting", [new Stack("Bucket"), new Stack("Cactus Juice", 8)], [new Stack("Water Bucket")]),
@@ -221,7 +216,7 @@ let recipes = [
     // new Recipe("Crafting", [new Stack("XP Bucket", 4)], [new Stack("Small Pile of Brick Dust")]),
     // new Recipe("Crafting", [new Stack("Brick"), new Stack("Mortar")], [new Stack("Small Pile of Brick Dust")]),
     new Recipe("Forge Hammer", [new Stack("Brick")], [new Stack("Small Pile of Brick Dust")]),
-    new Recipe("Macertor", [new Stack("Hardened Clay")], [new Stack("Clay Dust")]),
+    new Recipe("Macerator", [new Stack("Hardened Clay")], [new Stack("Clay Dust")]),
     new Recipe("Smelting", [new Stack("Unfired Clay Brick")] , [new Stack("Brick")]),
     new Recipe("Alloy Smelter", [new Stack("Clay"), new Stack("Mold (Ingot)")], [new Stack("Brick")]),
     // new Recipe("Crafting", [new Stack("Clay"), new Stack("Wooden Form (Brick)")], [new Stack("Unfired Clay Brick")]),
@@ -232,54 +227,33 @@ data.resources = resources;
 data.processes = processes;
 data.recipes = recipes;
 data.meta = {dataVersion: 1, name: "Bricked Blast Furnace"};
-`
+
+` + helpers;
 
 export const plasticText = `// This is written in javascript and passed to an eval function.
 
 let data = arguments[0];  // Connection to the outside
 
-function addResources(resourceCollection, names) {
-    for (let name of names) {
-        resourceCollection[name] = new Resource(name);
-    }
-}
-
-function markAsBaseResources(resourceCollection, names) {
-    for (const name of names) {
-        resourceCollection[name].isBase = true;
-    }
-}
-
-function addProcesses(processCollection, names) {
-    for (let name of names) {
-        processCollection[name] = new Process(name);
-    }
-}
-
-function defaultRecipeFactory(processName) {
-    // This is a factory function handles vanilla recipes, multiple inputs, and single output.
-    return (outputName, inputStacks, outputCount = 1) => {return new Recipe(processName, inputStacks, [new Stack(outputName, outputCount)])};
-}
-
 let resources = {};
 addResources(resources, ["HDPE Pellet", "Substrate", "Oxygen", "Liquid Ethylene", "Bio Fuel", "Hydrogen", "Water", "Kelp"]);
-resources["Water"].isBase = true;
-resources["Kelp"].isBase = true;
-resources["Liquid Ethylene"].isBase = true;
+markAsBaseResources(resources, ["Water", "Kelp"]);
 
 let processes = {};
 addProcesses(processes, ["Pressurized Reaction Chamber", "Crusher", "Electrolytic Separator"])
 
+let PRC = defaultRecipeFactory("Pressurized Reaction Chamber");
+
 let recipes = [
-    new Recipe("Pressurized Reaction Chamber", [new Stack("Liquid Ethylene", 50), new Stack("Oxygen", 10), new Stack("Substrate")], [new Stack("HDPE Pellet")]),
-    new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 10), new Stack("Hydrogen", 100), new Stack("Bio Fuel", 2)], [new Stack("Substrate"), new Stack("Liquid Ethylene", 100)]),
+    PRC("HDPE Pellet", {"Substrate": 1, "Oxygen": 10, "Liquid Ethylene": 50}),
+    new Recipe("Pressurized Reaction Chamber", toStackArray({"Water": 10, "Hydrogen": 100, "Bio Fuel": 2}), toStackArray({"Substrate": 1, "Liquid Ethylene": 100})),
     new Recipe("Crusher", [new Stack("Kelp")], [new Stack("Bio Fuel", 2)]),
-    new Recipe("Electrolytic Separator", [new Stack("Water", 2)], [new Stack("Hydrogen", 2), new Stack("Oxygen")]),
-    new Recipe("Pressurized Reaction Chamber", [new Stack("Water", 200), new Stack("Liquid Ethylene", 100), new Stack("Substrate")], [new Stack("Substrate", 8)])
+    new Recipe("Electrolytic Separator", [new Stack("Water", 2)], toStackArray({"Hydrogen": 2, "Oxygen": 1})),
+    new Recipe("Pressurized Reaction Chamber", toStackArray({"Water": 200, "Liquid Ethylene": 100, "Substrate": 1}), [new Stack("Substrate", 8)])
 ]
 
 data.resources = resources;
 data.processes = processes;
 data.recipes = recipes;
 data.meta = {dataVersion: 1, name: "HDPE Pellet", downloaded: false};
-`
+
+` + helpers;

@@ -383,6 +383,11 @@ export function HuristicsInfoDisplay({requestState}: {requestState: CraftingRequ
         } else {
             chosenMetaText = Object.keys(metaSolves.permMetaCollection)[huristicNum];
             bestMeta = metaSolves.permMetaCollection[chosenMetaText];
+            if (typeof bestMeta === "undefined") {  // User selected hueristic number that doesn't exist anymore.
+                console.warn("Best meta not found for chosen heuristic:", chosenMetaText, "Resetting to 0");
+                updateHuristicNum(0);
+                return <></>
+            }
         }
         const chosenMetaCost = "Costs: " + bestMeta.cost.toPrecision(4).toString();
         return (

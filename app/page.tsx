@@ -28,9 +28,9 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>, presetStorage: S
     var value = element?.value;
     if (!value) {
         // value = "Dev";
-        // value = "HDPE Pellet"
+        value = "HDPE Pellet"
         // value = "Vanilla"
-        value = "BBF";
+        // value = "BBF";
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -184,7 +184,7 @@ function MainBody() {
         if (loadingStage === 2) {
             PullPreset(dispatchData, presetStorage, dispatchCraftingRequest);
             // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
-            dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
+            // dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
             // dispatchCraftingRequest({type: "toggle", name: testResourceName})
             // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
             // dispatchCraftingRequest({type: "toggle", name: "iron axe"})

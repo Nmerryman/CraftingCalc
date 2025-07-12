@@ -227,7 +227,7 @@ export function mmHDPEPellet(dispatch: Dispatch<CraftingAction>) {
     addResources(resources, ["HDPE Pellet", "Substrate", "Oxygen", "Liquid Ethylene", "Bio Fuel", "Hydrogen", "Water", "Kelp"]);
     resources["Water"].isBase = true;
     resources["Kelp"].isBase = true;
-    resources["Liquid Ethylene"].isBase = true;
+    // resources["Liquid Ethylene"].isBase = true;
 
     let processes = {};
     addProcesses(processes, ["Pressurized Reaction Chamber", "Crusher", "Electrolytic Separator"])

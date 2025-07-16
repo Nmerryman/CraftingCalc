@@ -27,6 +27,11 @@ function addProcesses(r: Record<string, Process>, names: Array<string>) {
     }
 }
 
+function toStackArray(inputStacks: Record<string, number>): Array<Stack> {
+    // Converts an object of stacks to an array of stacks.
+    return Object.entries(inputStacks).map(([name, count]) => new Stack(name, count));
+}
+
 function defaultRecipeFactory(process: string) {
     // This is a factory function handles vanilla recipes, multiple inputs, and single output.
     return (output: string, input: Array<Stack>) => {return new Recipe(process, input, [new Stack(output)])};
@@ -244,5 +249,38 @@ export function mmHDPEPellet(dispatch: Dispatch<CraftingAction>) {
     dispatch({type: "set processes", recordValue: processes});
     dispatch({type: "set recipes", arrayValue: recipes});
     let meta: craftingMetaData = {dataVersion: 1, name: "HDPE Pellet", downloaded: false};
+    dispatch({type: "set metadata", anyValue: meta});   
+}
+
+
+export function durabilityTest(dispatch: Dispatch<CraftingAction>) {
+
+    let resources: Record<string, Resource> = {};
+    addResources(resources, ["final thing", "tool A", "tool B", "tool C", "tool D", "base resource", "part A", "part B", "part C", "part D"]);
+    markAsBaseResources(resources, ["base resource", "part A", "part B", "part C", "part D"]);
+    resources["tool A"].durability = 10;
+    resources["tool B"].durability = 20;
+    resources["tool C"].durability = 30;
+    resources["tool D"].durability = 40;
+    resources["part C"].value = 0.5;
+
+    let processes = {};
+    addProcesses(processes, ["Crafting"])
+
+    let recipes = [
+        new Recipe("Crafting", [new Stack("base resource", 1), new Stack("part A", 2)], [new Stack("tool A")]),
+        new Recipe("Crafting", [new Stack("base resource", 1), new Stack("part B", 2)], [new Stack("tool B")]),
+        new Recipe("Crafting", [new Stack("base resource", 1), new Stack("part C", 2)], [new Stack("tool C")]),
+        new Recipe("Crafting", [new Stack("base resource", 1), new Stack("part D", 2)], [new Stack("tool D")]),
+        new Recipe("Crafting", [new Stack("tool A"), new Stack("base resource")], [new Stack("final thing")]),
+        new Recipe("Crafting", [new Stack("tool B"), new Stack("base resource")], [new Stack("final thing")]),
+        new Recipe("Crafting", [new Stack("tool C"), new Stack("base resource")], [new Stack("final thing")]),
+        new Recipe("Crafting", [new Stack("tool D"), new Stack("base resource")], [new Stack("final thing")]),
+    ]
+
+    dispatch({type: "set resources", recordValue: resources});
+    dispatch({type: "set processes", recordValue: processes});
+    dispatch({type: "set recipes", arrayValue: recipes});
+    let meta: craftingMetaData = {dataVersion: 1, name: "durability", downloaded: false};
     dispatch({type: "set metadata", anyValue: meta});   
 }

@@ -59,19 +59,29 @@ export class PermMeta {
             return;
         }
         for (const node of this.leveledNodes.slice(1)) {    // These have already been set
-            if (node.root) {
+            if (node.root) {    // Should already be skipped, but just in case
                 continue;
             } else if (node.type == StepNodeType.RESOURCE) {
                 // When a resource has multiple parents, that means that it's needed for multiple recipes
                 const startingRatio = node.countRatio;
                 node.countRatio = 0;
+                let rootFound = false;
                 for (const parentNode of node.parents) {
                     if (!parentNode.root){
                         const recipeInput = this.craftingData.getRecipeInputAmount(parentNode.name as number, node.name as string);
                         node.countRatio += parentNode.countRatio * recipeInput!.amount;
                     } else {
-                        node.countRatio += startingRatio;
+                        rootFound = true;
                     }
+                }
+
+                // Factor in durability
+                const target = this.craftingData.resources[node.name as string];
+                if (target && target.durability != -1) {
+                    node.countRatio = Math.ceil(node.countRatio / target.durability);
+                }
+                if (rootFound) {    // Special amount requested from root accounted at the end
+                    node.countRatio += startingRatio;
                 }
             } else if (node.type == StepNodeType.RECIPE) {
                 // When a recipe has multiple parents, that means the recipe produces multiple outputs, each of which are used

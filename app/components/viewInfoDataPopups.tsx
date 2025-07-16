@@ -24,6 +24,21 @@ export function DisplayStack({stack}: {stack: Stack}) {
 }
 
 
+function DisplayStackDurability({stack, permMeta}: {stack: Stack, permMeta: PermMeta}) {
+    const node = permMeta.nodeCache[stack.resourceName];
+    if (node.type == StepNodeType.RESOURCE) {
+        const resource = permMeta.craftingData.resources[stack.resourceName];
+        if (resource.durability != -1) {
+            return (
+                <div>
+                    Durability: {resource.durability}
+                </div>
+            )
+        }
+    }
+    return (<>nothing</>);
+}
+
 export function ItemPopupText({resource}: {resource: Resource | Recipe | Process}) {
     const [dummy, setDummy] = useState(false);  // This exists to reload the component on checkbox change to show it did something
     const disabledList = useDisabledList();
@@ -115,6 +130,7 @@ export function CTBStackPopup({pState, pClose, stack, permMeta, showProcess}: {p
             <Popup className="narrow-popup" open={pState} onClose={pClose}>
                 <div className="">
                     <DisplayStack stack={stack}/>  {/*Not sure if this recursion is bad or not */}
+                    <DisplayStackDurability stack={stack} permMeta={permMeta}/>
                     <ItemPopupText resource={resourceVal}/>
                     {(showProcess) ? <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/> : <></>}
                 </div>

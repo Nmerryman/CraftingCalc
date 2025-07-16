@@ -7,7 +7,7 @@ import { CraftingAction, CraftingDataProvider, craftingReducer, useCraftingData,
 import { OnEnterCall } from "./utils/keyboardUtil";
 import { RequestMenuAction, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
-import { compressedCobblestonePreset, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { compressedCobblestonePreset, durabilityTest, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
 import { HuristicsInfoDisplay } from "./components/huristics";
 import { TempSolver } from './crafting/solver';
 import { vanilla } from './crafting/vanillaPreset';
@@ -28,9 +28,10 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>, presetStorage: S
     var value = element?.value;
     if (!value) {
         // value = "Dev";
-        value = "HDPE Pellet"
-        // value = "Vanilla"
+        // value = "HDPE Pellet"
+        value = "Vanilla"
         // value = "BBF";
+        // value = "durability";  
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -99,6 +100,11 @@ function ensureDefaultPresets(presetStorage: StorageWrapper, setPresetStorage: D
         fakeDispatch({type: "reset"});
         vanilla(fakeDispatch);
         presetStorage.setItem("Vanilla", JSON.stringify(tempData));
+
+        // durability test
+        fakeDispatch({type: "reset"});
+        durabilityTest(fakeDispatch);
+        presetStorage.setItem("durability", JSON.stringify(tempData));
 
         setPresetStorage(presetStorage.shallowClone());  // Update the state to reflect the new preset storage.
     } else {
@@ -197,6 +203,7 @@ function MainBody() {
             // dispatchCraftingRequest({type: "toggle", name: "observer"})
             // dispatchCraftingRequest({type: "toggle", name: "piston"})
             // // dispatchCraftingRequest({type: "toggle", name: "red bed"})
+            // dispatchCraftingRequest({type: "toggle", name: "final thing", value: 300})
 
         }
     }, [loadingStage]);  // Run update once after main page load

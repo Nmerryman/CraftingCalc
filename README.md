@@ -136,3 +136,17 @@ npm run dev # Host the dev website. It has hot reloading.
 - Make Change the way anything that could be improved looks
 - Add check boxes to each thing under thing under the SVG
 - Add a dropdown to select which crafting path chosen (Currently only the "Best" is chosen)
+
+
+# Demo order
+- What can it do? Req dispenser - Show off basic ui
+- What if my build needs multiple items? Req multiple items (piston, repeater, redstone) - Lines intertwine + calculations work
+- But I don't have redstone ore? Disable redstone ore/deepslate - Items can be disabled + undo
+- I have plenty of redstone! Mark redstone as base
+- What can I use as fuel? Show cooking time recipe - Show toggles between permutations + multirecipe view
+- But what If I'm not playing vanilla? Change to backpack - Show how loading local works
+- How would I make my own? Open generator in new tab - Show examples and then select default (show editable)
+- How can I save/share this? - show off that text got copied and load + display pickaxe
+- What if there is too much data to past to friends? Fix default pickaxe stick count + change name - remote save
+- I want to delete what I downloaded! Load remote + reset + load remote
+- Demo - Hammer durability analysis - sticks + iron/copper/gold at 30/20/5 durability = hammer + iron -> plate. Request many plates (100). Maybe set copper to lower value

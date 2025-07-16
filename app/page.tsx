@@ -7,7 +7,7 @@ import { CraftingAction, CraftingDataProvider, craftingReducer, useCraftingData,
 import { OnEnterCall } from "./utils/keyboardUtil";
 import { RequestMenuAction, requestMenuReducer, SelectionDisplay } from "./components/selectionMenu";
 import { PresetConfig } from "./components/presetConfig";
-import { compressedCobblestonePreset, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
+import { compressedCobblestonePreset, durabilityTest, gtBackpackPreset, gtBlastFurnace, mmHDPEPellet, vanillaPickaxePreset } from "./crafting/defaultPresets";
 import { HuristicsInfoDisplay } from "./components/huristics";
 import { TempSolver } from './crafting/solver';
 import { vanilla } from './crafting/vanillaPreset';
@@ -29,8 +29,9 @@ function PullPreset(craftingDispatch: Dispatch<CraftingAction>, presetStorage: S
     if (!value) {
         // value = "Dev";
         // value = "HDPE Pellet"
-        // value = "Vanilla"
-        value = "BBF";
+        value = "Vanilla"
+        // value = "BBF";
+        // value = "durability";  
     }
     console.log("Preset is " + value);
     craftingDispatch({type: "reset"});
@@ -100,6 +101,11 @@ function ensureDefaultPresets(presetStorage: StorageWrapper, setPresetStorage: D
         vanilla(fakeDispatch);
         presetStorage.setItem("Vanilla", JSON.stringify(tempData));
 
+        // durability test
+        fakeDispatch({type: "reset"});
+        durabilityTest(fakeDispatch);
+        presetStorage.setItem("durability", JSON.stringify(tempData));
+
         setPresetStorage(presetStorage.shallowClone());  // Update the state to reflect the new preset storage.
     } else {
         console.log("Preexisting presets found.");
@@ -116,7 +122,7 @@ function PresetMenu({dispatchRequestMenu, presetStorage, setPresetStorage}: {dis
             {/* <CheckBackendStatus/> */}
             <div className="text-black grid grid-cols-2">
                 <input className="col-span-2 dark_thing" autoComplete="on" list="preset_names" placeholder="Preset Name" id="preset_input" onKeyDown={OnEnterCall(() => PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu))}></input>
-                <input className="dark_thing lclickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
+                <input className="dark_thing lclickable clickable" type="submit" value="Load" onClick={() => {PullPreset(craftingDispatch, presetStorage, dispatchRequestMenu)}}></input>
                 <PresetConfig dispatchRequestMenu={dispatchRequestMenu} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>
@@ -184,7 +190,7 @@ function MainBody() {
         if (loadingStage === 2) {
             PullPreset(dispatchData, presetStorage, dispatchCraftingRequest);
             // dispatchCraftingRequest({type: "toggle", name: "HDPE Pellet"})
-            dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
+            // dispatchCraftingRequest({type: "toggle", name: "Bricked Blast Furnace"})
             // dispatchCraftingRequest({type: "toggle", name: testResourceName})
             // dispatchCraftingRequest({type: "toggle", name: "iron ingot"})
             // dispatchCraftingRequest({type: "toggle", name: "iron axe"})
@@ -197,6 +203,7 @@ function MainBody() {
             // dispatchCraftingRequest({type: "toggle", name: "observer"})
             // dispatchCraftingRequest({type: "toggle", name: "piston"})
             // // dispatchCraftingRequest({type: "toggle", name: "red bed"})
+            // dispatchCraftingRequest({type: "toggle", name: "final thing", value: 300})
 
         }
     }, [loadingStage]);  // Run update once after main page load
@@ -230,7 +237,7 @@ export default function Main() {
     return (  // we can define the datalist early so that it can be used everywhere.
         <CraftingDataProvider>
             <DisabledListProvider>
-                <MainBody />
+                <MainBody/>
             </DisabledListProvider>
         </CraftingDataProvider>
     );

@@ -59,19 +59,29 @@ export class PermMeta {
             return;
         }
         for (const node of this.leveledNodes.slice(1)) {    // These have already been set
-            if (node.root) {
+            if (node.root) {    // Should already be skipped, but just in case
                 continue;
             } else if (node.type == StepNodeType.RESOURCE) {
                 // When a resource has multiple parents, that means that it's needed for multiple recipes
                 const startingRatio = node.countRatio;
                 node.countRatio = 0;
+                let rootFound = false;
                 for (const parentNode of node.parents) {
                     if (!parentNode.root){
                         const recipeInput = this.craftingData.getRecipeInputAmount(parentNode.name as number, node.name as string);
                         node.countRatio += parentNode.countRatio * recipeInput!.amount;
                     } else {
-                        node.countRatio += startingRatio;
+                        rootFound = true;
                     }
+                }
+
+                // Factor in durability
+                const target = this.craftingData.resources[node.name as string];
+                if (target && target.durability != -1) {
+                    node.countRatio = Math.ceil(node.countRatio / target.durability);
+                }
+                if (rootFound) {    // Special amount requested from root accounted at the end
+                    node.countRatio += startingRatio;
                 }
             } else if (node.type == StepNodeType.RECIPE) {
                 // When a recipe has multiple parents, that means the recipe produces multiple outputs, each of which are used
@@ -234,7 +244,7 @@ export enum StepNodeType {
 export class StepNode {
     // Stage 1: Building the graph
     type: StepNodeType;
-    name: string | number;
+    name: RRKey;
     parents: Array<StepNode> = [];
     children: Array<StepNode> = [];
     root: boolean = false;
@@ -294,16 +304,20 @@ export class StepNode {
 
     populateChildren() {
         // Builds an acyclic graph of all possible recipes and resources
+        if (!this.root) {
+            console.log("base check")
+            console.log(this)
+        }
         if (this.root) {
             for (let child of this.children) {
                 this.solveMeta.stepNodeCache[child.name] = child;
                 child.populateChildren();
             }
-        } else {
+        } else if (!this.isBase()) {    // Add children as long as:
             let parents = this.parentNames();   // Names of all possible parents to make sure we haven't seen this node before
             for (let srcName of this.getSrcs()) {
                 const srcThing = this.craftingData.get(srcName)!;
-                if (!parents.has(srcName) 
+                if (!parents.has(srcName)   // Skip this src child if: 
                     && !srcThing.isDisabled 
                     && !(this.type == StepNodeType.RESOURCE && this.craftingData.processes[(srcThing as Recipe).processUsed].isDisabled)) {
                     if (srcName in this.solveMeta.stepNodeCache) {
@@ -484,9 +498,10 @@ export class StepNode {
     }
     
     isBase() {
-        // I'm lazy and I think this looks nicer.
-        // This is ok because health checks already passed.
-        return this.children.length == 0;
+        // // I'm lazy and I think this looks nicer.
+        // // This is ok because health checks already passed.
+        // return this.children.length == 0;
+        return !this.root && this.craftingData.get(this.name)!.isBase;
     }
 }
 

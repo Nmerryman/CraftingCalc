@@ -81,7 +81,7 @@
 
 .rclickable {
   /* cursor: context-menu; */
-  cursor: url("https://i.sstatic.net/wcR2n.jpg"), context-menu;  /* url hopefully works on windows and backup on linux */
+  cursor: url("https://i.sstatic.net/wcR2n.jpg"), help, context-menu;  /* url hopefully works on windows and backup on linux */
 }
 
 /* I don't like the max height hack. The number is the way it is because it 

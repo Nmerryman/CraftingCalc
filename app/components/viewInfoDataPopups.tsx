@@ -135,7 +135,7 @@ export function CTBStackPopup({pState, pClose, stack, permMeta, showProcess}: {p
                     {(showProcess) ? <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/> : <></>}
                 </div>
                 <div className="flex">
-                    <button className="dark_thing clickable ml-auto mt-1" onClick={pClose}>Done</button>
+                    <button className="dark_thing clickable ml-auto mt-1" onClick={pClose}>Close</button>
                 </div>
             </Popup>
         )
@@ -148,7 +148,7 @@ export function CTBStackPopup({pState, pClose, stack, permMeta, showProcess}: {p
                     <ProcessesUsedText nodeKey={stack.resourceName} permMeta={permMeta}/>
                 </div>
                 <div className="flex">
-                    <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+                    <button className="popup_button ml-auto" onClick={pClose}>Close</button>
                 </div>
             </Popup>
         )

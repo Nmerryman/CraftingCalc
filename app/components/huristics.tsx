@@ -1,10 +1,10 @@
 import { ChangeEvent, Dispatch, SetStateAction, useEffect, useReducer, useState } from "react";
-import { CraftingRequestType } from "./selectionMenu";
+import { CraftingRequestType, ProcessListItem } from "./selectionMenu";
 import { SVGHuristic } from "./svgHuristics";
 import { Coordinate } from "./svg";
 import { DisplayCTBItemStack, DisplayRecipe } from "./viewInfoDataPopups";
 import { CraftingData, Recipe } from "../crafting/units";
-import { PermMeta, SolveMeta, StepNode, TempSolver } from "../crafting/solver";
+import { PermMeta, SolveMeta, StepNode, StepNodeType, TempSolver } from "../crafting/solver";
 import Popup from "reactjs-popup";
 import { useCraftingData } from "./contexts/craftingContext";
 import { removeFromDisabledList, useDisabledList, useDisabledListDispatch } from "./contexts/disabledListContext";
@@ -36,6 +36,15 @@ function HuristicNumberChoice({boxState, permMetaNum, updateMetaNum, metaOptSize
 
 // Calculation itemized lists
 function HuristicStats({permMeta}: {permMeta: PermMeta}) {
+    const requiredProcessesSet = new Set<string>();
+    for (const node of permMeta.leveledNodes) {
+        if (node.type == StepNodeType.RECIPE && !node.root) {
+            console.log("Node", node.name, "processUsed", permMeta.craftingData.recipes[node.name as number]);
+            requiredProcessesSet.add(permMeta.craftingData.recipes[node.name as number].processUsed);
+        }
+    }
+    const requiredProcesses = Array.from(requiredProcessesSet).map(processName => permMeta.craftingData.processes[processName]);
+
     return (
         <div className="flex justify-around mb-4 pt-2 divide-x-2 divide-dashed divide-slate-600/30">
             <span className="px-5">
@@ -66,6 +75,15 @@ function HuristicStats({permMeta}: {permMeta: PermMeta}) {
                 <div>
                 {
                     permMeta.inputStacks.map((stack, i) => <DisplayCTBItemStack stack={stack} permMeta={permMeta} showProcess={false} key={`${stack.resourceName}_${i}`}/>)
+                }
+                </div>
+                <br/>
+                <div className="font-bold text-gray-400">
+                    Needed Processes
+                </div>
+                <div>
+                {
+                    requiredProcesses.map((process, i) => <ProcessListItem process={process} key={i}/>)
                 }
                 </div>
             </span>

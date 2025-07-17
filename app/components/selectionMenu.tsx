@@ -50,7 +50,7 @@ function ItemPopup({pState, pClose, stack, resource}: {pState: boolean, pClose: 
                 <ItemPopupText resource={resource}/>
             </div>
             <div className="flex">
-                <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+                <button className="dark_thing clickable lclickable ml-auto" onClick={pClose}>Close</button>
             </div>
         </Popup>
     )
@@ -134,14 +134,14 @@ function ProcessPopup({pState, pClose, process}: {pState: boolean, pClose: () =>
                 {/* <DisplayRecipe recipe={recipe} ratio={1}/> */}
             </div>
             <div className="flex">
-                <button className="popup_button ml-auto" onClick={pClose}>Done</button>
+                <button className="dark_thing clickable lclickable ml-auto" onClick={pClose}>Close</button>
             </div>
         </Popup>
     )
 }
 
 
-function ProcessListItem({process}: {process: Process}) {
+export function ProcessListItem({process}: {process: Process}) {
     const [popupState, setPopupState] = useState(false);
     const disablePopup = () => {setPopupState(false)};
     const togglePopup = () => {setPopupState(!popupState)};

@@ -13,6 +13,7 @@ import { TempSolver } from './crafting/solver';
 import { vanilla } from './crafting/vanillaPreset';
 import { RamStorage, StorageWrapper } from './utils/storage';
 import { DisabledListProvider } from './components/contexts/disabledListContext';
+import Link from 'next/link';
 
 
 
@@ -139,9 +140,9 @@ function Header({dispatchRequestMenu, presetStorage, setPresetStorage}: {dispatc
                 Crafting Site
             </div>
             <div className="grid grid-cols-4">
-                <a className="dark_thing clickable lclickable grow flex items-center justify-center" href="wiki">Help</a>
-                <a className="dark_thing clickable lclickable grow flex items-center justify-center" href="presetGenerator">Preset Creator</a>
-                <a className="dark_thing clickable lclickable grow flex items-center justify-center" href="https://github.com/Nmerryman/CraftingCalc-Frontend">Source</a>
+                <Link className="dark_thing clickable lclickable grow flex items-center justify-center" href="/wiki">Help</Link>
+                <Link className="dark_thing clickable lclickable grow flex items-center justify-center" href="/presetGenerator">Preset Creator</Link>
+                <Link className="dark_thing clickable lclickable grow flex items-center justify-center" href={process.env.githubRepoUrl!}>Source</Link>
                 <PresetMenu dispatchRequestMenu={dispatchRequestMenu} presetStorage={presetStorage} setPresetStorage={setPresetStorage}/>
             </div>
         </div>

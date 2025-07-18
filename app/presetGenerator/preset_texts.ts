@@ -5,26 +5,45 @@ const helpers = `
 //
 
 function addResources(resourceCollection, names) {
-    for (let name of names) {
-        resourceCollection[name] = new Resource(name);
+    try {
+        for (let name of names) {
+            resourceCollection[name] = new Resource(name);
+        }
+    } catch (e) {
+        console.error("Failed in addResources:", e);
+        throw new Error("Failed in addResources: " + e.message);
     }
 }
 
 function markAsBaseResources(resourceCollection, names) {
-    for (const name of names) {
-        resourceCollection[name].isBase = true;
+    try {
+        for (const name of names) {
+            resourceCollection[name].isBase = true;
+        }
+    } catch (e) {
+        console.error("Failed in markAsBaseResources:", e);
+        throw new Error("Failed in markAsBaseResources: " + e.message);
     }
 }
 
 function addProcesses(processCollection, names) {
-    for (let name of names) {
-        processCollection[name] = new Process(name);
+    try {
+        for (let name of names) {
+            processCollection[name] = new Process(name);
+        }
+    } catch (e) {
+        console.error("Failed in addProcesses:", e);
+        throw new Error("Failed in addProcesses: " + e.message);
     }
 }
 
 function toStackArray(inputStacks) {
     // Converts an object of stacks to an array of stacks.
-    return Object.entries(inputStacks).map(([name, count]) => new Stack(name, count));
+    try {
+        return Object.entries(inputStacks).map(([name, count]) => new Stack(name, count));
+    } catch (e) {
+        console.error("Failed in toStackArray:", e);
+        throw new Error("Failed in toStackArray: " + e.message);
 }
 
 function defaultRecipeFactory(processName) {

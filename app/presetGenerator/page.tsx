@@ -1,13 +1,17 @@
 'use client'
 
 import 'reflect-metadata'
-import { ChangeEvent, Dispatch, useEffect, useReducer, useState } from "react"
+import { ChangeEvent, Dispatch, use, useEffect, useReducer, useRef, useState } from "react"
 import { CraftingData, Resource, Process, Recipe, Stack, craftingMetaData } from "../crafting/units";
 import { craftingReducer } from "../components/contexts/craftingContext";
 import Popup from 'reactjs-popup';
 import { pingServer, pullNameInfo, pushNameInfo } from '../utils/serverApi';
 import { basicText, basicTextWithHelpers, brickedBlastFurnaceText, defaultText, emptyText, plasticText } from './preset_texts';
 import Link from 'next/link';
+import ReactCodeMirror, { Extension } from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { isNumeric } from '../utils/testNumber';
+import { vim } from '@replit/codemirror-vim';
 
 
 function Header() {
@@ -75,14 +79,24 @@ function SubHeader({setCodeText, setSaveAvail}: {setCodeText: Dispatch<string>, 
 }
 
 
-function Editor({codeState, setCodeState, setSaveAvail}: {codeState: string, setCodeState: Dispatch<string>, setSaveAvail: Dispatch<boolean>}) {
-    function textChange(event: ChangeEvent<HTMLTextAreaElement>) {
-        setCodeState(event.target.value);
-        setSaveAvail(false);
+function Editor({codeState, setCodeState, setSaveAvail, vimMode}: {codeState: string, setCodeState: Dispatch<string>, setSaveAvail: Dispatch<boolean>, vimMode: boolean}) {
+    const extensions: Extension[] = [javascript()];
+    if (vimMode) {
+        extensions.push(vim())
     }
 
     return (
-        <textarea value={codeState} onChange={textChange} className='w-5/6 h-5/6 dark_thing' placeholder='Insert Code here'/>
+
+        <ReactCodeMirror
+            value={codeState}
+            onChange={(value) => {
+                setCodeState(value);
+                setSaveAvail(false);
+            }}
+            extensions={extensions}
+            theme={'dark'}
+            className='w-5/6 h-5/6 max-h-[83.3%] overflow-y-auto dark_thing'
+        />
     )
 }
 
@@ -164,26 +178,57 @@ function Uploader({popupState, craftingData}: {popupState: boolean, craftingData
     }
 }
 
+function extractErrorStackLineNumber(error: Error): number | string | any{
+
+    if (error.stack) {
+        const lineInfo = error.stack.trim().split('\n').map(line => line.trim().split(':').at(-2));
+        // const lineInfo = error.stack.trim().split('\n');
+        // console.log(lineInfo);
+        if (lineInfo.length > 1 && lineInfo[0] !== undefined) {
+            if (isNumeric(lineInfo[0])) {   // Firefox
+                return Number(lineInfo[0]) - 2 || "Unknown line number";
+            } else if (isNumeric(lineInfo[1]!)) { // Chrome
+                return Number(lineInfo[1]) - 2 || "Unknown line number";
+            } else {
+                return "Unknown browser. Unable to determine line number";
+            }
+        }
+        // return error.stack.split(":").at(-2);
+    }
+    return "Unknown line number";
+}
+
 export default function Main() {
     const [codeText, setCodeText] = useState(defaultText);
     const [saveAvail, setSaveAvail] = useState(false);
+    const [errorText, setErrorText] = useState("");
     const [craftingData, craftingDispatch] = useReducer(craftingReducer, new CraftingData);
     const [firstTry, setFirstTry] = useState(true);
     const [validData, setValidData] = useState(false);
     const [popupOpen, setPopupOpen] = useState(false);
     const popupClose = () => setPopupOpen(false);
+    const [vimMode, setVimMode] = useState(false);
 
     const [testState, setTestState] = useState(false);
 
     function runFunction() {
         setFirstTry(false);
+        setErrorText("");
 
-        const func = new Function(codeText);  // It's ok for this to error in the console. I'll just make sure that others know where to look.
         let container = {resources: {}, processes: {}, recipes: [], meta: {}, _meta: {}};
+        let func: Function;
+        try {
+            func = new Function(codeText);  // It's ok for this to error in the console. I'll just make sure that others know where to look.
+        } catch (e) {
+            console.log("(Syntax) ", e);
+            setErrorText("(Syntax) " + e);
+            return;
+        }
         try {
             func(container)
-        } catch {
-            console.log("(Syntax) Error in provided script.");
+        } catch (e) {
+            console.log("(Runtime) ", e);
+            setErrorText("(Runtime) " + e + "\n" + "likely at line " + extractErrorStackLineNumber(e as Error));
             return;
         }
         container._meta = container.meta;
@@ -217,7 +262,7 @@ export default function Main() {
         <div className='flex flex-col items-center h-screen'>
             <Header/>
             <SubHeader setCodeText={setCodeText} setSaveAvail={setSaveAvail}/>
-            <Editor codeState={codeText} setCodeState={setCodeText} setSaveAvail={setSaveAvail}/>
+            <Editor codeState={codeText} setCodeState={setCodeText} setSaveAvail={setSaveAvail} vimMode={vimMode}/>
             <Popup open={popupOpen} onClose={popupClose}>
                 {/* <div className='readable_text border border-white bg-white flex-col'> */}
                 <div className='dark border flex flex-col'>
@@ -232,12 +277,17 @@ export default function Main() {
                 {
                 (saveAvail) ? <button className='dark_thing clickable' onClick={saveData}>Save generated preset (to clipboard)</button> : <></>
                 }
+                <label className='dark_thing lclickable absolute right-0'>
+                    <input type="checkbox" className='lclickable' checked={vimMode} onChange={() => setVimMode(!vimMode)}/>
+                    Toggle Vim Mode
+                </label>
             </div>
             {
             (!firstTry) ?
-                (validData) ? <div>Code generated a valid object</div> : <div>Code failed to create a valid object. Check the console for error message (f12)</div>
+                (validData) ? <div>Code generated a valid crafting data object.</div> : <div>Code failed to create a valid crafting data object. Check the console for error message details (f12)</div>
                 : <></>
             }
+            <div className='text-red-500'>{errorText}</div>
         </div>
     )
 }

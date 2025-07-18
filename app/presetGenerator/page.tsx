@@ -7,6 +7,7 @@ import { craftingReducer } from "../components/contexts/craftingContext";
 import Popup from 'reactjs-popup';
 import { pingServer, pullNameInfo, pushNameInfo } from '../utils/serverApi';
 import { basicText, basicTextWithHelpers, brickedBlastFurnaceText, defaultText, emptyText, plasticText } from './preset_texts';
+import Link from 'next/link';
 
 
 function Header() {
@@ -52,7 +53,7 @@ function SubHeader({setCodeText, setSaveAvail}: {setCodeText: Dispatch<string>, 
     return (
     <>
         <div>
-            <a href="/wiki/presetGenerator.html" target="_blank" className='hover:underline'>Documentation/Examples</a>
+            <Link href="/wiki/presetGenerator" target="_blank" className='hover:underline'>Documentation/Examples</Link>
         </div>
         <div>
             Generate preset objects for the crafting system by writing (JavaScript) code.

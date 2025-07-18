@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>How to Use the Code Editor</title>
+
+const codeText = `
+
   <style>
     body {
       font-family: Arial, sans-serif;
       line-height: 1.6;
       margin: 40px;
       background-color: #f9f9f9;
+
       color: #333;
     }
     h1, h2, h3 {
@@ -34,8 +32,6 @@
       color: #2980b9;
     }
   </style>
-</head>
-<body>
   <h1>🛠️ How to Use the Code Editor</h1>
   <p>Welcome to the Code Editor! This guide will help you get started writing and customizing crafting recipes using JavaScript.</p>
 
@@ -78,7 +74,7 @@ data.meta = {dataVersion: 1, name: "Pickaxe"};
 
 <section>
   <h2>🧦 Key Concepts</h2>
-  The exact details which are guarenteeded to be up to date with the latest version of the site can be found in the <a href="https://github.com/Nmerryman/CraftingCalc/blob/master/app/crafting/units.ts">units.ts</a> file in the CraftingCalc repository.
+  The exact details which are guarenteeded to be up to date with the latest version of the site can be found in the <a href="` + process.env.githubRepoUrl + `/blob/master/app/crafting/units.ts">units.ts</a> file in the CraftingCalc repository.
 
   <p>BaseThing is the foundation for all resources and processes, providing common properties found in anything that extends <code>BaseThing</code>. 
     It is not meant to be used directly. As of writing, <code>imgUrl</code>, <code>sourceUrl</code>, and <code>tags</code> are not used in the calculator.</p>
@@ -233,8 +229,15 @@ new Recipe("Dryer", [new Stack("Plank Dust")], [new Stack("Plank")])
 <section>
   <h2>📚 See Also</h2>
   <ul>
-    <li><a href="https://github.com/Nmerryman/CraftingCalc/">Source code</a></li>
+    <li><a href="` + process.env.githubRepoUrl + `">Source code</a></li>
   </ul>
 </section>
-</body>
-</html>
+`
+
+export default function Main() {
+    return (
+    <div dangerouslySetInnerHTML={{__html: codeText}} className="light w-screen absolute top-0 left-0 h-screen overflow-y-scroll">
+
+    </div>
+    )
+}

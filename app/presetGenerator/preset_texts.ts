@@ -44,6 +44,7 @@ function toStackArray(inputStacks) {
     } catch (e) {
         console.error("Failed in toStackArray:", e);
         throw new Error("Failed in toStackArray: " + e.message);
+    }
 }
 
 function defaultRecipeFactory(processName) {
